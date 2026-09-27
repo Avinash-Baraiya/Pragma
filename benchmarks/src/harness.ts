@@ -137,7 +137,7 @@ export interface Metrics {
   /** Share of all cases answered without a model call. */
   readonly deterministicCoverage: number;
   readonly latency: { readonly p50: number; readonly p95: number; readonly p99: number };
-  readonly tokens: { readonly input: number; readonly output: number };
+  readonly tokens: { readonly input: number; readonly output: number; readonly cached: number };
   readonly byCategory: Readonly<Record<string, { cases: number; exact: number }>>;
 }
 
@@ -155,12 +155,14 @@ export function summarize(outcomes: readonly CaseOutcome[]): Metrics {
   const byCategory: Record<string, { cases: number; exact: number }> = {};
   let input = 0;
   let output = 0;
+  let cached = 0;
   for (const o of outcomes) {
     const bucket = (byCategory[o.case.category] ??= { cases: 0, exact: 0 });
     bucket.cases++;
     if (o.exactMatch) bucket.exact++;
     input += o.result.meta.usage?.inputTokens ?? 0;
     output += o.result.meta.usage?.outputTokens ?? 0;
+    cached += o.result.meta.usage?.cachedInputTokens ?? 0;
   }
   return {
     cases: outcomes.length,
@@ -181,7 +183,7 @@ export function summarize(outcomes: readonly CaseOutcome[]): Metrics {
       p95: percentile(latencies, 95),
       p99: percentile(latencies, 99),
     },
-    tokens: { input, output },
+    tokens: { input, output, cached },
     byCategory,
   };
 }
@@ -206,7 +208,7 @@ export function renderReport(
     `| Refusal rate (unsupported/adversarial) | ${pct(metrics.refusalRate)} |`,
     `| Answered without a model | ${pct(metrics.deterministicCoverage)} |`,
     `| Latency p50 / p95 / p99 | ${ms(metrics.latency.p50)} / ${ms(metrics.latency.p95)} / ${ms(metrics.latency.p99)} |`,
-    `| Tokens in / out | ${metrics.tokens.input} / ${metrics.tokens.output} |`,
+    `| Tokens in / cached / out | ${metrics.tokens.input} / ${metrics.tokens.cached} / ${metrics.tokens.output} |`,
     '',
     '| Category | Exact / Cases |',
     '| --- | --- |',
