@@ -10,7 +10,16 @@ import type {
   TableQuery,
 } from '@pragma/core';
 import type { Engine } from '@pragma/interpreter';
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react';
 
 /** @public */
 export type PragmaStatus = 'idle' | 'interpreting';
@@ -80,7 +89,9 @@ export interface PragmaProviderProps {
  */
 export function PragmaProvider(props: PragmaProviderProps): ReactNode {
   const { engine, onQueryChange, onResult, pageInfo, children } = props;
-  const [internalQuery, setInternalQuery] = useState<TableQuery>(() => props.defaultQuery ?? engine.initialQuery());
+  const [internalQuery, setInternalQuery] = useState<TableQuery>(
+    () => props.defaultQuery ?? engine.initialQuery(),
+  );
   const query = props.query ?? internalQuery;
   const [status, setStatus] = useState<PragmaStatus>('idle');
   const [draft, setDraft] = useState('');
@@ -127,7 +138,11 @@ export function PragmaProvider(props: PragmaProviderProps): ReactNode {
       inFlight.current = controller;
       setStatus('interpreting');
       try {
-        const result = await engine.interpret(text, { currentState: latestQuery.current, signal: controller.signal, ...(pageInfo ? { pageInfo } : {}) });
+        const result = await engine.interpret(text, {
+          currentState: latestQuery.current,
+          signal: controller.signal,
+          ...(pageInfo ? { pageInfo } : {}),
+        });
         // A newer submission (or cancel) superseded this one: drop its result.
         if (inFlight.current !== controller) return undefined;
         const settled = settle(result);
@@ -144,14 +159,22 @@ export function PragmaProvider(props: PragmaProviderProps): ReactNode {
   );
 
   const apply = useCallback(
-    (mutations: readonly Mutation[]) => settle(engine.apply(mutations, { currentState: latestQuery.current, ...(pageInfo ? { pageInfo } : {}) })),
+    (mutations: readonly Mutation[]) =>
+      settle(
+        engine.apply(mutations, {
+          currentState: latestQuery.current,
+          ...(pageInfo ? { pageInfo } : {}),
+        }),
+      ),
     [engine, pageInfo, settle],
   );
 
   const resolve = useCallback(
     (choices: Readonly<Record<string, string>>) => {
       if (!clarification) return undefined;
-      const result = settle(engine.resolve(clarification, choices, { currentState: latestQuery.current }));
+      const result = settle(
+        engine.resolve(clarification, choices, { currentState: latestQuery.current }),
+      );
       if (result.status === 'ok') setDraft('');
       return result;
     },
@@ -183,10 +206,26 @@ export function PragmaProvider(props: PragmaProviderProps): ReactNode {
       reset: () => apply([{ op: 'reset' }]),
       explanation,
       warnings: lastResult?.status === 'ok' ? lastResult.warnings : [],
-      errors: lastResult?.status === 'unsupported' || lastResult?.status === 'error' ? lastResult.errors : [],
+      errors:
+        lastResult?.status === 'unsupported' || lastResult?.status === 'error'
+          ? lastResult.errors
+          : [],
       suggestions: lastResult?.status === 'unsupported' ? lastResult.suggestions : [],
     }),
-    [engine, query, setQuery, status, draft, submit, cancel, lastResult, clarification, resolve, apply, explanation],
+    [
+      engine,
+      query,
+      setQuery,
+      status,
+      draft,
+      submit,
+      cancel,
+      lastResult,
+      clarification,
+      resolve,
+      apply,
+      explanation,
+    ],
   );
 
   return <PragmaContext.Provider value={value}>{children}</PragmaContext.Provider>;

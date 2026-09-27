@@ -35,7 +35,11 @@ export function QueryChips(props: QueryChipsProps): ReactNode {
     <div className={props.className ?? 'pragma-chips'} data-pragma-chips="">
       <ul aria-label={props.label ?? 'Active filters'} className="pragma-chips__list">
         {items.map((item, index) => (
-          <li key={`${item.kind}:${item.nodeId ?? item.field ?? index}`} className="pragma-chip" data-kind={item.kind}>
+          <li
+            key={`${item.kind}:${item.nodeId ?? item.field ?? index}`}
+            className="pragma-chip"
+            data-kind={item.kind}
+          >
             <span className="pragma-chip__text">{item.text}</span>
             {item.kind !== 'pagination' && (
               <button
@@ -78,7 +82,11 @@ export function Explanation(props: ExplanationProps): ReactNode {
   const { explanation, warnings } = usePragma();
   const lines = explanation.filter((i) => i.kind !== 'pagination');
   return (
-    <section className={props.className ?? 'pragma-explanation'} aria-live="polite" data-pragma-explanation="">
+    <section
+      className={props.className ?? 'pragma-explanation'}
+      aria-live="polite"
+      data-pragma-explanation=""
+    >
       {lines.length > 0 && (
         <>
           <h2 className="pragma-explanation__title">{props.title ?? 'Interpreted as'}</h2>
@@ -185,10 +193,12 @@ function ClarificationForm(props: {
 }): ReactNode {
   const baseId = useId();
   const [choices, setChoices] = useState<Record<string, string>>(() =>
-    Object.fromEntries(props.ambiguities.flatMap((a) => {
-      const preferred = a.options.find((o) => o.isDefault === true) ?? a.options[0];
-      return preferred ? [[a.id, preferred.id]] : [];
-    })),
+    Object.fromEntries(
+      props.ambiguities.flatMap((a) => {
+        const preferred = a.options.find((o) => o.isDefault === true) ?? a.options[0];
+        return preferred ? [[a.id, preferred.id]] : [];
+      }),
+    ),
   );
   const complete = props.ambiguities.every((a) => choices[a.id] !== undefined);
 

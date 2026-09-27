@@ -29,7 +29,8 @@ export type ScalarValue = string | number | boolean;
  *
  * @public
  */
-export type FilterValue = ScalarValue | readonly [ScalarValue, ScalarValue] | readonly ScalarValue[] | RelativeDuration;
+export type FilterValue =
+  ScalarValue | readonly [ScalarValue, ScalarValue] | readonly ScalarValue[] | RelativeDuration;
 
 /** @public */
 export interface ConditionOptions {

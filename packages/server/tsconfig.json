@@ -1,14 +1,8 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "customConditions": [
-      "@pragma/source"
-    ],
-    "types": [
-      "node"
-    ]
+    "customConditions": ["@pragma/source"],
+    "types": ["node"]
   },
-  "include": [
-    "src"
-  ]
+  "include": ["src"]
 }

@@ -67,10 +67,16 @@ export function anthropic(options: AnthropicProviderOptions): LanguageModelProvi
       }
 
       if (message.stop_reason === 'refusal') {
-        throw new PragmaModelError('MODEL_OUTPUT_INVALID', `${id}: the model declined to answer.`, { retryable: false });
+        throw new PragmaModelError('MODEL_OUTPUT_INVALID', `${id}: the model declined to answer.`, {
+          retryable: false,
+        });
       }
       if (message.stop_reason === 'max_tokens') {
-        throw new PragmaModelError('MODEL_OUTPUT_INVALID', `${id}: the output was truncated; increase maxOutputTokens.`, { retryable: false });
+        throw new PragmaModelError(
+          'MODEL_OUTPUT_INVALID',
+          `${id}: the output was truncated; increase maxOutputTokens.`,
+          { retryable: false },
+        );
       }
       let text = '';
       for (const block of message.content) {
@@ -79,7 +85,10 @@ export function anthropic(options: AnthropicProviderOptions): LanguageModelProvi
       return {
         text,
         model: message.model,
-        usage: { inputTokens: message.usage.input_tokens, outputTokens: message.usage.output_tokens },
+        usage: {
+          inputTokens: message.usage.input_tokens,
+          outputTokens: message.usage.output_tokens,
+        },
       };
     },
   };

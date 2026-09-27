@@ -16,7 +16,9 @@ describe('error model', () => {
   it('derives retryable from the code by default', () => {
     expect(createIssue('MODEL_ERROR', { message: 'x', messageKey: 'k' }).retryable).toBe(true);
     expect(createIssue('UNKNOWN_FIELD', { message: 'x', messageKey: 'k' }).retryable).toBe(false);
-    expect(createIssue('UNKNOWN_FIELD', { message: 'x', messageKey: 'k', retryable: true }).retryable).toBe(true);
+    expect(
+      createIssue('UNKNOWN_FIELD', { message: 'x', messageKey: 'k', retryable: true }).retryable,
+    ).toBe(true);
   });
 
   it('omits undefined optional properties', () => {
@@ -33,7 +35,10 @@ describe('error model', () => {
   });
 
   it('serializes without stack or cause', () => {
-    const err = new PragmaModelError('MODEL_ERROR', 'upstream failed', { cause: new Error('secret key abc'), status: 502 });
+    const err = new PragmaModelError('MODEL_ERROR', 'upstream failed', {
+      cause: new Error('secret key abc'),
+      status: 502,
+    });
     const json = JSON.stringify(err);
     expect(json).not.toContain('secret');
     expect(json).not.toContain('stack');
@@ -42,7 +47,10 @@ describe('error model', () => {
   });
 
   it('toIssue returns the single wrapped issue unchanged', () => {
-    const issue = createIssue('UNKNOWN_FIELD', { message: 'Unknown field "x".', messageKey: 'field.unknown' });
+    const issue = createIssue('UNKNOWN_FIELD', {
+      message: 'Unknown field "x".',
+      messageKey: 'field.unknown',
+    });
     const err = new PragmaValidationError('invalid', [issue]);
     expect(err.code).toBe('UNKNOWN_FIELD');
     expect(err.toIssue()).toBe(issue);

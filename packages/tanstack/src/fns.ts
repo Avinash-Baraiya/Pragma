@@ -1,4 +1,9 @@
-import { compileComparator, compilePredicate, type FilterGroup, type ResolvedSchema } from '@pragma/core';
+import {
+  compileComparator,
+  compilePredicate,
+  type FilterGroup,
+  type ResolvedSchema,
+} from '@pragma/core';
 import type { PragmaColumnFilterValue, PragmaGlobalFilterValue } from './state.js';
 
 /** The part of a TanStack row these functions need (v8 and v9 compatible). @public */
@@ -15,7 +20,11 @@ export interface PragmaFnOptions {
 type Predicate = (row: ValueRow) => boolean;
 
 /** Column filter function with TanStack's `autoRemove` hook. @public */
-export type PragmaColumnFilterFn = ((row: ValueRow, columnId: string, filterValue: unknown) => boolean) & {
+export type PragmaColumnFilterFn = ((
+  row: ValueRow,
+  columnId: string,
+  filterValue: unknown,
+) => boolean) & {
   readonly autoRemove: (value: unknown) => boolean;
 };
 
@@ -36,7 +45,9 @@ function textOf(value: unknown): string | undefined {
 const readValue = (row: ValueRow, fieldId: string): unknown => row.getValue(fieldId);
 
 function isPragmaValue(value: unknown): value is { kind: 'pragma' } {
-  return typeof value === 'object' && value !== null && (value as { kind?: unknown }).kind === 'pragma';
+  return (
+    typeof value === 'object' && value !== null && (value as { kind?: unknown }).kind === 'pragma'
+  );
 }
 
 /**
@@ -48,7 +59,10 @@ function isPragmaValue(value: unknown): value is { kind: 'pragma' } {
  *
  * @public
  */
-export function pragmaFilterFn(schema: ResolvedSchema, options: PragmaFnOptions = {}): PragmaColumnFilterFn {
+export function pragmaFilterFn(
+  schema: ResolvedSchema,
+  options: PragmaFnOptions = {},
+): PragmaColumnFilterFn {
   const cache = new WeakMap<object, Predicate>();
   const fn = (row: ValueRow, columnId: string, filterValue: unknown): boolean => {
     if (!isPragmaValue(filterValue)) {
@@ -60,7 +74,12 @@ export function pragmaFilterFn(schema: ResolvedSchema, options: PragmaFnOptions 
     let predicate = cache.get(filterValue);
     if (!predicate) {
       const value = filterValue as PragmaColumnFilterValue;
-      const filter: FilterGroup = { type: 'group', id: '_column', logic: 'and', children: value.conditions };
+      const filter: FilterGroup = {
+        type: 'group',
+        id: '_column',
+        logic: 'and',
+        children: value.conditions,
+      };
       predicate = compilePredicate<ValueRow>(
         { search: null, filter, ...(value.context ? { context: value.context } : {}) },
         { schema, getValue: readValue, now: (options.now ?? Date.now)() },
@@ -71,7 +90,10 @@ export function pragmaFilterFn(schema: ResolvedSchema, options: PragmaFnOptions 
   };
   // Remove the filter from state when its value is cleared.
   const autoRemove = (value: unknown): boolean =>
-    value === undefined || value === null || value === '' || (isPragmaValue(value) && (value as PragmaColumnFilterValue).conditions.length === 0);
+    value === undefined ||
+    value === null ||
+    value === '' ||
+    (isPragmaValue(value) && (value as PragmaColumnFilterValue).conditions.length === 0);
   return Object.assign(fn, { autoRemove });
 }
 
@@ -84,7 +106,10 @@ export function pragmaFilterFn(schema: ResolvedSchema, options: PragmaFnOptions 
  *
  * @public
  */
-export function pragmaGlobalFilterFn(schema: ResolvedSchema, options: PragmaFnOptions = {}): (row: ValueRow, columnId: string, filterValue: unknown) => boolean {
+export function pragmaGlobalFilterFn(
+  schema: ResolvedSchema,
+  options: PragmaFnOptions = {},
+): (row: ValueRow, columnId: string, filterValue: unknown) => boolean {
   const cache = new WeakMap<object, Predicate>();
   return (row, _columnId, filterValue) => {
     if (!isPragmaValue(filterValue)) return true;
@@ -92,7 +117,11 @@ export function pragmaGlobalFilterFn(schema: ResolvedSchema, options: PragmaFnOp
     if (!predicate) {
       const value = filterValue as PragmaGlobalFilterValue;
       predicate = compilePredicate<ValueRow>(
-        { search: value.search, filter: value.filter, ...(value.context ? { context: value.context } : {}) },
+        {
+          search: value.search,
+          filter: value.filter,
+          ...(value.context ? { context: value.context } : {}),
+        },
         { schema, getValue: readValue, now: (options.now ?? Date.now)() },
       );
       cache.set(filterValue, predicate);
@@ -108,7 +137,10 @@ export function pragmaGlobalFilterFn(schema: ResolvedSchema, options: PragmaFnOp
  *
  * @public
  */
-export function pragmaSortFn(schema: ResolvedSchema, options: { readonly locale?: string } = {}): (rowA: ValueRow, rowB: ValueRow, columnId: string) => number {
+export function pragmaSortFn(
+  schema: ResolvedSchema,
+  options: { readonly locale?: string } = {},
+): (rowA: ValueRow, rowB: ValueRow, columnId: string) => number {
   const comparators = new Map<string, (a: ValueRow, b: ValueRow) => number>();
   return (rowA, rowB, columnId) => {
     let compare = comparators.get(columnId);

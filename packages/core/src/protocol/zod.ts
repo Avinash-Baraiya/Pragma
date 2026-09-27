@@ -70,7 +70,10 @@ export const filterGroupSchema = z.strictObject({
   },
 });
 
-export const filterNodeSchema = z.discriminatedUnion('type', [filterConditionSchema, filterGroupSchema]);
+export const filterNodeSchema = z.discriminatedUnion('type', [
+  filterConditionSchema,
+  filterGroupSchema,
+]);
 
 export const sortSpecSchema = z.strictObject({
   field: fieldRef,
@@ -87,8 +90,16 @@ const positiveInt = z.number().int().positive().max(Number.MAX_SAFE_INTEGER);
 
 export const paginationSchema = z.discriminatedUnion('type', [
   z.strictObject({ type: z.literal('page'), page: positiveInt, pageSize: positiveInt }),
-  z.strictObject({ type: z.literal('offset'), offset: z.number().int().min(0), limit: positiveInt }),
-  z.strictObject({ type: z.literal('cursor'), cursor: z.string().max(4096).nullable(), limit: positiveInt }),
+  z.strictObject({
+    type: z.literal('offset'),
+    offset: z.number().int().min(0),
+    limit: positiveInt,
+  }),
+  z.strictObject({
+    type: z.literal('cursor'),
+    cursor: z.string().max(4096).nullable(),
+    limit: positiveInt,
+  }),
 ]);
 
 export const queryContextSchema = z.strictObject({
@@ -111,7 +122,11 @@ const filterTargetSchema = z.union([z.strictObject({ id }), z.strictObject({ fie
 export const mutationSchema = z.discriminatedUnion('op', [
   z.strictObject({ op: z.literal('setSearch'), search: searchSpecSchema }),
   z.strictObject({ op: z.literal('clearSearch') }),
-  z.strictObject({ op: z.literal('addFilter'), node: filterNodeSchema, logic: z.enum(['and', 'or']).optional() }),
+  z.strictObject({
+    op: z.literal('addFilter'),
+    node: filterNodeSchema,
+    logic: z.enum(['and', 'or']).optional(),
+  }),
   z.strictObject({ op: z.literal('removeFilter'), target: filterTargetSchema }),
   z.strictObject({ op: z.literal('replaceFilter'), node: filterNodeSchema.nullable() }),
   z.strictObject({ op: z.literal('clearFilters') }),
@@ -130,7 +145,9 @@ export const mutationListSchema = z.array(mutationSchema).max(LIMITS.maxMutation
 
 // Compile-time guard: every mutation op declared in types.ts has a schema branch.
 type _AssertTrue<T extends true> = T;
-type _MutationOpsCovered = _AssertTrue<(typeof MUTATION_OPS)[number] extends z.infer<typeof mutationSchema>['op'] ? true : false>;
+type _MutationOpsCovered = _AssertTrue<
+  (typeof MUTATION_OPS)[number] extends z.infer<typeof mutationSchema>['op'] ? true : false
+>;
 
 /* ---------------------------------- schema --------------------------------- */
 
@@ -150,7 +167,10 @@ export const fieldDefSchema = z.strictObject({
   aliases: aliasList.optional(),
   description: z.string().max(LIMITS.maxDescriptionLength).optional(),
   format: z.enum(FIELD_FORMATS as [string, ...string[]]).optional(),
-  currency: z.string().regex(/^[A-Z]{3}$/, 'must be an ISO 4217 code').optional(),
+  currency: z
+    .string()
+    .regex(/^[A-Z]{3}$/, 'must be an ISO 4217 code')
+    .optional(),
   percentScale: z.enum(['fraction', 'whole']).optional(),
   values: z.array(enumValueSchema).max(LIMITS.maxEnumValues).optional(),
   operators: z.array(z.enum(OPERATORS)).optional(),
@@ -178,7 +198,10 @@ export const tableSchemaSchema = z.strictObject({
   capabilities: z
     .strictObject({
       search: z.boolean().optional(),
-      pagination: z.array(z.enum(PAGINATION_TYPES as [string, ...string[]])).min(1).optional(),
+      pagination: z
+        .array(z.enum(PAGINATION_TYPES as [string, ...string[]]))
+        .min(1)
+        .optional(),
       maxPageSize: positiveInt.optional(),
       maxSorts: positiveInt.max(LIMITS.maxSorts).optional(),
     })

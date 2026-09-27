@@ -7,11 +7,18 @@ import type { ResolvedField } from '../schema/types.js';
 import { normalizeTerm } from '../util/text.js';
 
 /** Outcome of coercing a value against a field. @internal */
-export type CoerceResult<T> = { readonly ok: true; readonly value: T } | { readonly ok: false; readonly issue: PragmaIssue };
+export type CoerceResult<T> =
+  { readonly ok: true; readonly value: T } | { readonly ok: false; readonly issue: PragmaIssue };
 
 const NUMERIC = /^[+-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?$/;
 
-function invalid(field: ResolvedField, path: readonly (string | number)[], reason: string, messageKey: string, details?: Record<string, unknown>): CoerceResult<never> {
+function invalid(
+  field: ResolvedField,
+  path: readonly (string | number)[],
+  reason: string,
+  messageKey: string,
+  details?: Record<string, unknown>,
+): CoerceResult<never> {
   return {
     ok: false,
     issue: createIssue('INVALID_VALUE', {
@@ -34,11 +41,21 @@ function invalid(field: ResolvedField, path: readonly (string | number)[], reaso
  *
  * @public
  */
-export function coerceScalar(field: ResolvedField, raw: unknown, path: readonly (string | number)[] = []): CoerceResult<ScalarValue> {
+export function coerceScalar(
+  field: ResolvedField,
+  raw: unknown,
+  path: readonly (string | number)[] = [],
+): CoerceResult<ScalarValue> {
   switch (field.type) {
     case 'string': {
       if (typeof raw === 'string') {
-        if (raw.length === 0) return invalid(field, path, 'empty text is not a valid value (use isEmpty instead)', 'value.emptyString');
+        if (raw.length === 0)
+          return invalid(
+            field,
+            path,
+            'empty text is not a valid value (use isEmpty instead)',
+            'value.emptyString',
+          );
         return { ok: true, value: raw };
       }
       if (typeof raw === 'number' && Number.isFinite(raw)) return { ok: true, value: String(raw) };
@@ -46,7 +63,9 @@ export function coerceScalar(field: ResolvedField, raw: unknown, path: readonly 
     }
     case 'number': {
       if (typeof raw === 'number') {
-        return Number.isFinite(raw) ? { ok: true, value: raw } : invalid(field, path, 'expected a finite number', 'value.expectedNumber');
+        return Number.isFinite(raw)
+          ? { ok: true, value: raw }
+          : invalid(field, path, 'expected a finite number', 'value.expectedNumber');
       }
       if (typeof raw === 'string') {
         const cleaned = raw.trim().replace(/[,_\s]/g, '');
@@ -69,22 +88,34 @@ export function coerceScalar(field: ResolvedField, raw: unknown, path: readonly 
     }
     case 'enum': {
       if (typeof raw !== 'string' && typeof raw !== 'number') {
-        return invalid(field, path, 'expected one of the allowed values', 'value.expectedEnum', { allowed: field.values.map((v) => v.value) });
+        return invalid(field, path, 'expected one of the allowed values', 'value.expectedEnum', {
+          allowed: field.values.map((v) => v.value),
+        });
       }
       const text = String(raw);
       const exact = field.values.find((v) => v.value === text);
       if (exact) return { ok: true, value: exact.value };
       const match = matchEnumValue(field, text);
       if (match !== undefined) return { ok: true, value: match };
-      return invalid(field, path, `"${text}" is not an allowed value`, 'value.notInEnum', { allowed: field.values.map((v) => v.value), received: text });
+      return invalid(field, path, `"${text}" is not an allowed value`, 'value.notInEnum', {
+        allowed: field.values.map((v) => v.value),
+        received: text,
+      });
     }
     case 'date': {
-      if (typeof raw === 'string' && parsePlainDate(raw.trim())) return { ok: true, value: raw.trim() };
+      if (typeof raw === 'string' && parsePlainDate(raw.trim()))
+        return { ok: true, value: raw.trim() };
       return invalid(field, path, 'expected a date in YYYY-MM-DD format', 'value.expectedDate');
     }
     case 'datetime': {
-      if (typeof raw === 'string' && isDateTimeOperand(raw.trim())) return { ok: true, value: raw.trim() };
-      return invalid(field, path, 'expected an ISO-8601 date or date-time', 'value.expectedDateTime');
+      if (typeof raw === 'string' && isDateTimeOperand(raw.trim()))
+        return { ok: true, value: raw.trim() };
+      return invalid(
+        field,
+        path,
+        'expected an ISO-8601 date or date-time',
+        'value.expectedDateTime',
+      );
     }
   }
 }
@@ -115,17 +146,35 @@ export function coerceOperatorValue(
   const valuePath = [...path, 'value'];
   switch (arity) {
     case 'none':
-      return raw === undefined ? { ok: true, value: undefined } : invalid(field, valuePath, `operator "${operator}" takes no value`, 'value.unexpected');
+      return raw === undefined
+        ? { ok: true, value: undefined }
+        : invalid(field, valuePath, `operator "${operator}" takes no value`, 'value.unexpected');
     case 'single': {
-      if (raw === undefined) return invalid(field, valuePath, `operator "${operator}" requires a value`, 'value.missing');
+      if (raw === undefined)
+        return invalid(
+          field,
+          valuePath,
+          `operator "${operator}" requires a value`,
+          'value.missing',
+        );
       if (Array.isArray(raw) || typeof raw === 'object') {
-        return invalid(field, valuePath, `operator "${operator}" requires a single value`, 'value.expectedSingle');
+        return invalid(
+          field,
+          valuePath,
+          `operator "${operator}" requires a single value`,
+          'value.expectedSingle',
+        );
       }
       return coerceScalar(field, raw, valuePath);
     }
     case 'range': {
       if (!Array.isArray(raw) || raw.length !== 2) {
-        return invalid(field, valuePath, `operator "${operator}" requires exactly two values [from, to]`, 'value.expectedRange');
+        return invalid(
+          field,
+          valuePath,
+          `operator "${operator}" requires exactly two values [from, to]`,
+          'value.expectedRange',
+        );
       }
       const from = coerceScalar(field, raw[0], [...valuePath, 0]);
       if (!from.ok) return from;
@@ -135,10 +184,20 @@ export function coerceOperatorValue(
     }
     case 'list': {
       if (!Array.isArray(raw) || raw.length === 0) {
-        return invalid(field, valuePath, `operator "${operator}" requires a non-empty list`, 'value.expectedList');
+        return invalid(
+          field,
+          valuePath,
+          `operator "${operator}" requires a non-empty list`,
+          'value.expectedList',
+        );
       }
       if (raw.length > LIMITS.maxListLength) {
-        return invalid(field, valuePath, `at most ${LIMITS.maxListLength} values are allowed`, 'value.listTooLong');
+        return invalid(
+          field,
+          valuePath,
+          `at most ${LIMITS.maxListLength} values are allowed`,
+          'value.listTooLong',
+        );
       }
       const out: ScalarValue[] = [];
       for (let i = 0; i < raw.length; i++) {
@@ -150,17 +209,42 @@ export function coerceOperatorValue(
     }
     case 'duration': {
       if (typeof raw !== 'object' || Array.isArray(raw)) {
-        return invalid(field, valuePath, `operator "${operator}" requires a duration like { amount: 7, unit: "day" }`, 'value.expectedDuration');
+        return invalid(
+          field,
+          valuePath,
+          `operator "${operator}" requires a duration like { amount: 7, unit: "day" }`,
+          'value.expectedDuration',
+        );
       }
       const { amount, unit } = raw as Partial<RelativeDuration>;
-      if (typeof amount !== 'number' || !Number.isInteger(amount) || amount <= 0 || amount > LIMITS.maxDurationAmount) {
-        return invalid(field, valuePath, 'duration amount must be a positive whole number', 'value.durationAmount');
+      if (
+        typeof amount !== 'number' ||
+        !Number.isInteger(amount) ||
+        amount <= 0 ||
+        amount > LIMITS.maxDurationAmount
+      ) {
+        return invalid(
+          field,
+          valuePath,
+          'duration amount must be a positive whole number',
+          'value.durationAmount',
+        );
       }
       if (unit === undefined || !DURATION_UNITS.includes(unit)) {
-        return invalid(field, valuePath, `duration unit must be one of ${DURATION_UNITS.join(', ')}`, 'value.durationUnit');
+        return invalid(
+          field,
+          valuePath,
+          `duration unit must be one of ${DURATION_UNITS.join(', ')}`,
+          'value.durationUnit',
+        );
       }
       if (field.type === 'date' && (unit === 'minute' || unit === 'hour')) {
-        return invalid(field, valuePath, `"${unit}" is too fine-grained for a date field`, 'value.durationUnitForDate');
+        return invalid(
+          field,
+          valuePath,
+          `"${unit}" is too fine-grained for a date field`,
+          'value.durationUnitForDate',
+        );
       }
       return { ok: true, value: { amount, unit } };
     }

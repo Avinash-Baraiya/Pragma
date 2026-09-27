@@ -5,7 +5,12 @@ import { compileComparator, defaultGetValue, executeQuery } from './in-memory.js
 
 const NOW = Date.UTC(2024, 5, 15, 12); // 2024-06-15 12:00Z
 
-const cond = (field: string, operator: FilterCondition['operator'], value?: FilterCondition['value'], extra: Partial<FilterCondition> = {}): FilterCondition => ({
+const cond = (
+  field: string,
+  operator: FilterCondition['operator'],
+  value?: FilterCondition['value'],
+  extra: Partial<FilterCondition> = {},
+): FilterCondition => ({
   type: 'condition',
   id: `${field}-${operator}`,
   field,
@@ -25,17 +30,24 @@ const query = (children: FilterNode[] = [], extra: Partial<TableQuery> = {}): Ta
   ...extra,
 });
 
-const names = (q: TableQuery): string[] => executeQuery(userRows, q, { schema: usersSchema, now: NOW }).rows.map((r) => r.name);
+const names = (q: TableQuery): string[] =>
+  executeQuery(userRows, q, { schema: usersSchema, now: NOW }).rows.map((r) => r.name);
 const where = (...c: FilterNode[]): string[] => names(query(c));
 
 describe('executeQuery: text', () => {
   it('compares case-insensitively by default', () => {
     expect(where(cond('name', 'contains', 'RAHUL'))).toEqual(['Rahul Sharma', 'rahul verma']);
-    expect(where(cond('name', 'contains', 'Rahul', { options: { caseSensitive: true } }))).toEqual(['Rahul Sharma']);
+    expect(where(cond('name', 'contains', 'Rahul', { options: { caseSensitive: true } }))).toEqual([
+      'Rahul Sharma',
+    ]);
     expect(where(cond('email', 'eq', 'rahul.v@EXAMPLE.com'))).toEqual(['rahul verma']);
     expect(where(cond('name', 'startsWith', 'john'))).toEqual(['John Smith']);
     expect(where(cond('name', 'endsWith', 'MÜLLER'))).toEqual(['Anna Müller']);
-    expect(where(cond('country', 'in', ['india', 'us']))).toEqual(['Rahul Sharma', 'Priya Patel', 'John Smith']);
+    expect(where(cond('country', 'in', ['india', 'us']))).toEqual([
+      'Rahul Sharma',
+      'Priya Patel',
+      'John Smith',
+    ]);
   });
 
   it('never matches null with value operators, including negative ones', () => {
@@ -68,25 +80,38 @@ describe('executeQuery: numbers, booleans, enums', () => {
     expect(where(cond('age', 'in', [24, 45]))).toEqual(['Priya Patel', 'John Smith']);
     expect(where(cond('age', 'notIn', [24, 45]))).toEqual(['Rahul Sharma', 'rahul verma']);
     expect(where(cond('age', 'neq', 31))).toHaveLength(3);
-    expect(where(cond('age', 'gte', 45), cond('age', 'lte', 45), cond('age', 'eq', 45))).toEqual(['John Smith']);
+    expect(where(cond('age', 'gte', 45), cond('age', 'lte', 45), cond('age', 'eq', 45))).toEqual([
+      'John Smith',
+    ]);
     expect(where(cond('age', 'lt', 25))).toEqual(['Priya Patel']);
     expect(where(cond('discount', 'gt', 0.2))).toEqual(['Priya Patel']);
   });
 
   it('matches booleans and enums', () => {
-    expect(where(cond('verified', 'eq', true))).toEqual(['Rahul Sharma', 'John Smith', 'rahul verma']);
+    expect(where(cond('verified', 'eq', true))).toEqual([
+      'Rahul Sharma',
+      'John Smith',
+      'rahul verma',
+    ]);
     expect(where(cond('verified', 'eq', false))).toEqual(['Priya Patel', 'Anna Müller']);
     expect(where(cond('status', 'eq', 'active'))).toHaveLength(3);
     expect(where(cond('status', 'notIn', ['active', 'pending']))).toEqual(['Anna Müller']);
   });
 
   it('coerces numeric strings and boolean strings in rows', () => {
-    const rows = [{ n: '5', b: 'true' }, { n: 'x', b: 'no' }, { n: '', b: false }];
+    const rows = [
+      { n: '5', b: 'true' },
+      { n: 'x', b: 'no' },
+      { n: '', b: false },
+    ];
     const schema = usersSchema;
     const q = query([cond('age', 'eq', 5)]);
     const got = executeQuery(rows, q, { schema, getValue: (r, f) => (f === 'age' ? r.n : r.b) });
     expect(got.total).toBe(1);
-    const bools = executeQuery(rows, query([cond('verified', 'eq', true)]), { schema, getValue: (r) => r.b });
+    const bools = executeQuery(rows, query([cond('verified', 'eq', true)]), {
+      schema,
+      getValue: (r) => r.b,
+    });
     expect(bools.total).toBe(1);
   });
 });
@@ -98,10 +123,16 @@ describe('executeQuery: dates', () => {
   });
 
   it('evaluates relative datetime ranges against the injected clock and timezone', () => {
-    expect(where(cond('createdAt', 'last', { amount: 7, unit: 'day' }))).toEqual(['Rahul Sharma', 'Priya Patel', 'rahul verma']);
+    expect(where(cond('createdAt', 'last', { amount: 7, unit: 'day' }))).toEqual([
+      'Rahul Sharma',
+      'Priya Patel',
+      'rahul verma',
+    ]);
     expect(where(cond('createdAt', 'today'))).toEqual(['rahul verma']);
     // In Kolkata, 2024-06-15T00:30Z is 06:00 on the 15th and 2024-06-14T18:30Z is midnight of the 15th.
-    const kolkata = names(query([cond('createdAt', 'today')], { context: { timezone: 'Asia/Kolkata' } }));
+    const kolkata = names(
+      query([cond('createdAt', 'today')], { context: { timezone: 'Asia/Kolkata' } }),
+    );
     expect(kolkata).toEqual(['Priya Patel', 'rahul verma']);
     expect(where(cond('createdAt', 'eq', '2024-06-10'))).toEqual(['Rahul Sharma']);
     expect(where(cond('createdAt', 'isNull'))).toEqual([]);
@@ -120,17 +151,30 @@ describe('executeQuery: dates', () => {
 
 describe('executeQuery: groups and search', () => {
   it('supports OR and negated groups', () => {
-    const or: FilterNode = { type: 'group', id: 'g', logic: 'or', children: [cond('age', 'lt', 25), cond('age', 'gt', 40)] };
+    const or: FilterNode = {
+      type: 'group',
+      id: 'g',
+      logic: 'or',
+      children: [cond('age', 'lt', 25), cond('age', 'gt', 40)],
+    };
     expect(where(or)).toEqual(['Priya Patel', 'John Smith']);
     expect(where({ ...or, not: true })).toEqual(['Rahul Sharma', 'Anna Müller', 'rahul verma']);
   });
 
   it('searches searchable fields and enum labels', () => {
     expect(names(query([], { search: { query: 'example.com' } }))).toHaveLength(4);
-    expect(names(query([], { search: { query: 'Rahul', fields: ['name'] } }))).toEqual(['Rahul Sharma', 'rahul verma']);
-    expect(names(query([], { search: { query: 'Inact', fields: ['status'] } }))).toEqual(['Anna Müller']);
+    expect(names(query([], { search: { query: 'Rahul', fields: ['name'] } }))).toEqual([
+      'Rahul Sharma',
+      'rahul verma',
+    ]);
+    expect(names(query([], { search: { query: 'Inact', fields: ['status'] } }))).toEqual([
+      'Anna Müller',
+    ]);
     expect(names(query([], { search: { query: 'act', fields: ['status'] } }))).toHaveLength(4);
-    expect(names(query([cond('verified', 'eq', true)], { search: { query: 'rahul' } }))).toEqual(['Rahul Sharma', 'rahul verma']);
+    expect(names(query([cond('verified', 'eq', true)], { search: { query: 'rahul' } }))).toEqual([
+      'Rahul Sharma',
+      'rahul verma',
+    ]);
     expect(names(query([], { search: { query: 'x', fields: ['ghost'] } }))).toEqual([]);
   });
 
@@ -140,7 +184,11 @@ describe('executeQuery: groups and search', () => {
 
   it('handles non-text cell values safely', () => {
     const rows = [{ name: { first: 'x' } }, { name: new Date(Date.UTC(2024, 0, 1)) }, { name: 5 }];
-    const got = executeQuery(rows as unknown as UserRow[], query([], { search: { query: '2024', fields: ['name'] } }), { schema: usersSchema });
+    const got = executeQuery(
+      rows as unknown as UserRow[],
+      query([], { search: { query: '2024', fields: ['name'] } }),
+      { schema: usersSchema },
+    );
     expect(got.total).toBe(1);
   });
 });
@@ -149,16 +197,45 @@ describe('executeQuery: sorting', () => {
   const sorted = (sort: SortSpec[]) => names(query([], { sort }));
 
   it('sorts by multiple keys with nulls last by default', () => {
-    expect(sorted([{ field: 'age', direction: 'asc' }])).toEqual(['Priya Patel', 'rahul verma', 'Rahul Sharma', 'John Smith', 'Anna Müller']);
-    expect(sorted([{ field: 'age', direction: 'desc' }])).toEqual(['John Smith', 'Rahul Sharma', 'rahul verma', 'Priya Patel', 'Anna Müller']);
+    expect(sorted([{ field: 'age', direction: 'asc' }])).toEqual([
+      'Priya Patel',
+      'rahul verma',
+      'Rahul Sharma',
+      'John Smith',
+      'Anna Müller',
+    ]);
+    expect(sorted([{ field: 'age', direction: 'desc' }])).toEqual([
+      'John Smith',
+      'Rahul Sharma',
+      'rahul verma',
+      'Priya Patel',
+      'Anna Müller',
+    ]);
     expect(sorted([{ field: 'age', direction: 'asc', nulls: 'first' }])[0]).toBe('Anna Müller');
-    expect(sorted([{ field: 'verified', direction: 'desc' }, { field: 'name', direction: 'asc' }])).toEqual(['John Smith', 'Rahul Sharma', 'rahul verma', 'Anna Müller', 'Priya Patel']);
+    expect(
+      sorted([
+        { field: 'verified', direction: 'desc' },
+        { field: 'name', direction: 'asc' },
+      ]),
+    ).toEqual(['John Smith', 'Rahul Sharma', 'rahul verma', 'Anna Müller', 'Priya Patel']);
   });
 
   it('sorts dates, datetimes and strings with a locale-aware collator', () => {
     expect(sorted([{ field: 'createdAt', direction: 'desc' }])[0]).toBe('rahul verma');
-    expect(sorted([{ field: 'birthDate', direction: 'asc' }])).toEqual(['John Smith', 'Rahul Sharma', 'rahul verma', 'Priya Patel', 'Anna Müller']);
-    expect(sorted([{ field: 'country', direction: 'asc' }])).toEqual(['Anna Müller', 'Rahul Sharma', 'Priya Patel', 'John Smith', 'rahul verma']);
+    expect(sorted([{ field: 'birthDate', direction: 'asc' }])).toEqual([
+      'John Smith',
+      'Rahul Sharma',
+      'rahul verma',
+      'Priya Patel',
+      'Anna Müller',
+    ]);
+    expect(sorted([{ field: 'country', direction: 'asc' }])).toEqual([
+      'Anna Müller',
+      'Rahul Sharma',
+      'Priya Patel',
+      'John Smith',
+      'rahul verma',
+    ]);
     expect(sorted([{ field: 'status', direction: 'asc' }])[0]).toBe('Rahul Sharma');
   });
 
@@ -170,7 +247,8 @@ describe('executeQuery: sorting', () => {
 });
 
 describe('executeQuery: pagination', () => {
-  const run = (pagination: TableQuery['pagination']) => executeQuery(userRows, query([], { pagination }), { schema: usersSchema });
+  const run = (pagination: TableQuery['pagination']) =>
+    executeQuery(userRows, query([], { pagination }), { schema: usersSchema });
 
   it('paginates by page and offset', () => {
     const p2 = run({ type: 'page', page: 2, pageSize: 2 });
@@ -189,6 +267,8 @@ describe('executeQuery: pagination', () => {
     expect(third.rows).toHaveLength(1);
     expect(third.pageInfo.nextCursor).toBeNull();
     expect(third.pageInfo.prevCursor).toBe(first.pageInfo.nextCursor);
-    expect(run({ type: 'cursor', cursor: 'garbage!', limit: 2 }).rows[0]?.name).toBe('Rahul Sharma');
+    expect(run({ type: 'cursor', cursor: 'garbage!', limit: 2 }).rows[0]?.name).toBe(
+      'Rahul Sharma',
+    );
   });
 });

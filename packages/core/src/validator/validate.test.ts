@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import type { FilterCondition, FilterGroup, FilterNode, Mutation, TableQuery } from '../protocol/types.js';
+import type {
+  FilterCondition,
+  FilterGroup,
+  FilterNode,
+  Mutation,
+  TableQuery,
+} from '../protocol/types.js';
 import { defineSchema } from '../schema/define-schema.js';
 import { usersSchema } from '../testing/fixtures.js';
 import { validateMutations, validateQuery } from './validate.js';
@@ -7,10 +13,27 @@ import { coerceOperatorValue, coerceScalar, matchEnumValue } from './values.js';
 
 const field = (id: string) => usersSchema.fieldsById.get(id)!;
 
-const cond = (f: string, operator: string, value?: unknown, extra: Partial<FilterCondition> = {}): FilterCondition =>
-  ({ type: 'condition', id: `c_${f}_${operator}`, field: f, operator, ...(value === undefined ? {} : { value }), ...extra }) as FilterCondition;
+const cond = (
+  f: string,
+  operator: string,
+  value?: unknown,
+  extra: Partial<FilterCondition> = {},
+): FilterCondition =>
+  ({
+    type: 'condition',
+    id: `c_${f}_${operator}`,
+    field: f,
+    operator,
+    ...(value === undefined ? {} : { value }),
+    ...extra,
+  }) as FilterCondition;
 
-const group = (children: FilterNode[], logic: 'and' | 'or' = 'and', id = 'root'): FilterGroup => ({ type: 'group', id, logic, children });
+const group = (children: FilterNode[], logic: 'and' | 'or' = 'and', id = 'root'): FilterGroup => ({
+  type: 'group',
+  id,
+  logic,
+  children,
+});
 
 const query = (patch: Partial<TableQuery> = {}): TableQuery => ({
   version: '1.0',
@@ -53,16 +76,26 @@ describe('coerceScalar', () => {
     expect(coerceScalar(field('status'), 'active')).toEqual({ ok: true, value: 'active' });
     expect(coerceScalar(field('status'), 'Inactive')).toEqual({ ok: true, value: 'inactive' });
     expect(coerceScalar(field('status'), 'disabled')).toEqual({ ok: true, value: 'inactive' });
-    expect(coerceScalar(field('status'), 'Awaiting Approval')).toEqual({ ok: true, value: 'pending' });
+    expect(coerceScalar(field('status'), 'Awaiting Approval')).toEqual({
+      ok: true,
+      value: 'pending',
+    });
     const bad = coerceScalar(field('status'), 'completed');
     expect(bad.ok).toBe(false);
-    if (!bad.ok) expect(bad.issue.details).toMatchObject({ allowed: ['active', 'inactive', 'pending'], received: 'completed' });
+    if (!bad.ok)
+      expect(bad.issue.details).toMatchObject({
+        allowed: ['active', 'inactive', 'pending'],
+        received: 'completed',
+      });
     expect(coerceScalar(field('status'), true).ok).toBe(false);
     expect(matchEnumValue(field('status'), '')).toBeUndefined();
   });
 
   it('coerces dates and datetimes', () => {
-    expect(coerceScalar(field('birthDate'), ' 2024-01-10 ')).toEqual({ ok: true, value: '2024-01-10' });
+    expect(coerceScalar(field('birthDate'), ' 2024-01-10 ')).toEqual({
+      ok: true,
+      value: '2024-01-10',
+    });
     expect(coerceScalar(field('birthDate'), '2024-01-10T10:00:00Z').ok).toBe(false);
     expect(coerceScalar(field('createdAt'), '2024-01-10T10:00:00Z').ok).toBe(true);
     expect(coerceScalar(field('createdAt'), '2024-01-10').ok).toBe(true);
@@ -76,14 +109,26 @@ describe('coerceOperatorValue', () => {
     expect(coerceOperatorValue(field('age'), 'gt', undefined).ok).toBe(false);
     expect(coerceOperatorValue(field('age'), 'gt', [1, 2]).ok).toBe(false);
     expect(coerceOperatorValue(field('age'), 'between', [1]).ok).toBe(false);
-    expect(coerceOperatorValue(field('age'), 'between', ['1', '5'])).toEqual({ ok: true, value: [1, 5] });
+    expect(coerceOperatorValue(field('age'), 'between', ['1', '5'])).toEqual({
+      ok: true,
+      value: [1, 5],
+    });
     expect(coerceOperatorValue(field('age'), 'between', ['x', 5]).ok).toBe(false);
     expect(coerceOperatorValue(field('age'), 'between', [1, 'x']).ok).toBe(false);
     expect(coerceOperatorValue(field('country'), 'in', []).ok).toBe(false);
     expect(coerceOperatorValue(field('country'), 'in', 'India').ok).toBe(false);
-    expect(coerceOperatorValue(field('country'), 'in', Array.from({ length: 101 }, (_, i) => `c${i}`)).ok).toBe(false);
+    expect(
+      coerceOperatorValue(
+        field('country'),
+        'in',
+        Array.from({ length: 101 }, (_, i) => `c${i}`),
+      ).ok,
+    ).toBe(false);
     expect(coerceOperatorValue(field('age'), 'in', ['1', 'x']).ok).toBe(false);
-    expect(coerceOperatorValue(field('status'), 'in', ['disabled', 'active'])).toEqual({ ok: true, value: ['inactive', 'active'] });
+    expect(coerceOperatorValue(field('status'), 'in', ['disabled', 'active'])).toEqual({
+      ok: true,
+      value: ['inactive', 'active'],
+    });
   });
 
   it('validates durations', () => {
@@ -91,11 +136,21 @@ describe('coerceOperatorValue', () => {
     expect(ok).toEqual({ ok: true, value: { amount: 7, unit: 'day' } });
     expect(coerceOperatorValue(field('createdAt'), 'last', 7).ok).toBe(false);
     expect(coerceOperatorValue(field('createdAt'), 'last', [7]).ok).toBe(false);
-    expect(coerceOperatorValue(field('createdAt'), 'last', { amount: 0, unit: 'day' }).ok).toBe(false);
-    expect(coerceOperatorValue(field('createdAt'), 'last', { amount: 1.5, unit: 'day' }).ok).toBe(false);
-    expect(coerceOperatorValue(field('createdAt'), 'last', { amount: 1, unit: 'fortnight' } as never).ok).toBe(false);
-    expect(coerceOperatorValue(field('birthDate'), 'last', { amount: 3, unit: 'hour' }).ok).toBe(false);
-    expect(coerceOperatorValue(field('createdAt'), 'last', { amount: 3, unit: 'hour' }).ok).toBe(true);
+    expect(coerceOperatorValue(field('createdAt'), 'last', { amount: 0, unit: 'day' }).ok).toBe(
+      false,
+    );
+    expect(coerceOperatorValue(field('createdAt'), 'last', { amount: 1.5, unit: 'day' }).ok).toBe(
+      false,
+    );
+    expect(
+      coerceOperatorValue(field('createdAt'), 'last', { amount: 1, unit: 'fortnight' } as never).ok,
+    ).toBe(false);
+    expect(coerceOperatorValue(field('birthDate'), 'last', { amount: 3, unit: 'hour' }).ok).toBe(
+      false,
+    );
+    expect(coerceOperatorValue(field('createdAt'), 'last', { amount: 3, unit: 'hour' }).ok).toBe(
+      true,
+    );
   });
 });
 
@@ -104,8 +159,19 @@ describe('validateQuery', () => {
     const r = validateQuery(
       query({
         search: { query: '  rahul ', fields: ['name', 'name', 'email'] },
-        filter: group([cond('age', 'gt', '25'), cond('status', 'eq', 'Active'), group([cond('country', 'eq', 'India'), cond('country', 'eq', 'US', { id: 'c_us' })], 'or', 'g2')]),
-        sort: [{ field: 'createdAt', direction: 'desc' }, { field: 'age', direction: 'asc', nulls: 'first' }],
+        filter: group([
+          cond('age', 'gt', '25'),
+          cond('status', 'eq', 'Active'),
+          group(
+            [cond('country', 'eq', 'India'), cond('country', 'eq', 'US', { id: 'c_us' })],
+            'or',
+            'g2',
+          ),
+        ]),
+        sort: [
+          { field: 'createdAt', direction: 'desc' },
+          { field: 'age', direction: 'asc', nulls: 'first' },
+        ],
         context: { timezone: 'Asia/Kolkata' },
       }),
       usersSchema,
@@ -133,7 +199,11 @@ describe('validateQuery', () => {
     const r = validateQuery(query({ filter: group([cond('age', 'contains', 25)]) }), usersSchema);
     expect(codes(r)).toEqual(['INVALID_OPERATOR']);
     expect(r.issues[0]?.details?.['allowed']).toContain('eq');
-    expect(codes(validateQuery(query({ filter: group([cond('age', 'approximately', 25)]) }), usersSchema))).toEqual(['INVALID_OPERATOR']);
+    expect(
+      codes(
+        validateQuery(query({ filter: group([cond('age', 'approximately', 25)]) }), usersSchema),
+      ),
+    ).toEqual(['INVALID_OPERATOR']);
   });
 
   it('honours per-field operator narrowing and capability flags', () => {
@@ -147,43 +217,96 @@ describe('validateQuery', () => {
       capabilities: { search: false },
     });
     const base = { ...query(), resource: 't' };
-    expect(codes(validateQuery({ ...base, filter: group([cond('a', 'gt', 1)]) }, schema))).toEqual(['INVALID_OPERATOR']);
+    expect(codes(validateQuery({ ...base, filter: group([cond('a', 'gt', 1)]) }, schema))).toEqual([
+      'INVALID_OPERATOR',
+    ]);
     const notFilterable = validateQuery({ ...base, filter: group([cond('b', 'eq', 'x')]) }, schema);
     expect(codes(notFilterable)).toEqual(['UNSUPPORTED_OPERATION']);
-    expect(codes(validateQuery({ ...base, search: { query: 'x' } }, schema))).toEqual(['CAPABILITY_UNSUPPORTED']);
+    expect(codes(validateQuery({ ...base, search: { query: 'x' } }, schema))).toEqual([
+      'CAPABILITY_UNSUPPORTED',
+    ]);
   });
 
   it('rejects caseSensitive outside text comparisons', () => {
-    expect(codes(validateQuery(query({ filter: group([cond('age', 'eq', 1, { options: { caseSensitive: true } })]) }), usersSchema))).toEqual(['VALIDATION_ERROR']);
-    const ok = validateQuery(query({ filter: group([cond('name', 'eq', 'x', { options: { caseSensitive: true } })]) }), usersSchema);
-    expect((ok.value!.filter!.children[0] as FilterCondition).options).toEqual({ caseSensitive: true });
+    expect(
+      codes(
+        validateQuery(
+          query({ filter: group([cond('age', 'eq', 1, { options: { caseSensitive: true } })]) }),
+          usersSchema,
+        ),
+      ),
+    ).toEqual(['VALIDATION_ERROR']);
+    const ok = validateQuery(
+      query({ filter: group([cond('name', 'eq', 'x', { options: { caseSensitive: true } })]) }),
+      usersSchema,
+    );
+    expect((ok.value!.filter!.children[0] as FilterCondition).options).toEqual({
+      caseSensitive: true,
+    });
   });
 
   it('rejects duplicate node ids, mismatched resources and bad timezones', () => {
-    expect(codes(validateQuery(query({ filter: group([cond('age', 'gt', 1), cond('age', 'gt', 1)]) }), usersSchema))).toEqual(['VALIDATION_ERROR']);
-    expect(codes(validateQuery(query({ resource: 'orders' }), usersSchema))).toEqual(['UNKNOWN_RESOURCE']);
-    expect(codes(validateQuery(query({ context: { timezone: 'Mars/Base' } }), usersSchema))).toEqual(['INVALID_VALUE']);
+    expect(
+      codes(
+        validateQuery(
+          query({ filter: group([cond('age', 'gt', 1), cond('age', 'gt', 1)]) }),
+          usersSchema,
+        ),
+      ),
+    ).toEqual(['VALIDATION_ERROR']);
+    expect(codes(validateQuery(query({ resource: 'orders' }), usersSchema))).toEqual([
+      'UNKNOWN_RESOURCE',
+    ]);
+    expect(
+      codes(validateQuery(query({ context: { timezone: 'Mars/Base' } }), usersSchema)),
+    ).toEqual(['INVALID_VALUE']);
   });
 
   it('enforces tree limits', () => {
-    const many = group(Array.from({ length: 21 }, (_, i) => ({ ...cond('age', 'gt', i), id: `c${i}` })));
+    const many = group(
+      Array.from({ length: 21 }, (_, i) => ({ ...cond('age', 'gt', i), id: `c${i}` })),
+    );
     expect(codes(validateQuery(query({ filter: many }), usersSchema))).toEqual(['LIMIT_EXCEEDED']);
-    const deep = group([group([group([group([cond('age', 'gt', 1)], 'and', 'g4')], 'or', 'g3')], 'and', 'g2')]);
+    const deep = group([
+      group([group([group([cond('age', 'gt', 1)], 'and', 'g4')], 'or', 'g3')], 'and', 'g2'),
+    ]);
     expect(codes(validateQuery(query({ filter: deep }), usersSchema))).toEqual(['LIMIT_EXCEEDED']);
-    expect(validateQuery(query({ filter: deep }), usersSchema, { limits: { maxDepth: 5 } }).issues).toEqual([]);
+    expect(
+      validateQuery(query({ filter: deep }), usersSchema, { limits: { maxDepth: 5 } }).issues,
+    ).toEqual([]);
   });
 
   it('validates search', () => {
-    expect(codes(validateQuery(query({ search: { query: '   ' } }), usersSchema))).toEqual(['INVALID_VALUE']);
-    expect(codes(validateQuery(query({ search: { query: 'x', fields: [] } }), usersSchema))).toEqual(['INVALID_VALUE']);
-    expect(codes(validateQuery(query({ search: { query: 'x', fields: ['age'] } }), usersSchema))).toEqual(['UNSUPPORTED_OPERATION']);
-    expect(codes(validateQuery(query({ search: { query: 'x', fields: ['salary'] } }), usersSchema))).toEqual(['UNKNOWN_FIELD']);
-    expect(validateQuery(query({ search: { query: 'x' } }), usersSchema).value?.search).toEqual({ query: 'x' });
+    expect(codes(validateQuery(query({ search: { query: '   ' } }), usersSchema))).toEqual([
+      'INVALID_VALUE',
+    ]);
+    expect(
+      codes(validateQuery(query({ search: { query: 'x', fields: [] } }), usersSchema)),
+    ).toEqual(['INVALID_VALUE']);
+    expect(
+      codes(validateQuery(query({ search: { query: 'x', fields: ['age'] } }), usersSchema)),
+    ).toEqual(['UNSUPPORTED_OPERATION']);
+    expect(
+      codes(validateQuery(query({ search: { query: 'x', fields: ['salary'] } }), usersSchema)),
+    ).toEqual(['UNKNOWN_FIELD']);
+    expect(validateQuery(query({ search: { query: 'x' } }), usersSchema).value?.search).toEqual({
+      query: 'x',
+    });
   });
 
   it('validates sort', () => {
-    expect(codes(validateQuery(query({ sort: [{ field: 'phone', direction: 'asc' }] }), usersSchema))).toEqual(['UNSUPPORTED_OPERATION']);
-    const dup = validateQuery(query({ sort: [{ field: 'age', direction: 'asc' }, { field: 'age', direction: 'desc' }] }), usersSchema);
+    expect(
+      codes(validateQuery(query({ sort: [{ field: 'phone', direction: 'asc' }] }), usersSchema)),
+    ).toEqual(['UNSUPPORTED_OPERATION']);
+    const dup = validateQuery(
+      query({
+        sort: [
+          { field: 'age', direction: 'asc' },
+          { field: 'age', direction: 'desc' },
+        ],
+      }),
+      usersSchema,
+    );
     expect(dup.value?.sort).toEqual([{ field: 'age', direction: 'asc' }]);
     expect(dup.warnings[0]?.code).toBe('DUPLICATE_REMOVED');
     const tooMany = Array.from({ length: 6 }, () => ({ field: 'age', direction: 'asc' as const }));
@@ -191,13 +314,35 @@ describe('validateQuery', () => {
   });
 
   it('validates pagination against capabilities', () => {
-    expect(codes(validateQuery(query({ pagination: { type: 'page', page: 1, pageSize: 101 } }), usersSchema))).toEqual(['LIMIT_EXCEEDED']);
-    const clamped = validateQuery(query({ pagination: { type: 'offset', offset: 0, limit: 500 } }), usersSchema, { pageSizeOverflow: 'clamp' });
+    expect(
+      codes(
+        validateQuery(query({ pagination: { type: 'page', page: 1, pageSize: 101 } }), usersSchema),
+      ),
+    ).toEqual(['LIMIT_EXCEEDED']);
+    const clamped = validateQuery(
+      query({ pagination: { type: 'offset', offset: 0, limit: 500 } }),
+      usersSchema,
+      { pageSizeOverflow: 'clamp' },
+    );
     expect(clamped.value?.pagination).toEqual({ type: 'offset', offset: 0, limit: 100 });
     expect(clamped.warnings[0]?.code).toBe('VALUE_CLAMPED');
-    const pageOnly = defineSchema({ schemaVersion: '1', resource: 't', fields: [{ id: 'a', label: 'A', type: 'string' }] });
-    expect(codes(validateQuery({ ...query(), resource: 't', pagination: { type: 'cursor', cursor: null, limit: 5 } }, pageOnly))).toEqual(['CAPABILITY_UNSUPPORTED']);
-    expect(validateQuery(query({ pagination: { type: 'cursor', cursor: 'abc', limit: 5 } }), usersSchema).issues).toEqual([]);
+    const pageOnly = defineSchema({
+      schemaVersion: '1',
+      resource: 't',
+      fields: [{ id: 'a', label: 'A', type: 'string' }],
+    });
+    expect(
+      codes(
+        validateQuery(
+          { ...query(), resource: 't', pagination: { type: 'cursor', cursor: null, limit: 5 } },
+          pageOnly,
+        ),
+      ),
+    ).toEqual(['CAPABILITY_UNSUPPORTED']);
+    expect(
+      validateQuery(query({ pagination: { type: 'cursor', cursor: 'abc', limit: 5 } }), usersSchema)
+        .issues,
+    ).toEqual([]);
   });
 });
 
@@ -243,20 +388,41 @@ describe('validateMutations', () => {
       usersSchema,
     );
     expect(r.value).toBeUndefined();
-    expect(codes(r)).toEqual(['UNKNOWN_FIELD', 'UNKNOWN_FIELD', 'UNKNOWN_FIELD', 'UNSUPPORTED_OPERATION', 'UNKNOWN_FIELD', 'INVALID_VALUE', 'LIMIT_EXCEEDED']);
+    expect(codes(r)).toEqual([
+      'UNKNOWN_FIELD',
+      'UNKNOWN_FIELD',
+      'UNKNOWN_FIELD',
+      'UNSUPPORTED_OPERATION',
+      'UNKNOWN_FIELD',
+      'INVALID_VALUE',
+      'LIMIT_EXCEEDED',
+    ]);
     expect(r.issues[0]?.path).toEqual(['mutations', 0, 'node', 'field']);
     expect(r.issues[6]?.path).toEqual(['mutations', 6, 'size']);
   });
 
   it('clamps page size when configured', () => {
-    const r = validateMutations([{ op: 'setPageSize', size: 1000 }], usersSchema, { pageSizeOverflow: 'clamp' });
+    const r = validateMutations([{ op: 'setPageSize', size: 1000 }], usersSchema, {
+      pageSizeOverflow: 'clamp',
+    });
     expect(r.value).toEqual([{ op: 'setPageSize', size: 100 }]);
   });
 
   it('rejects page jumps on cursor-only schemas and oversized filter trees', () => {
-    const cursorOnly = defineSchema({ schemaVersion: '1', resource: 't', fields: [{ id: 'a', label: 'A', type: 'number' }], capabilities: { pagination: ['cursor'] } });
-    expect(codes(validateMutations([{ op: 'setPage', page: 5 }], cursorOnly))).toEqual(['CAPABILITY_UNSUPPORTED']);
-    const big = group(Array.from({ length: 21 }, (_, i) => ({ ...cond('age', 'gt', i), id: `c${i}` })));
-    expect(codes(validateMutations([{ op: 'addFilter', node: big }], usersSchema))).toEqual(['LIMIT_EXCEEDED']);
+    const cursorOnly = defineSchema({
+      schemaVersion: '1',
+      resource: 't',
+      fields: [{ id: 'a', label: 'A', type: 'number' }],
+      capabilities: { pagination: ['cursor'] },
+    });
+    expect(codes(validateMutations([{ op: 'setPage', page: 5 }], cursorOnly))).toEqual([
+      'CAPABILITY_UNSUPPORTED',
+    ]);
+    const big = group(
+      Array.from({ length: 21 }, (_, i) => ({ ...cond('age', 'gt', i), id: `c${i}` })),
+    );
+    expect(codes(validateMutations([{ op: 'addFilter', node: big }], usersSchema))).toEqual([
+      'LIMIT_EXCEEDED',
+    ]);
   });
 });

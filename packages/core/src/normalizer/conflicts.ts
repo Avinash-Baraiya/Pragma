@@ -1,6 +1,12 @@
 import { compileDateRange } from '../dates/intervals.js';
 import { createWarning, type PragmaWarning } from '../errors/errors.js';
-import type { FilterCondition, FilterGroup, FilterNode, ScalarValue, TableQuery } from '../protocol/types.js';
+import type {
+  FilterCondition,
+  FilterGroup,
+  FilterNode,
+  ScalarValue,
+  TableQuery,
+} from '../protocol/types.js';
 import type { ResolvedField, ResolvedSchema } from '../schema/types.js';
 
 /** @public */
@@ -19,10 +25,18 @@ export interface ConflictOptions {
  *
  * @public
  */
-export function analyzeConflicts(query: TableQuery, schema: ResolvedSchema, options: ConflictOptions = {}): PragmaWarning[] {
+export function analyzeConflicts(
+  query: TableQuery,
+  schema: ResolvedSchema,
+  options: ConflictOptions = {},
+): PragmaWarning[] {
   const warnings: PragmaWarning[] = [];
   if (query.filter === null) return warnings;
-  const ctx = { now: options.now ?? Date.now(), timezone: query.context?.timezone ?? 'UTC', weekStartsOn: query.context?.weekStartsOn ?? 1 };
+  const ctx = {
+    now: options.now ?? Date.now(),
+    timezone: query.context?.timezone ?? 'UTC',
+    weekStartsOn: query.context?.weekStartsOn ?? 1,
+  };
   visit(query.filter);
   return warnings;
 
@@ -44,12 +58,18 @@ export function analyzeConflicts(query: TableQuery, schema: ResolvedSchema, opti
       if (conditions.length < 2) continue;
       const field = schema.fieldsById.get(fieldId);
       if (!field) continue;
-      const warning = checkNull(field, conditions) ?? checkMembership(field, conditions) ?? checkRange(field, conditions);
+      const warning =
+        checkNull(field, conditions) ??
+        checkMembership(field, conditions) ??
+        checkRange(field, conditions);
       if (warning) warnings.push(warning);
     }
   }
 
-  function checkRange(field: ResolvedField, conditions: FilterCondition[]): PragmaWarning | undefined {
+  function checkRange(
+    field: ResolvedField,
+    conditions: FilterCondition[],
+  ): PragmaWarning | undefined {
     let lo = Number.NEGATIVE_INFINITY;
     let hi = Number.POSITIVE_INFINITY;
     // Widened to boolean: they are reassigned inside the closures below.
@@ -119,21 +139,28 @@ export function analyzeConflicts(query: TableQuery, schema: ResolvedSchema, opti
     });
   }
 
-  function checkMembership(field: ResolvedField, conditions: FilterCondition[]): PragmaWarning | undefined {
+  function checkMembership(
+    field: ResolvedField,
+    conditions: FilterCondition[],
+  ): PragmaWarning | undefined {
     if (field.type === 'date' || field.type === 'datetime') return undefined;
     // Compare exactly only when every condition is case-sensitive; otherwise fold
     // all values, so a warning is raised only when no row can possibly match.
     const membership = conditions.filter((c) => c.operator === 'eq' || c.operator === 'in');
-    const exact = field.type !== 'string' || membership.every((c) => c.options?.caseSensitive === true);
+    const exact =
+      field.type !== 'string' || membership.every((c) => c.options?.caseSensitive === true);
     const key = (v: ScalarValue): string => (exact ? String(v) : String(v).toLowerCase());
     const sets: { values: Set<string>; fromEq: boolean }[] = [];
     for (const c of membership) {
-      if (c.operator === 'eq') sets.push({ values: new Set([key(c.value as ScalarValue)]), fromEq: true });
-      else if (c.operator === 'in') sets.push({ values: new Set((c.value as readonly ScalarValue[]).map(key)), fromEq: false });
+      if (c.operator === 'eq')
+        sets.push({ values: new Set([key(c.value as ScalarValue)]), fromEq: true });
+      else if (c.operator === 'in')
+        sets.push({ values: new Set((c.value as readonly ScalarValue[]).map(key)), fromEq: false });
     }
     if (sets.length < 2) return undefined;
     let intersection = sets[0]!.values;
-    for (const s of sets.slice(1)) intersection = new Set([...intersection].filter((v) => s.values.has(v)));
+    for (const s of sets.slice(1))
+      intersection = new Set([...intersection].filter((v) => s.values.has(v)));
     if (intersection.size > 0) return undefined;
     const allEq = sets.every((s) => s.fromEq);
     return createWarning(allEq ? 'CONFLICTING_EQUALITY' : 'EMPTY_INTERSECTION', {
@@ -146,10 +173,21 @@ export function analyzeConflicts(query: TableQuery, schema: ResolvedSchema, opti
     });
   }
 
-  function checkNull(field: ResolvedField, conditions: FilterCondition[]): PragmaWarning | undefined {
+  function checkNull(
+    field: ResolvedField,
+    conditions: FilterCondition[],
+  ): PragmaWarning | undefined {
     const requiresNull = conditions.some((c) => c.operator === 'isNull');
     if (!requiresNull) return undefined;
-    const requiresValue = conditions.some((c) => c.operator !== 'isNull' && c.operator !== 'isEmpty' && c.operator !== 'neq' && c.operator !== 'notIn' && c.operator !== 'notContains' && c.operator !== 'notBetween');
+    const requiresValue = conditions.some(
+      (c) =>
+        c.operator !== 'isNull' &&
+        c.operator !== 'isEmpty' &&
+        c.operator !== 'neq' &&
+        c.operator !== 'notIn' &&
+        c.operator !== 'notContains' &&
+        c.operator !== 'notBetween',
+    );
     if (!requiresValue) return undefined;
     return createWarning('CONFLICTING_NULL', {
       message: `"${field.label}" cannot both have no value and match a value, so no rows will match.`,

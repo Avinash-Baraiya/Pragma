@@ -95,7 +95,11 @@ export function toTanStackState(query: TableQuery): TanStackState {
       byField.set(condition.field, list);
     }
     for (const [id, conditions] of byField) {
-      const value: PragmaColumnFilterValue = { kind: 'pragma', conditions, ...(query.context ? { context: query.context } : {}) };
+      const value: PragmaColumnFilterValue = {
+        kind: 'pragma',
+        conditions,
+        ...(query.context ? { context: query.context } : {}),
+      };
       columnFilters.push({ id, value });
     }
   }
@@ -122,7 +126,10 @@ function toTanStackPagination(pagination: Pagination): TanStackPagination | unde
     case 'page':
       return { pageIndex: pagination.page - 1, pageSize: pagination.pageSize };
     case 'offset':
-      return { pageIndex: Math.floor(pagination.offset / pagination.limit), pageSize: pagination.limit };
+      return {
+        pageIndex: Math.floor(pagination.offset / pagination.limit),
+        pageSize: pagination.limit,
+      };
     case 'cursor':
       return undefined;
   }
@@ -143,7 +150,11 @@ export interface TanStackStatePatch {
  *
  * @public
  */
-export function fromTanStackState(query: TableQuery, patch: TanStackStatePatch, schema: ResolvedSchema): TableQuery {
+export function fromTanStackState(
+  query: TableQuery,
+  patch: TanStackStatePatch,
+  schema: ResolvedSchema,
+): TableQuery {
   let next = query;
   let sortChanged = false;
   if (patch.sorting) {
@@ -154,7 +165,11 @@ export function fromTanStackState(query: TableQuery, patch: TanStackStatePatch, 
       if (!field?.sortable || seen.has(field.id)) continue;
       seen.add(field.id);
       const existing = query.sort.find((q) => q.field === field.id);
-      sort.push({ field: field.id, direction: s.desc ? 'desc' : 'asc', ...(existing?.nulls ? { nulls: existing.nulls } : {}) });
+      sort.push({
+        field: field.id,
+        direction: s.desc ? 'desc' : 'asc',
+        ...(existing?.nulls ? { nulls: existing.nulls } : {}),
+      });
     }
     const limited = sort.slice(0, schema.capabilities.maxSorts);
     sortChanged = !sameSort(limited, query.sort);
@@ -162,10 +177,16 @@ export function fromTanStackState(query: TableQuery, patch: TanStackStatePatch, 
   }
 
   if (patch.pagination) {
-    const size = Math.min(Math.max(1, Math.floor(patch.pagination.pageSize)), schema.capabilities.maxPageSize);
+    const size = Math.min(
+      Math.max(1, Math.floor(patch.pagination.pageSize)),
+      schema.capabilities.maxPageSize,
+    );
     const index = Math.max(0, Math.floor(patch.pagination.pageIndex));
     const sizeChanged = size !== pageSizeOf(query.pagination);
-    next = { ...next, pagination: paginationFor(query.pagination, sizeChanged || sortChanged ? 0 : index, size) };
+    next = {
+      ...next,
+      pagination: paginationFor(query.pagination, sizeChanged || sortChanged ? 0 : index, size),
+    };
   } else if (sortChanged) {
     next = { ...next, pagination: firstPage(query.pagination.type, pageSizeOf(query.pagination)) };
   }

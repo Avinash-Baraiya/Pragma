@@ -21,10 +21,17 @@ const users: TableSchema = {
 const indian = mock.output([mock.filter('country', 'eq', 'India')]);
 
 function handler(options: Partial<PragmaHandlerOptions> = {}) {
-  return createPragmaHandler({ schemas: { users }, provider: mockProvider({ rules: [{ match: /indian/i, output: indian }] }), ...options });
+  return createPragmaHandler({
+    schemas: { users },
+    provider: mockProvider({ rules: [{ match: /indian/i, output: indian }] }),
+    ...options,
+  });
 }
 
-function post(body: unknown, init: { headers?: Record<string, string>; method?: string; raw?: string } = {}): Request {
+function post(
+  body: unknown,
+  init: { headers?: Record<string, string>; method?: string; raw?: string } = {},
+): Request {
   return new Request('https://app.test/api/pragma', {
     method: init.method ?? 'POST',
     headers: { 'content-type': 'application/json', ...init.headers },
@@ -32,7 +39,12 @@ function post(body: unknown, init: { headers?: Record<string, string>; method?: 
   });
 }
 
-const valid = (instruction: string, extra: Record<string, unknown> = {}) => ({ protocolVersion: '1.0', resource: 'users', instruction, ...extra });
+const valid = (instruction: string, extra: Record<string, unknown> = {}) => ({
+  protocolVersion: '1.0',
+  resource: 'users',
+  instruction,
+  ...extra,
+});
 
 async function json(response: Response): Promise<Record<string, unknown>> {
   return (await response.json()) as Record<string, unknown>;
@@ -40,14 +52,19 @@ async function json(response: Response): Promise<Record<string, unknown>> {
 
 describe('createPragmaHandler: success', () => {
   it('answers deterministic instructions with 200 and safe headers', async () => {
-    const res = await handler()(post(valid('age > 25'), { headers: { 'x-request-id': 'req-abc' } }));
+    const res = await handler()(
+      post(valid('age > 25'), { headers: { 'x-request-id': 'req-abc' } }),
+    );
     expect(res.status).toBe(200);
     expect(res.headers.get('content-type')).toContain('application/json');
     expect(res.headers.get('x-request-id')).toBe('req-abc');
     expect(res.headers.get('cache-control')).toBe('no-store');
     expect(res.headers.get('x-content-type-options')).toBe('nosniff');
     const body = await json(res);
-    expect(body).toMatchObject({ status: 'ok', meta: { parser: 'deterministic', requestId: 'req-abc', protocolVersion: '1.0' } });
+    expect(body).toMatchObject({
+      status: 'ok',
+      meta: { parser: 'deterministic', requestId: 'req-abc', protocolVersion: '1.0' },
+    });
   });
 
   it('uses the model for instructions the parser does not cover', async () => {
@@ -56,12 +73,19 @@ describe('createPragmaHandler: success', () => {
   });
 
   it('returns 200 for unsupported and clarification outcomes', async () => {
-    expect(await json(await handler()(post(valid('@salary > 5'))))).toMatchObject({ status: 'unsupported', errors: [{ code: 'UNKNOWN_FIELD' }] });
-    expect(await json(await handler()(post(valid('recent users'))))).toMatchObject({ status: 'needs_clarification' });
+    expect(await json(await handler()(post(valid('@salary > 5'))))).toMatchObject({
+      status: 'unsupported',
+      errors: [{ code: 'UNKNOWN_FIELD' }],
+    });
+    expect(await json(await handler()(post(valid('recent users'))))).toMatchObject({
+      status: 'needs_clarification',
+    });
   });
 
   it('generates a request id when the incoming one is missing or unsafe', async () => {
-    const res = await handler()(post(valid('age > 1'), { headers: { 'x-request-id': 'bad id <script>' } }));
+    const res = await handler()(
+      post(valid('age > 1'), { headers: { 'x-request-id': 'bad id <script>' } }),
+    );
     expect(res.headers.get('x-request-id')).toMatch(/^req_[0-9a-z]{10}$/);
   });
 
@@ -74,24 +98,51 @@ describe('createPragmaHandler: success', () => {
 describe('createPragmaHandler: request validation', () => {
   it.each<[string, Request, number, string]>([
     ['non-POST', post(null, { method: 'GET' }), 405, 'VALIDATION_ERROR'],
-    ['wrong content type', new Request('https://app.test/x', { method: 'POST', headers: { 'content-type': 'text/plain' }, body: '{}' }), 415, 'VALIDATION_ERROR'],
+    [
+      'wrong content type',
+      new Request('https://app.test/x', {
+        method: 'POST',
+        headers: { 'content-type': 'text/plain' },
+        body: '{}',
+      }),
+      415,
+      'VALIDATION_ERROR',
+    ],
     ['invalid JSON', post(null, { raw: '{nope' }), 400, 'VALIDATION_ERROR'],
     ['missing fields', post({ protocolVersion: '1.0' }), 422, 'VALIDATION_ERROR'],
-    ['future protocol', post(valid('x', { protocolVersion: '2.0' })), 400, 'UNSUPPORTED_PROTOCOL_VERSION'],
+    [
+      'future protocol',
+      post(valid('x', { protocolVersion: '2.0' })),
+      400,
+      'UNSUPPORTED_PROTOCOL_VERSION',
+    ],
     ['bad timezone', post(valid('x', { timezone: 'Mars/Base' })), 422, 'VALIDATION_ERROR'],
     ['unknown resource', post({ ...valid('x'), resource: 'orders' }), 404, 'UNKNOWN_RESOURCE'],
     ['empty instruction', post(valid('   ')), 400, 'PARSE_ERROR'],
-    ['invalid current state', post(valid('age > 1', { currentState: { nope: true } })), 422, 'VALIDATION_ERROR'],
+    [
+      'invalid current state',
+      post(valid('age > 1', { currentState: { nope: true } })),
+      422,
+      'VALIDATION_ERROR',
+    ],
   ])('%s → %i %s', async (_name, request, status, code) => {
     const res = await handler()(request);
     expect(res.status).toBe(status);
     expect(res.headers.get('content-type')).toContain('application/problem+json');
     const body = await json(res);
-    expect(body).toMatchObject({ status, code, requestId: expect.any(String), title: expect.any(String), type: expect.stringContaining('https://') });
+    expect(body).toMatchObject({
+      status,
+      code,
+      requestId: expect.any(String),
+      title: expect.any(String),
+      type: expect.stringContaining('https://'),
+    });
   });
 
   it('includes Allow on 405 and field issues on 422', async () => {
-    expect((await handler()(post(null, { method: 'DELETE', raw: '' }))).headers.get('allow')).toBe('POST');
+    expect((await handler()(post(null, { method: 'DELETE', raw: '' }))).headers.get('allow')).toBe(
+      'POST',
+    );
     const body = await json(await handler()(post({ protocolVersion: '1.0', resource: 5 })));
     expect((body['issues'] as unknown[]).length).toBeGreaterThan(0);
   });
@@ -107,24 +158,43 @@ describe('createPragmaHandler: request validation', () => {
         c.close();
       },
     });
-    const streamed = await small(new Request('https://app.test/x', { method: 'POST', headers: { 'content-type': 'application/json' }, body: stream, duplex: 'half' } as RequestInit));
+    const streamed = await small(
+      new Request('https://app.test/x', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: stream,
+        duplex: 'half',
+      } as RequestInit),
+    );
     expect(streamed.status).toBe(413);
   });
 });
 
 describe('createPragmaHandler: client schemas', () => {
-  const orders: TableSchema = { schemaVersion: '1', resource: 'orders', fields: [{ id: 'total', label: 'Total', type: 'number' }] };
+  const orders: TableSchema = {
+    schemaVersion: '1',
+    resource: 'orders',
+    fields: [{ id: 'total', label: 'Total', type: 'number' }],
+  };
 
   it('are ignored unless explicitly allowed', async () => {
-    const res = await handler()(post({ ...valid('total > 5'), resource: 'orders', schema: orders }));
+    const res = await handler()(
+      post({ ...valid('total > 5'), resource: 'orders', schema: orders }),
+    );
     expect(res.status).toBe(404);
   });
 
   it('are validated and cached when allowed', async () => {
     const h = handler({ allowClientSchema: true });
-    expect(await json(await h(post({ ...valid('total > 5'), resource: 'orders', schema: orders })))).toMatchObject({ status: 'ok' });
-    expect(await json(await h(post({ ...valid('total > 9'), resource: 'orders', schema: orders })))).toMatchObject({ status: 'ok' });
-    const invalid = await h(post({ ...valid('x'), resource: 'orders', schema: { ...orders, fields: [] } }));
+    expect(
+      await json(await h(post({ ...valid('total > 5'), resource: 'orders', schema: orders }))),
+    ).toMatchObject({ status: 'ok' });
+    expect(
+      await json(await h(post({ ...valid('total > 9'), resource: 'orders', schema: orders }))),
+    ).toMatchObject({ status: 'ok' });
+    const invalid = await h(
+      post({ ...valid('x'), resource: 'orders', schema: { ...orders, fields: [] } }),
+    );
     expect(invalid.status).toBe(422);
     expect(await json(invalid)).toMatchObject({ code: 'SCHEMA_ERROR' });
     const mismatch = await h(post({ ...valid('x'), resource: 'items', schema: orders }));
@@ -133,7 +203,9 @@ describe('createPragmaHandler: client schemas', () => {
 
   it('never let a client schema override a registered one', async () => {
     const exposed = { ...users, fields: users.fields.map((f) => ({ ...f, hidden: false })) };
-    const body = await json(await handler({ allowClientSchema: true })(post({ ...valid('salary > 5'), schema: exposed })));
+    const body = await json(
+      await handler({ allowClientSchema: true })(post({ ...valid('salary > 5'), schema: exposed })),
+    );
     expect(body['status']).not.toBe('ok');
   });
 });
@@ -142,16 +214,26 @@ describe('createPragmaHandler: access control', () => {
   it('rejects unauthorized requests', async () => {
     const denied = await handler({ authorize: () => false })(post(valid('age > 1')));
     expect(denied.status).toBe(403);
-    const unauthenticated = await handler({ authorize: () => ({ allowed: false, status: 401, message: 'Sign in first.' }) })(post(valid('age > 1')));
+    const unauthenticated = await handler({
+      authorize: () => ({ allowed: false, status: 401, message: 'Sign in first.' }),
+    })(post(valid('age > 1')));
     expect(unauthenticated.status).toBe(401);
-    expect(await json(unauthenticated)).toMatchObject({ code: 'UNAUTHORIZED', detail: 'Sign in first.' });
+    expect(await json(unauthenticated)).toMatchObject({
+      code: 'UNAUTHORIZED',
+      detail: 'Sign in first.',
+    });
     const authorize = vi.fn((_context: { resource: string; requestId: string }) => true);
     await handler({ authorize })(post(valid('age > 1')));
-    expect(authorize.mock.calls[0]?.[0]).toMatchObject({ resource: 'users', requestId: expect.any(String) });
+    expect(authorize.mock.calls[0]?.[0]).toMatchObject({
+      resource: 'users',
+      requestId: expect.any(String),
+    });
   });
 
   it('rate limits with Retry-After', async () => {
-    const res = await handler({ rateLimit: () => ({ allowed: false, retryAfterSeconds: 2.2 }) })(post(valid('age > 1')));
+    const res = await handler({ rateLimit: () => ({ allowed: false, retryAfterSeconds: 2.2 }) })(
+      post(valid('age > 1')),
+    );
     expect(res.status).toBe(429);
     expect(res.headers.get('retry-after')).toBe('3');
     const ok = await handler({ rateLimit: () => ({ allowed: true }) })(post(valid('age > 1')));
@@ -160,30 +242,54 @@ describe('createPragmaHandler: access control', () => {
 
   it('supports CORS for configured origins only', async () => {
     const h = handler({ cors: { origin: ['https://app.example'], credentials: true, maxAge: 60 } });
-    const preflight = await h(new Request('https://api.test/x', { method: 'OPTIONS', headers: { origin: 'https://app.example' } }));
+    const preflight = await h(
+      new Request('https://api.test/x', {
+        method: 'OPTIONS',
+        headers: { origin: 'https://app.example' },
+      }),
+    );
     expect(preflight.status).toBe(204);
     expect(preflight.headers.get('access-control-allow-origin')).toBe('https://app.example');
     expect(preflight.headers.get('access-control-allow-credentials')).toBe('true');
     expect(preflight.headers.get('access-control-max-age')).toBe('60');
     const res = await h(post(valid('age > 1'), { headers: { origin: 'https://app.example' } }));
     expect(res.headers.get('access-control-allow-origin')).toBe('https://app.example');
-    const evil = await h(new Request('https://api.test/x', { method: 'OPTIONS', headers: { origin: 'https://evil.example' } }));
+    const evil = await h(
+      new Request('https://api.test/x', {
+        method: 'OPTIONS',
+        headers: { origin: 'https://evil.example' },
+      }),
+    );
     expect(evil.status).toBe(405);
-    const noCors = await handler()(new Request('https://api.test/x', { method: 'OPTIONS', headers: { origin: 'https://app.example' } }));
+    const noCors = await handler()(
+      new Request('https://api.test/x', {
+        method: 'OPTIONS',
+        headers: { origin: 'https://app.example' },
+      }),
+    );
     expect(noCors.status).toBe(405);
-    const single = await handler({ cors: { origin: 'https://app.example' } })(post(valid('age > 1'), { headers: { origin: 'https://app.example' } }));
+    const single = await handler({ cors: { origin: 'https://app.example' } })(
+      post(valid('age > 1'), { headers: { origin: 'https://app.example' } }),
+    );
     expect(single.headers.get('access-control-allow-credentials')).toBeNull();
   });
 });
 
 describe('createPragmaHandler: upstream failures and resilience', () => {
-  const failing = (error: Error): LanguageModelProvider => ({ id: 'down', generate: () => Promise.reject(error) });
+  const failing = (error: Error): LanguageModelProvider => ({
+    id: 'down',
+    generate: () => Promise.reject(error),
+  });
 
   it('maps model failures to gateway problems', async () => {
-    const bad = await handler({ provider: failing(new PragmaModelError('MODEL_ERROR', 'upstream 503', { retryable: false })) })(post(valid('show Indian users')));
+    const bad = await handler({
+      provider: failing(new PragmaModelError('MODEL_ERROR', 'upstream 503', { retryable: false })),
+    })(post(valid('show Indian users')));
     expect(bad.status).toBe(502);
     expect(await json(bad)).toMatchObject({ code: 'MODEL_ERROR' });
-    const limited = await handler({ provider: failing(new PragmaModelError('RATE_LIMITED', '429', { retryable: false })) })(post(valid('show Indian users')));
+    const limited = await handler({
+      provider: failing(new PragmaModelError('RATE_LIMITED', '429', { retryable: false })),
+    })(post(valid('show Indian users')));
     expect(limited.status).toBe(429);
     expect(limited.headers.get('retry-after')).toBe('1');
   });
@@ -198,14 +304,23 @@ describe('createPragmaHandler: upstream failures and resilience', () => {
           });
         }),
     };
-    const res = await handler({ provider: slow, engine: { timeoutMs: 20 } })(post(valid('show Indian users')));
+    const res = await handler({ provider: slow, engine: { timeoutMs: 20 } })(
+      post(valid('show Indian users')),
+    );
     expect(res.status).toBe(504);
   });
 
   it('opens the circuit after repeated failures and degrades to deterministic-only', async () => {
     let now = 1_000;
-    const generate = vi.fn(() => Promise.reject(new PragmaModelError('MODEL_ERROR', 'down', { retryable: false })));
-    const h = handler({ provider: { id: 'flaky', generate }, circuitBreaker: { failureThreshold: 2, resetAfterMs: 5_000 }, now: () => now, engine: { cache: false } });
+    const generate = vi.fn(() =>
+      Promise.reject(new PragmaModelError('MODEL_ERROR', 'down', { retryable: false })),
+    );
+    const h = handler({
+      provider: { id: 'flaky', generate },
+      circuitBreaker: { failureThreshold: 2, resetAfterMs: 5_000 },
+      now: () => now,
+      engine: { cache: false },
+    });
     expect((await h(post(valid('show Indian users')))).status).toBe(502);
     expect((await h(post(valid('show Indian users')))).status).toBe(502);
     const degraded = await h(post(valid('show Indian users')));
@@ -224,13 +339,24 @@ describe('createPragmaHandler: upstream failures and resilience', () => {
     let healthy = false;
     const provider: LanguageModelProvider = {
       id: 'recovering',
-      generate: () => (healthy ? Promise.resolve({ json: indian }) : Promise.reject(new PragmaModelError('MODEL_ERROR', 'down', { retryable: false }))),
+      generate: () =>
+        healthy
+          ? Promise.resolve({ json: indian })
+          : Promise.reject(new PragmaModelError('MODEL_ERROR', 'down', { retryable: false })),
     };
-    const h = handler({ provider, circuitBreaker: { failureThreshold: 1, resetAfterMs: 10 }, now: () => now, engine: { cache: false } });
+    const h = handler({
+      provider,
+      circuitBreaker: { failureThreshold: 1, resetAfterMs: 10 },
+      now: () => now,
+      engine: { cache: false },
+    });
     await h(post(valid('show Indian users')));
     healthy = true;
     now = 10;
-    expect(await json(await h(post(valid('show Indian users'))))).toMatchObject({ status: 'ok', meta: { parser: 'llm' } });
+    expect(await json(await h(post(valid('show Indian users'))))).toMatchObject({
+      status: 'ok',
+      meta: { parser: 'llm' },
+    });
     const after = await h(post(valid('show Indian users')));
     expect(after.headers.get('x-pragma-degraded')).toBeNull();
   });
@@ -255,16 +381,25 @@ describe('createPragmaHandler: upstream failures and resilience', () => {
   it('works without any model configured', async () => {
     const h = createPragmaHandler({ schemas: { users } });
     expect(await json(await h(post(valid('age > 5'))))).toMatchObject({ status: 'ok' });
-    expect(await json(await h(post(valid('show Indian users'))))).toMatchObject({ status: 'unsupported', errors: [{ code: 'MODEL_UNAVAILABLE' }] });
+    expect(await json(await h(post(valid('show Indian users'))))).toMatchObject({
+      status: 'unsupported',
+      errors: [{ code: 'MODEL_UNAVAILABLE' }],
+    });
   });
 });
 
 describe('createPragmaHandler: configuration', () => {
   it('fails fast on invalid configuration', () => {
     expect(() => createPragmaHandler({ schemas: {} })).toThrow(/at least one schema/);
-    expect(() => createPragmaHandler({ schemas: { users }, maxBodyBytes: 0 })).toThrow(/maxBodyBytes/);
-    expect(() => createPragmaHandler({ schemas: { people: users } })).toThrow(/declares resource "users"/);
-    expect(() => createPragmaHandler({ schemas: { users: { ...users, fields: [] } } })).toThrow(/Invalid table schema/);
+    expect(() => createPragmaHandler({ schemas: { users }, maxBodyBytes: 0 })).toThrow(
+      /maxBodyBytes/,
+    );
+    expect(() => createPragmaHandler({ schemas: { people: users } })).toThrow(
+      /declares resource "users"/,
+    );
+    expect(() => createPragmaHandler({ schemas: { users: { ...users, fields: [] } } })).toThrow(
+      /Invalid table schema/,
+    );
   });
 });
 
@@ -272,7 +407,10 @@ describe('toNodeHandler', () => {
   let server: Server | undefined;
   afterEach(async () => {
     await new Promise<void>((resolve) => {
-      if (server) server.close(() => { resolve(); });
+      if (server)
+        server.close(() => {
+          resolve();
+        });
       else resolve();
     });
     server = undefined;
@@ -286,14 +424,21 @@ describe('toNodeHandler', () => {
 
   it('serves the handler over node:http', async () => {
     const url = await listen(toNodeHandler(handler()));
-    const res = await fetch(url, { method: 'POST', headers: { 'content-type': 'application/json', 'x-request-id': 'node-1' }, body: JSON.stringify(valid('age > 25')) });
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'x-request-id': 'node-1' },
+      body: JSON.stringify(valid('age > 25')),
+    });
     expect(res.status).toBe(200);
     expect(res.headers.get('x-request-id')).toBe('node-1');
     expect(await json(res)).toMatchObject({ status: 'ok' });
   });
 
   it('accepts bodies already parsed by middleware and rejects oversized streams', async () => {
-    const h = toNodeHandler(handler({ maxBodyBytes: 200 }), { maxBufferBytes: 300, trustProxy: true });
+    const h = toNodeHandler(handler({ maxBodyBytes: 200 }), {
+      maxBufferBytes: 300,
+      trustProxy: true,
+    });
     const url = await listen((req, res) => {
       if (req.headers['x-preparsed'] === '1') {
         let raw = '';
@@ -303,9 +448,21 @@ describe('toNodeHandler', () => {
         });
       } else h(req, res);
     });
-    const parsed = await fetch(url, { method: 'POST', headers: { 'content-type': 'application/json', 'x-preparsed': '1', 'x-forwarded-proto': 'https' }, body: JSON.stringify(valid('age > 25')) });
+    const parsed = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'x-preparsed': '1',
+        'x-forwarded-proto': 'https',
+      },
+      body: JSON.stringify(valid('age > 25')),
+    });
     expect(await json(parsed)).toMatchObject({ status: 'ok' });
-    const big = await fetch(url, { method: 'POST', headers: { 'content-type': 'application/json' }, body: 'x'.repeat(1000) });
+    const big = await fetch(url, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: 'x'.repeat(1000),
+    });
     expect(big.status).toBe(413);
   });
 
@@ -321,7 +478,9 @@ describe('toNodeHandler', () => {
         });
       } else broken(req, res);
     });
-    expect((await fetch(url, { method: 'POST', headers: { 'x-with-next': '1' }, body: '{}' })).status).toBe(503);
+    expect(
+      (await fetch(url, { method: 'POST', headers: { 'x-with-next': '1' }, body: '{}' })).status,
+    ).toBe(503);
     expect(next).toHaveBeenCalledOnce();
     const plain = await fetch(url, { method: 'POST', body: '{}' });
     expect(plain.status).toBe(500);

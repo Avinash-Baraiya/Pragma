@@ -49,9 +49,13 @@ interface ChatCompletionResponse {
  */
 export function openAICompatible(options: OpenAICompatibleOptions): LanguageModelProvider {
   if (!options.baseURL || !/^https?:\/\//.test(options.baseURL)) {
-    throw new PragmaConfigError('CONFIG_ERROR', 'openAICompatible: baseURL must be an http(s) URL.');
+    throw new PragmaConfigError(
+      'CONFIG_ERROR',
+      'openAICompatible: baseURL must be an http(s) URL.',
+    );
   }
-  if (!options.model) throw new PragmaConfigError('CONFIG_ERROR', 'openAICompatible: model is required.');
+  if (!options.model)
+    throw new PragmaConfigError('CONFIG_ERROR', 'openAICompatible: model is required.');
   const id = options.id ?? `openai-compatible:${options.model}`;
   const endpoint = `${options.baseURL.replace(/\/+$/, '')}/chat/completions`;
   const doFetch = options.fetch ?? globalThis.fetch;
@@ -62,12 +66,18 @@ export function openAICompatible(options: OpenAICompatibleOptions): LanguageMode
     async generate(request: GenerateRequest): Promise<GenerateResponse> {
       const body: Record<string, unknown> = {
         model: options.model,
-        messages: [{ role: 'system', content: request.system }, ...request.messages.map((m) => ({ role: m.role, content: m.content }))],
+        messages: [
+          { role: 'system', content: request.system },
+          ...request.messages.map((m) => ({ role: m.role, content: m.content })),
+        ],
         [options.maxTokensParam ?? 'max_tokens']: request.maxOutputTokens,
       };
       if (options.sendTemperature !== false) body['temperature'] = request.temperature;
       if (mode === 'json_schema') {
-        body['response_format'] = { type: 'json_schema', json_schema: { name: request.schemaName, schema: request.jsonSchema, strict: true } };
+        body['response_format'] = {
+          type: 'json_schema',
+          json_schema: { name: request.schemaName, schema: request.jsonSchema, strict: true },
+        };
       } else if (mode === 'json_object') {
         body['response_format'] = { type: 'json_object' };
       }
@@ -99,21 +109,37 @@ export function openAICompatible(options: OpenAICompatibleOptions): LanguageMode
       try {
         data = (await response.json()) as ChatCompletionResponse;
       } catch (error) {
-        throw new PragmaModelError('MODEL_ERROR', `${id}: the response was not valid JSON.`, { cause: error, retryable: true });
+        throw new PragmaModelError('MODEL_ERROR', `${id}: the response was not valid JSON.`, {
+          cause: error,
+          retryable: true,
+        });
       }
 
       const choice = data.choices?.[0];
       if (choice?.message?.refusal) {
-        throw new PragmaModelError('MODEL_OUTPUT_INVALID', `${id}: the model declined to answer.`, { retryable: false });
+        throw new PragmaModelError('MODEL_OUTPUT_INVALID', `${id}: the model declined to answer.`, {
+          retryable: false,
+        });
       }
       if (choice?.finish_reason === 'length') {
-        throw new PragmaModelError('MODEL_OUTPUT_INVALID', `${id}: the output was truncated; increase maxOutputTokens.`, { retryable: false });
+        throw new PragmaModelError(
+          'MODEL_OUTPUT_INVALID',
+          `${id}: the output was truncated; increase maxOutputTokens.`,
+          { retryable: false },
+        );
       }
       const text = choice?.message?.content ?? '';
       return {
         text,
         ...(data.model ? { model: data.model } : {}),
-        ...(data.usage ? { usage: { inputTokens: data.usage.prompt_tokens ?? 0, outputTokens: data.usage.completion_tokens ?? 0 } } : {}),
+        ...(data.usage
+          ? {
+              usage: {
+                inputTokens: data.usage.prompt_tokens ?? 0,
+                outputTokens: data.usage.completion_tokens ?? 0,
+              },
+            }
+          : {}),
       };
     },
   };

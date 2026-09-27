@@ -1,4 +1,12 @@
-import { conformanceCases, conformanceDataset, conformanceSchema, NOW, referenceIds, referenceTotal, type Person } from '@pragma/conformance';
+import {
+  conformanceCases,
+  conformanceDataset,
+  conformanceSchema,
+  NOW,
+  referenceIds,
+  referenceTotal,
+  type Person,
+} from '@pragma/conformance';
 import {
   columnFilteringFeature,
   constructTable,
@@ -32,7 +40,10 @@ const baseColumns = conformanceSchema.fields.map((f) => ({ accessorKey: f.id, he
 const columns = withPragmaColumns(baseColumns, conformanceSchema, { now: () => NOW });
 const globalFilterFn = pragmaGlobalFilterFn(conformanceSchema, { now: () => NOW });
 
-function nativeIds(query: (typeof conformanceCases)[number]['query']): { ids: number[]; total: number } {
+function nativeIds(query: (typeof conformanceCases)[number]['query']): {
+  ids: number[];
+  total: number;
+} {
   const state = toTanStackState(query);
   const table = constructTable({
     features,
@@ -51,7 +62,10 @@ function nativeIds(query: (typeof conformanceCases)[number]['query']): { ids: nu
     getRowModel: () => { rows: { original: Person }[] };
     getPrePaginatedRowModel: () => { rows: unknown[] };
   };
-  return { ids: table.getRowModel().rows.map((r) => r.original.id), total: table.getPrePaginatedRowModel().rows.length };
+  return {
+    ids: table.getRowModel().rows.map((r) => r.original.id),
+    total: table.getPrePaginatedRowModel().rows.length,
+  };
 }
 
 describe('conformance: TanStack native row models', () => {
@@ -78,7 +92,10 @@ describe('conformance: TanStack native row models', () => {
 describe('conformance: controlled mode (executeForTable)', () => {
   for (const testCase of conformanceCases) {
     it(testCase.name, () => {
-      const result = executeForTable(conformanceDataset, testCase.query, { schema: conformanceSchema, now: NOW });
+      const result = executeForTable(conformanceDataset, testCase.query, {
+        schema: conformanceSchema,
+        now: NOW,
+      });
       expect(result.rows.map((r) => r.id)).toEqual(referenceIds(testCase));
       expect(result.rowCount).toBe(referenceTotal(testCase));
     });

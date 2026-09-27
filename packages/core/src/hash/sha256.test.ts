@@ -24,6 +24,8 @@ describe('sha256', () => {
 
 describe('stableStringify', () => {
   it('sorts keys recursively and drops undefined', () => {
-    expect(stableStringify({ b: 1, a: { d: undefined, c: [3, { z: 1, y: 2 }] } })).toBe('{"a":{"c":[3,{"y":2,"z":1}]},"b":1}');
+    expect(stableStringify({ b: 1, a: { d: undefined, c: [3, { z: 1, y: 2 }] } })).toBe(
+      '{"a":{"c":[3,{"y":2,"z":1}]},"b":1}',
+    );
   });
 });

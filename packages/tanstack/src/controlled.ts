@@ -1,4 +1,10 @@
-import { executeQuery, type PageInfo, type ResolvedSchema, type TableQuery, type ValueGetter } from '@pragma/core';
+import {
+  executeQuery,
+  type PageInfo,
+  type ResolvedSchema,
+  type TableQuery,
+  type ValueGetter,
+} from '@pragma/core';
 import { toTanStackState, type TanStackColumnSort, type TanStackPagination } from './state.js';
 
 /** @public */
@@ -31,7 +37,11 @@ export interface TableExecution<Row> {
  *
  * @public
  */
-export function executeForTable<Row>(rows: readonly Row[], query: TableQuery, options: ExecuteForTableOptions<Row>): TableExecution<Row> {
+export function executeForTable<Row>(
+  rows: readonly Row[],
+  query: TableQuery,
+  options: ExecuteForTableOptions<Row>,
+): TableExecution<Row> {
   const result = executeQuery(rows, query, {
     schema: options.schema,
     ...(options.now === undefined ? {} : { now: options.now }),
@@ -39,5 +49,11 @@ export function executeForTable<Row>(rows: readonly Row[], query: TableQuery, op
     ...(options.locale ? { locale: options.locale } : {}),
   });
   const state = toTanStackState(query);
-  return { rows: result.rows, rowCount: result.total, pageInfo: result.pageInfo, sorting: state.sorting, pagination: state.pagination };
+  return {
+    rows: result.rows,
+    rowCount: result.total,
+    pageInfo: result.pageInfo,
+    sorting: state.sorting,
+    pagination: state.pagination,
+  };
 }

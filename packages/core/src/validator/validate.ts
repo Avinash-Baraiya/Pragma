@@ -1,5 +1,10 @@
 import { isValidTimeZone } from '../dates/calendar.js';
-import { createIssue, createWarning, type PragmaIssue, type PragmaWarning } from '../errors/errors.js';
+import {
+  createIssue,
+  createWarning,
+  type PragmaIssue,
+  type PragmaWarning,
+} from '../errors/errors.js';
 import { isOperator, TEXT_OPERATORS } from '../operators/catalog.js';
 import { countConditions, groupDepth } from '../protocol/query.js';
 import type {
@@ -61,7 +66,12 @@ class Collector {
  * Report an unknown field. Hidden fields produce exactly the same issue as
  * non-existent ones so that their existence is never revealed.
  */
-function unknownField(schema: ResolvedSchema, fieldId: string, path: Path, predicate?: (f: ResolvedField) => boolean): PragmaIssue {
+function unknownField(
+  schema: ResolvedSchema,
+  fieldId: string,
+  path: Path,
+  predicate?: (f: ResolvedField) => boolean,
+): PragmaIssue {
   const suggestions = suggestFields(schema, fieldId, predicate ? { predicate } : {});
   return createIssue('UNKNOWN_FIELD', {
     message: `Unknown field "${fieldId}".`,
@@ -73,15 +83,23 @@ function unknownField(schema: ResolvedSchema, fieldId: string, path: Path, predi
   });
 }
 
-function requireField(schema: ResolvedSchema, fieldId: string, path: Path, c: Collector, capability: 'filter' | 'sort' | 'search'): ResolvedField | undefined {
+function requireField(
+  schema: ResolvedSchema,
+  fieldId: string,
+  path: Path,
+  c: Collector,
+  capability: 'filter' | 'sort' | 'search',
+): ResolvedField | undefined {
   const field = schema.fieldsById.get(fieldId);
-  const capable = (f: ResolvedField): boolean => (capability === 'filter' ? f.filterable : capability === 'sort' ? f.sortable : f.searchable);
+  const capable = (f: ResolvedField): boolean =>
+    capability === 'filter' ? f.filterable : capability === 'sort' ? f.sortable : f.searchable;
   if (!field) {
     c.issues.push(unknownField(schema, fieldId, path, capable));
     return undefined;
   }
   if (!capable(field)) {
-    const verb = capability === 'filter' ? 'filtered' : capability === 'sort' ? 'sorted' : 'searched';
+    const verb =
+      capability === 'filter' ? 'filtered' : capability === 'sort' ? 'sorted' : 'searched';
     const alternatives = [...schema.fieldsById.values()].filter(capable).slice(0, 5);
     c.issues.push(
       createIssue('UNSUPPORTED_OPERATION', {
@@ -90,7 +108,9 @@ function requireField(schema: ResolvedSchema, fieldId: string, path: Path, c: Co
         params: { field: field.label },
         path,
         field: field.id,
-        details: { suggestions: alternatives.map((f) => ({ id: f.id, label: f.label, type: f.type })) },
+        details: {
+          suggestions: alternatives.map((f) => ({ id: f.id, label: f.label, type: f.type })),
+        },
       }),
     );
     return undefined;
@@ -102,7 +122,12 @@ function requireField(schema: ResolvedSchema, fieldId: string, path: Path, c: Co
 /* Filters                                                                    */
 /* -------------------------------------------------------------------------- */
 
-function validateCondition(condition: FilterCondition, schema: ResolvedSchema, path: Path, c: Collector): FilterCondition | undefined {
+function validateCondition(
+  condition: FilterCondition,
+  schema: ResolvedSchema,
+  path: Path,
+  c: Collector,
+): FilterCondition | undefined {
   const field = requireField(schema, condition.field, [...path, 'field'], c, 'filter');
   if (!field) return undefined;
 
@@ -124,7 +149,12 @@ function validateCondition(condition: FilterCondition, schema: ResolvedSchema, p
       createIssue('INVALID_OPERATOR', {
         message: `Operator "${condition.operator}" cannot be used with ${field.type} field "${field.label}".`,
         messageKey: 'operator.notAllowed',
-        params: { operator: condition.operator, field: field.label, type: field.type, allowed: [...field.operators] },
+        params: {
+          operator: condition.operator,
+          field: field.label,
+          type: field.type,
+          allowed: [...field.operators],
+        },
         path: [...path, 'operator'],
         field: field.id,
         details: { allowed: field.operators },
@@ -133,7 +163,10 @@ function validateCondition(condition: FilterCondition, schema: ResolvedSchema, p
     return undefined;
   }
 
-  if (condition.options?.caseSensitive !== undefined && (field.type !== 'string' || !TEXT_OPERATORS.has(condition.operator))) {
+  if (
+    condition.options?.caseSensitive !== undefined &&
+    (field.type !== 'string' || !TEXT_OPERATORS.has(condition.operator))
+  ) {
     c.issues.push(
       createIssue('VALIDATION_ERROR', {
         message: `"caseSensitive" only applies to text comparisons (field "${field.label}").`,
@@ -157,12 +190,20 @@ function validateCondition(condition: FilterCondition, schema: ResolvedSchema, p
     field: field.id,
     operator: condition.operator,
     ...(coerced.value === undefined ? {} : { value: coerced.value }),
-    ...(condition.options?.caseSensitive === undefined ? {} : { options: { caseSensitive: condition.options.caseSensitive } }),
+    ...(condition.options?.caseSensitive === undefined
+      ? {}
+      : { options: { caseSensitive: condition.options.caseSensitive } }),
   };
   return out;
 }
 
-function validateNode(node: FilterNode, schema: ResolvedSchema, path: Path, c: Collector, ids: Set<string>): FilterNode | undefined {
+function validateNode(
+  node: FilterNode,
+  schema: ResolvedSchema,
+  path: Path,
+  c: Collector,
+  ids: Set<string>,
+): FilterNode | undefined {
   if (ids.has(node.id)) {
     c.issues.push(
       createIssue('VALIDATION_ERROR', {
@@ -176,7 +217,9 @@ function validateNode(node: FilterNode, schema: ResolvedSchema, path: Path, c: C
   ids.add(node.id);
   if (node.type === 'condition') return validateCondition(node, schema, path, c);
   const before = c.issues.length;
-  const children = node.children.map((child, i) => validateNode(child, schema, [...path, 'children', i], c, ids));
+  const children = node.children.map((child, i) =>
+    validateNode(child, schema, [...path, 'children', i], c, ids),
+  );
   if (c.issues.length > before) return undefined;
   const group: FilterGroup = {
     type: 'group',
@@ -217,7 +260,12 @@ function checkTreeLimits(root: FilterNode, limits: QueryLimits, path: Path, c: C
 /* Search / sort / pagination                                                 */
 /* -------------------------------------------------------------------------- */
 
-function validateSearch(search: SearchSpec, schema: ResolvedSchema, path: Path, c: Collector): SearchSpec | undefined {
+function validateSearch(
+  search: SearchSpec,
+  schema: ResolvedSchema,
+  path: Path,
+  c: Collector,
+): SearchSpec | undefined {
   const searchable = [...schema.fieldsById.values()].filter((f) => f.searchable);
   if (!schema.capabilities.search || searchable.length === 0) {
     c.issues.push(
@@ -231,23 +279,40 @@ function validateSearch(search: SearchSpec, schema: ResolvedSchema, path: Path, 
   }
   const query = search.query.trim();
   if (query === '') {
-    c.issues.push(createIssue('INVALID_VALUE', { message: 'Search text cannot be empty.', messageKey: 'search.empty', path: [...path, 'query'] }));
+    c.issues.push(
+      createIssue('INVALID_VALUE', {
+        message: 'Search text cannot be empty.',
+        messageKey: 'search.empty',
+        path: [...path, 'query'],
+      }),
+    );
     return undefined;
   }
   if (search.fields === undefined) return { query };
   if (search.fields.length === 0) {
     c.issues.push(
-      createIssue('INVALID_VALUE', { message: 'Search fields cannot be an empty list.', messageKey: 'search.emptyFields', path: [...path, 'fields'] }),
+      createIssue('INVALID_VALUE', {
+        message: 'Search fields cannot be an empty list.',
+        messageKey: 'search.emptyFields',
+        path: [...path, 'fields'],
+      }),
     );
     return undefined;
   }
   const before = c.issues.length;
-  const fields = search.fields.map((id, i) => requireField(schema, id, [...path, 'fields', i], c, 'search')?.id);
+  const fields = search.fields.map(
+    (id, i) => requireField(schema, id, [...path, 'fields', i], c, 'search')?.id,
+  );
   if (c.issues.length > before) return undefined;
   return { query, fields: [...new Set(fields as string[])] };
 }
 
-function validateSortList(sort: readonly SortSpec[], schema: ResolvedSchema, path: Path, c: Collector): SortSpec[] | undefined {
+function validateSortList(
+  sort: readonly SortSpec[],
+  schema: ResolvedSchema,
+  path: Path,
+  c: Collector,
+): SortSpec[] | undefined {
   if (sort.length > schema.capabilities.maxSorts) {
     c.issues.push(
       createIssue('LIMIT_EXCEEDED', {
@@ -278,12 +343,22 @@ function validateSortList(sort: readonly SortSpec[], schema: ResolvedSchema, pat
       return;
     }
     seen.add(field.id);
-    out.push(spec.nulls === undefined ? { field: field.id, direction: spec.direction } : { field: field.id, direction: spec.direction, nulls: spec.nulls });
+    out.push(
+      spec.nulls === undefined
+        ? { field: field.id, direction: spec.direction }
+        : { field: field.id, direction: spec.direction, nulls: spec.nulls },
+    );
   });
   return c.issues.length > before ? undefined : out;
 }
 
-function validatePageSize(size: number, schema: ResolvedSchema, path: Path, c: Collector, options: ValidationOptions): number | undefined {
+function validatePageSize(
+  size: number,
+  schema: ResolvedSchema,
+  path: Path,
+  c: Collector,
+  options: ValidationOptions,
+): number | undefined {
   const max = schema.capabilities.maxPageSize;
   if (size <= max) return size;
   if (options.pageSizeOverflow === 'clamp') {
@@ -308,7 +383,13 @@ function validatePageSize(size: number, schema: ResolvedSchema, path: Path, c: C
   return undefined;
 }
 
-function validatePagination(pagination: Pagination, schema: ResolvedSchema, path: Path, c: Collector, options: ValidationOptions): Pagination | undefined {
+function validatePagination(
+  pagination: Pagination,
+  schema: ResolvedSchema,
+  path: Path,
+  c: Collector,
+  options: ValidationOptions,
+): Pagination | undefined {
   if (!schema.capabilities.pagination.includes(pagination.type)) {
     c.issues.push(
       createIssue('CAPABILITY_UNSUPPORTED', {
@@ -322,7 +403,13 @@ function validatePagination(pagination: Pagination, schema: ResolvedSchema, path
   }
   switch (pagination.type) {
     case 'page': {
-      const pageSize = validatePageSize(pagination.pageSize, schema, [...path, 'pageSize'], c, options);
+      const pageSize = validatePageSize(
+        pagination.pageSize,
+        schema,
+        [...path, 'pageSize'],
+        c,
+        options,
+      );
       return pageSize === undefined ? undefined : { ...pagination, pageSize };
     }
     case 'offset':
@@ -346,7 +433,11 @@ function validatePagination(pagination: Pagination, schema: ResolvedSchema, path
  *
  * @public
  */
-export function validateQuery(query: TableQuery, schema: ResolvedSchema, options: ValidationOptions = {}): ValidationResult<TableQuery> {
+export function validateQuery(
+  query: TableQuery,
+  schema: ResolvedSchema,
+  options: ValidationOptions = {},
+): ValidationResult<TableQuery> {
   const c = new Collector();
   const limits = { ...DEFAULT_QUERY_LIMITS, ...options.limits };
 
@@ -375,13 +466,20 @@ export function validateQuery(query: TableQuery, schema: ResolvedSchema, options
   const search = query.search === null ? null : validateSearch(query.search, schema, ['search'], c);
   let filter: FilterGroup | null | undefined = null;
   if (query.filter !== null) {
-    filter = validateNode(query.filter, schema, ['filter'], c, new Set()) as FilterGroup | undefined;
+    filter = validateNode(query.filter, schema, ['filter'], c, new Set()) as
+      FilterGroup | undefined;
     checkTreeLimits(query.filter, limits, ['filter'], c);
   }
   const sort = validateSortList(query.sort, schema, ['sort'], c);
   const pagination = validatePagination(query.pagination, schema, ['pagination'], c, options);
 
-  if (c.issues.length > 0 || search === undefined || filter === undefined || sort === undefined || pagination === undefined) {
+  if (
+    c.issues.length > 0 ||
+    search === undefined ||
+    filter === undefined ||
+    sort === undefined ||
+    pagination === undefined
+  ) {
     return { value: undefined, issues: c.issues, warnings: c.warnings };
   }
   const value: TableQuery = {
@@ -403,7 +501,11 @@ export function validateQuery(query: TableQuery, schema: ResolvedSchema, options
  *
  * @public
  */
-export function validateMutations(mutations: readonly Mutation[], schema: ResolvedSchema, options: ValidationOptions = {}): ValidationResult<Mutation[]> {
+export function validateMutations(
+  mutations: readonly Mutation[],
+  schema: ResolvedSchema,
+  options: ValidationOptions = {},
+): ValidationResult<Mutation[]> {
   const c = new Collector();
   const limits = { ...DEFAULT_QUERY_LIMITS, ...options.limits };
   const out: Mutation[] = [];
@@ -415,7 +517,9 @@ export function validateMutations(mutations: readonly Mutation[], schema: Resolv
     if (result !== undefined && c.issues.length === before) out.push(result);
   });
 
-  return c.issues.length > 0 ? { value: undefined, issues: c.issues, warnings: c.warnings } : { value: out, issues: [], warnings: c.warnings };
+  return c.issues.length > 0
+    ? { value: undefined, issues: c.issues, warnings: c.warnings }
+    : { value: out, issues: [], warnings: c.warnings };
 }
 
 function validateMutation(
@@ -473,7 +577,8 @@ function validateMutation(
       if (!schema.capabilities.pagination.some((t) => t === 'page' || t === 'offset')) {
         c.issues.push(
           createIssue('CAPABILITY_UNSUPPORTED', {
-            message: 'Jumping to a specific page is not supported for this table (cursor pagination only).',
+            message:
+              'Jumping to a specific page is not supported for this table (cursor pagination only).',
             messageKey: 'capability.pageJump',
             path,
           }),

@@ -1,7 +1,20 @@
 import { describe, expect, it } from 'vitest';
-import { OPERATORS, OPERATORS_BY_TYPE, OPERATOR_ARITY, OPERATOR_LABELS, isOperator } from '../operators/catalog.js';
+import {
+  OPERATORS,
+  OPERATORS_BY_TYPE,
+  OPERATOR_ARITY,
+  OPERATOR_LABELS,
+  isOperator,
+} from '../operators/catalog.js';
 import { parseMutations, parseTableQuery } from './parse.js';
-import { collectNodeIds, countConditions, firstPage, flattenFilter, groupDepth, pageSizeOf } from './query.js';
+import {
+  collectNodeIds,
+  countConditions,
+  firstPage,
+  flattenFilter,
+  groupDepth,
+  pageSizeOf,
+} from './query.js';
 import type { FilterGroup, TableQuery } from './types.js';
 
 const base: TableQuery = {
@@ -22,7 +35,8 @@ describe('operator catalog', () => {
   });
 
   it('only lists known operators per type', () => {
-    for (const ops of Object.values(OPERATORS_BY_TYPE)) for (const op of ops) expect(isOperator(op)).toBe(true);
+    for (const ops of Object.values(OPERATORS_BY_TYPE))
+      for (const op of ops) expect(isOperator(op)).toBe(true);
     expect(isOperator('approximately')).toBe(false);
     expect(isOperator(42)).toBe(false);
   });
@@ -52,14 +66,24 @@ describe('parseTableQuery', () => {
           logic: 'or',
           children: [
             { type: 'condition', id: 'f2', field: 'country', operator: 'eq', value: 'India' },
-            { type: 'condition', id: 'f3', field: 'createdAt', operator: 'last', value: { amount: 7, unit: 'day' } },
+            {
+              type: 'condition',
+              id: 'f3',
+              field: 'createdAt',
+              operator: 'last',
+              value: { amount: 7, unit: 'day' },
+            },
           ],
         },
       ],
     };
     expect(parseTableQuery({ ...base, filter }).success).toBe(true);
-    expect(parseTableQuery({ ...base, pagination: { type: 'offset', offset: 0, limit: 10 } }).success).toBe(true);
-    expect(parseTableQuery({ ...base, pagination: { type: 'cursor', cursor: null, limit: 10 } }).success).toBe(true);
+    expect(
+      parseTableQuery({ ...base, pagination: { type: 'offset', offset: 0, limit: 10 } }).success,
+    ).toBe(true);
+    expect(
+      parseTableQuery({ ...base, pagination: { type: 'cursor', cursor: null, limit: 10 } }).success,
+    ).toBe(true);
   });
 
   it('reports shape errors with paths', () => {
@@ -76,7 +100,15 @@ describe('parseTableQuery', () => {
   });
 
   it('rejects non-finite numbers and oversized values', () => {
-    const cond = (value: unknown): unknown => ({ ...base, filter: { type: 'group', id: 'g', logic: 'and', children: [{ type: 'condition', id: 'f', field: 'age', operator: 'eq', value }] } });
+    const cond = (value: unknown): unknown => ({
+      ...base,
+      filter: {
+        type: 'group',
+        id: 'g',
+        logic: 'and',
+        children: [{ type: 'condition', id: 'f', field: 'age', operator: 'eq', value }],
+      },
+    });
     expect(parseTableQuery(cond(Number.POSITIVE_INFINITY)).success).toBe(false);
     expect(parseTableQuery(cond('x'.repeat(1001))).success).toBe(false);
     expect(parseTableQuery(cond(Array.from({ length: 101 }, (_, i) => i))).success).toBe(false);
@@ -101,7 +133,11 @@ describe('parseMutations', () => {
     const result = parseMutations([
       { op: 'setSearch', search: { query: 'rahul' } },
       { op: 'clearSearch' },
-      { op: 'addFilter', node: { type: 'condition', id: 'f', field: 'age', operator: 'gt', value: 1 }, logic: 'or' },
+      {
+        op: 'addFilter',
+        node: { type: 'condition', id: 'f', field: 'age', operator: 'gt', value: 1 },
+        logic: 'or',
+      },
       { op: 'removeFilter', target: { field: 'age' } },
       { op: 'removeFilter', target: { id: 'f' } },
       { op: 'replaceFilter', node: null },
@@ -122,7 +158,14 @@ describe('parseMutations', () => {
   it('rejects unknown ops and bad payloads', () => {
     expect(parseMutations([{ op: 'dropTable' }]).success).toBe(false);
     expect(parseMutations([{ op: 'setPage', page: 0 }]).success).toBe(false);
-    expect(parseMutations([{ op: 'addFilter', node: { type: 'condition', id: 'f', field: 'age', operator: 'approximately', value: 1 } }]).success).toBe(false);
+    expect(
+      parseMutations([
+        {
+          op: 'addFilter',
+          node: { type: 'condition', id: 'f', field: 'age', operator: 'approximately', value: 1 },
+        },
+      ]).success,
+    ).toBe(false);
     expect(parseMutations(Array.from({ length: 51 }, () => ({ op: 'reset' }))).success).toBe(false);
   });
 });
@@ -134,7 +177,12 @@ describe('query helpers', () => {
     logic: 'and',
     children: [
       { type: 'condition', id: 'a', field: 'age', operator: 'gt', value: 1 },
-      { type: 'group', id: 'g2', logic: 'or', children: [{ type: 'condition', id: 'b', field: 'x', operator: 'isNull' }] },
+      {
+        type: 'group',
+        id: 'g2',
+        logic: 'or',
+        children: [{ type: 'condition', id: 'b', field: 'x', operator: 'isNull' }],
+      },
     ],
   };
 
@@ -152,7 +200,11 @@ describe('query helpers', () => {
     const flat: FilterGroup = { ...tree, children: [tree.children[0]!] };
     expect(flattenFilter({ filter: flat })).toHaveLength(1);
     expect(flattenFilter({ filter: { ...flat, logic: 'or' } })).toHaveLength(1);
-    expect(flattenFilter({ filter: { ...tree, logic: 'or', children: [tree.children[0]!, tree.children[0]!] } })).toBeNull();
+    expect(
+      flattenFilter({
+        filter: { ...tree, logic: 'or', children: [tree.children[0]!, tree.children[0]!] },
+      }),
+    ).toBeNull();
     expect(flattenFilter({ filter: { ...flat, not: true } })).toBeNull();
   });
 

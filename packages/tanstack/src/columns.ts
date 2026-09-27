@@ -1,8 +1,18 @@
-import { defaultGetValue, defineSchema, PragmaConfigError, type FieldDef, type ResolvedSchema, type TableSchema } from '@pragma/core';
+import {
+  defaultGetValue,
+  defineSchema,
+  PragmaConfigError,
+  type FieldDef,
+  type ResolvedSchema,
+  type TableSchema,
+} from '@pragma/core';
 import { pragmaFilterFn, pragmaSortFn, type PragmaFnOptions } from './fns.js';
 
 /** Pragma field metadata placed on a column's `meta.pragma`. `id` and `label` default from the column. @public */
-export type PragmaColumnMeta = Omit<FieldDef, 'id' | 'label'> & { readonly id?: string; readonly label?: string };
+export type PragmaColumnMeta = Omit<FieldDef, 'id' | 'label'> & {
+  readonly id?: string;
+  readonly label?: string;
+};
 
 /** The subset of a TanStack column definition Pragma reads (v8 and v9 compatible). @public */
 export interface PragmaColumnLike {
@@ -45,20 +55,30 @@ function leaves(columns: readonly PragmaColumnLike[]): PragmaColumnLike[] {
  *
  * @public
  */
-export function schemaFromColumns(columns: readonly PragmaColumnLike[], options: SchemaFromColumnsOptions): ResolvedSchema {
+export function schemaFromColumns(
+  columns: readonly PragmaColumnLike[],
+  options: SchemaFromColumnsOptions,
+): ResolvedSchema {
   const fields: FieldDef[] = [];
   for (const column of leaves(columns)) {
     const meta = pragmaMeta(column);
     if (meta === undefined || meta === false) continue;
     const id = meta.id ?? columnId(column);
     if (id === undefined) {
-      throw new PragmaConfigError('CONFIG_ERROR', 'A column with meta.pragma needs an id or a string accessorKey.');
+      throw new PragmaConfigError(
+        'CONFIG_ERROR',
+        'A column with meta.pragma needs an id or a string accessorKey.',
+      );
     }
     const label = meta.label ?? (typeof column.header === 'string' ? column.header : id);
     fields.push({ ...meta, id, label });
   }
   const { extraFields, ...schema } = options;
-  return defineSchema({ ...schema, schemaVersion: '1', fields: [...fields, ...(extraFields ?? [])] });
+  return defineSchema({
+    ...schema,
+    schemaVersion: '1',
+    fields: [...fields, ...(extraFields ?? [])],
+  });
 }
 
 /** Properties `withPragmaColumns` adds to each queryable column (TanStack v9 option names). @public */
@@ -95,7 +115,10 @@ export function withPragmaColumns<TColumn extends PragmaColumnLike>(
   // The additions are standard TanStack column options, so the caller's column type is preserved.
   const visit = (column: TColumn): TColumn => {
     if (column.columns && column.columns.length > 0) {
-      return { ...column, columns: withPragmaColumns(column.columns as readonly TColumn[], schema, options) };
+      return {
+        ...column,
+        columns: withPragmaColumns(column.columns as readonly TColumn[], schema, options),
+      };
     }
     const id = columnId(column);
     if (id === undefined || !schema.fieldsById.has(id)) return column;

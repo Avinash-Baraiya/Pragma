@@ -23,7 +23,10 @@ export interface InitialQueryOptions {
  *
  * @public
  */
-export function createInitialQuery(schema: ResolvedSchema, options: InitialQueryOptions = {}): TableQuery {
+export function createInitialQuery(
+  schema: ResolvedSchema,
+  options: InitialQueryOptions = {},
+): TableQuery {
   const type = options.paginationType ?? schema.capabilities.pagination[0] ?? 'page';
   const query: TableQuery = {
     version: PROTOCOL_VERSION,
@@ -85,10 +88,13 @@ export function groupDepth(node: FilterNode | null): number {
  *
  * @public
  */
-export function flattenFilter(query: Pick<TableQuery, 'filter'>): readonly FilterCondition[] | null {
+export function flattenFilter(
+  query: Pick<TableQuery, 'filter'>,
+): readonly FilterCondition[] | null {
   const root = query.filter;
   if (root === null) return [];
-  if (root.logic !== 'and' || root.not === true) return root.children.length <= 1 && root.not !== true ? onlyConditions(root) : null;
+  if (root.logic !== 'and' || root.not === true)
+    return root.children.length <= 1 && root.not !== true ? onlyConditions(root) : null;
   return onlyConditions(root);
 }
 
@@ -102,7 +108,10 @@ function onlyConditions(group: FilterGroup): readonly FilterCondition[] | null {
 }
 
 /** Collect every node id in a filter tree. @public */
-export function collectNodeIds(node: FilterNode | null, into: Set<string> = new Set()): Set<string> {
+export function collectNodeIds(
+  node: FilterNode | null,
+  into: Set<string> = new Set(),
+): Set<string> {
   if (node === null) return into;
   into.add(node.id);
   if (node.type === 'group') for (const child of node.children) collectNodeIds(child, into);

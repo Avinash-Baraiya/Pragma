@@ -6,10 +6,15 @@ import { PragmaModelError } from '@pragma/core';
  *
  * @internal
  */
-export function parseRetryAfter(headers: Headers | Record<string, string | undefined> | undefined, now: number = Date.now()): number | undefined {
+export function parseRetryAfter(
+  headers: Headers | Record<string, string | undefined> | undefined,
+  now: number = Date.now(),
+): number | undefined {
   if (!headers) return undefined;
   const get = (name: string): string | undefined =>
-    headers instanceof Headers ? (headers.get(name) ?? undefined) : (headers[name] ?? headers[name.toLowerCase()] ?? undefined);
+    headers instanceof Headers
+      ? (headers.get(name) ?? undefined)
+      : (headers[name] ?? headers[name.toLowerCase()] ?? undefined);
   const ms = get('retry-after-ms');
   if (ms !== undefined && /^\d+(\.\d+)?$/.test(ms.trim())) return Math.round(Number(ms));
   const value = get('retry-after');
@@ -27,20 +32,44 @@ export function parseRetryAfter(headers: Headers | Record<string, string | undef
  *
  * @internal
  */
-export function httpError(providerId: string, status: number, headers?: Headers | Record<string, string | undefined>, cause?: unknown): PragmaModelError {
+export function httpError(
+  providerId: string,
+  status: number,
+  headers?: Headers | Record<string, string | undefined>,
+  cause?: unknown,
+): PragmaModelError {
   const retryAfterMs = parseRetryAfter(headers);
-  const base = { status, ...(retryAfterMs === undefined ? {} : { retryAfterMs }), ...(cause === undefined ? {} : { cause }) };
+  const base = {
+    status,
+    ...(retryAfterMs === undefined ? {} : { retryAfterMs }),
+    ...(cause === undefined ? {} : { cause }),
+  };
   if (status === 401 || status === 403) {
-    return new PragmaModelError('UNAUTHORIZED', `${providerId}: authentication with the model provider failed (HTTP ${status}).`, { ...base, retryable: false });
+    return new PragmaModelError(
+      'UNAUTHORIZED',
+      `${providerId}: authentication with the model provider failed (HTTP ${status}).`,
+      { ...base, retryable: false },
+    );
   }
   if (status === 429) {
-    return new PragmaModelError('RATE_LIMITED', `${providerId}: rate limited by the model provider (HTTP 429).`, { ...base, retryable: true });
+    return new PragmaModelError(
+      'RATE_LIMITED',
+      `${providerId}: rate limited by the model provider (HTTP 429).`,
+      { ...base, retryable: true },
+    );
   }
   const retryable = status === 408 || status === 409 || status >= 500;
-  return new PragmaModelError('MODEL_ERROR', `${providerId}: the model provider returned HTTP ${status}.`, { ...base, retryable });
+  return new PragmaModelError(
+    'MODEL_ERROR',
+    `${providerId}: the model provider returned HTTP ${status}.`,
+    { ...base, retryable },
+  );
 }
 
 /** Network-level failure (DNS, connection reset, TLS). @internal */
 export function networkError(providerId: string, cause: unknown): PragmaModelError {
-  return new PragmaModelError('MODEL_ERROR', `${providerId}: could not reach the model provider.`, { cause, retryable: true });
+  return new PragmaModelError('MODEL_ERROR', `${providerId}: could not reach the model provider.`, {
+    cause,
+    retryable: true,
+  });
 }

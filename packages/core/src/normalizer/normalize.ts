@@ -1,7 +1,13 @@
 import { parseDateTimeOperand, parsePlainDate, toEpochDay } from '../dates/calendar.js';
 import { createWarning, type PragmaWarning } from '../errors/errors.js';
 import { sha256, stableStringify } from '../hash/sha256.js';
-import type { FilterCondition, FilterGroup, FilterNode, ScalarValue, TableQuery } from '../protocol/types.js';
+import type {
+  FilterCondition,
+  FilterGroup,
+  FilterNode,
+  ScalarValue,
+  TableQuery,
+} from '../protocol/types.js';
 import type { ResolvedField, ResolvedSchema } from '../schema/types.js';
 
 /** @public */
@@ -35,16 +41,27 @@ export function normalizeQuery(query: TableQuery, schema: ResolvedSchema): Norma
   return { query: { ...query, filter }, warnings };
 }
 
-function normalizeNode(node: FilterNode, schema: ResolvedSchema, warnings: PragmaWarning[]): FilterNode | null {
-  return node.type === 'condition' ? normalizeCondition(node, schema, warnings) : normalizeGroup(node, schema, warnings);
+function normalizeNode(
+  node: FilterNode,
+  schema: ResolvedSchema,
+  warnings: PragmaWarning[],
+): FilterNode | null {
+  return node.type === 'condition'
+    ? normalizeCondition(node, schema, warnings)
+    : normalizeGroup(node, schema, warnings);
 }
 
-function normalizeGroup(group: FilterGroup, schema: ResolvedSchema, warnings: PragmaWarning[]): FilterNode | null {
+function normalizeGroup(
+  group: FilterGroup,
+  schema: ResolvedSchema,
+  warnings: PragmaWarning[],
+): FilterNode | null {
   let children: FilterNode[] = [];
   for (const child of group.children) {
     const normalized = normalizeNode(child, schema, warnings);
     if (normalized === null) continue;
-    if (normalized.type === 'group' && normalized.logic === group.logic && normalized.not !== true) children.push(...normalized.children);
+    if (normalized.type === 'group' && normalized.logic === group.logic && normalized.not !== true)
+      children.push(...normalized.children);
     else children.push(normalized);
   }
 
@@ -75,10 +92,17 @@ function normalizeGroup(group: FilterGroup, schema: ResolvedSchema, warnings: Pr
   return { ...group, children };
 }
 
-function normalizeCondition(condition: FilterCondition, schema: ResolvedSchema, warnings: PragmaWarning[]): FilterCondition {
+function normalizeCondition(
+  condition: FilterCondition,
+  schema: ResolvedSchema,
+  warnings: PragmaWarning[],
+): FilterCondition {
   const field = schema.fieldsById.get(condition.field);
   if (!field) return condition;
-  if ((condition.operator === 'between' || condition.operator === 'notBetween') && Array.isArray(condition.value)) {
+  if (
+    (condition.operator === 'between' || condition.operator === 'notBetween') &&
+    Array.isArray(condition.value)
+  ) {
     const [from, to] = condition.value as unknown as readonly [ScalarValue, ScalarValue];
     if (compareScalars(field, from, to) > 0) {
       warnings.push(
@@ -92,7 +116,10 @@ function normalizeCondition(condition: FilterCondition, schema: ResolvedSchema, 
       return { ...condition, value: [to, from] };
     }
   }
-  if ((condition.operator === 'in' || condition.operator === 'notIn') && Array.isArray(condition.value)) {
+  if (
+    (condition.operator === 'in' || condition.operator === 'notIn') &&
+    Array.isArray(condition.value)
+  ) {
     const values = condition.value as readonly ScalarValue[];
     const deduped = [...new Set(values)];
     if (deduped.length !== values.length) return { ...condition, value: deduped };
@@ -101,10 +128,15 @@ function normalizeCondition(condition: FilterCondition, schema: ResolvedSchema, 
 }
 
 /** `country = India OR country = US` → `country in [India, US]` when the field allows `in`. */
-function collapseOrEquality(children: FilterNode[], schema: ResolvedSchema, warnings: PragmaWarning[]): FilterNode[] {
+function collapseOrEquality(
+  children: FilterNode[],
+  schema: ResolvedSchema,
+  warnings: PragmaWarning[],
+): FilterNode[] {
   const buckets = new Map<string, FilterCondition[]>();
   for (const child of children) {
-    if (child.type !== 'condition' || (child.operator !== 'eq' && child.operator !== 'in')) continue;
+    if (child.type !== 'condition' || (child.operator !== 'eq' && child.operator !== 'in'))
+      continue;
     const field = schema.fieldsById.get(child.field);
     if (!field?.operators.includes('in')) continue;
     const key = `${child.field}|${String(child.options?.caseSensitive ?? false)}`;
@@ -118,7 +150,8 @@ function collapseOrEquality(children: FilterNode[], schema: ResolvedSchema, warn
     const first = bucket[0]!;
     const values: ScalarValue[] = [];
     for (const c of bucket) {
-      const vs = c.operator === 'in' ? (c.value as readonly ScalarValue[]) : [c.value as ScalarValue];
+      const vs =
+        c.operator === 'in' ? (c.value as readonly ScalarValue[]) : [c.value as ScalarValue];
       for (const v of vs) if (!values.includes(v)) values.push(v);
     }
     const replacement: FilterCondition = { ...first, operator: 'in', value: values };
@@ -197,7 +230,13 @@ export function canonicalizeQuery(query: TableQuery): string {
   return stableStringify({
     v: query.version,
     r: query.resource,
-    s: query.search === null ? null : { q: query.search.query, f: query.search.fields ? [...query.search.fields].sort() : undefined },
+    s:
+      query.search === null
+        ? null
+        : {
+            q: query.search.query,
+            f: query.search.fields ? [...query.search.fields].sort() : undefined,
+          },
     f: query.filter === null ? null : canonicalNode(query.filter),
     o: query.sort,
     p: query.pagination,

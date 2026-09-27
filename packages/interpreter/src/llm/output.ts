@@ -20,7 +20,9 @@ import type { Proposal } from '../types.js';
  * engine then validates everything against the schema.
  */
 
-const nullable = (schema: Record<string, unknown>): Record<string, unknown> => ({ anyOf: [schema, { type: 'null' }] });
+const nullable = (schema: Record<string, unknown>): Record<string, unknown> => ({
+  anyOf: [schema, { type: 'null' }],
+});
 
 const scalar = { anyOf: [{ type: 'string' }, { type: 'number' }, { type: 'boolean' }] };
 
@@ -32,7 +34,10 @@ const valueSchema = {
     { type: 'array', items: scalar },
     {
       type: 'object',
-      properties: { amount: { type: 'integer' }, unit: { type: 'string', enum: [...DURATION_UNITS] } },
+      properties: {
+        amount: { type: 'integer' },
+        unit: { type: 'string', enum: [...DURATION_UNITS] },
+      },
       required: ['amount', 'unit'],
       additionalProperties: false,
     },
@@ -58,7 +63,8 @@ const conditionSchema = {
 // Separate addFilter actions are AND-ed, so (A or B) and (C or D) is two actions.
 const filterSchema = {
   type: 'object',
-  description: 'A condition (field + operator + value), or, when "conditions" is non-empty, a group combining those conditions with "logic".',
+  description:
+    'A condition (field + operator + value), or, when "conditions" is non-empty, a group combining those conditions with "logic".',
   properties: {
     field: nullable({ type: 'string' }),
     operator: nullable({ type: 'string' }),
@@ -84,14 +90,20 @@ const actionSchema = {
       type: 'array',
       items: {
         type: 'object',
-        properties: { field: { type: 'string' }, direction: { type: 'string', enum: ['asc', 'desc'] } },
+        properties: {
+          field: { type: 'string' },
+          direction: { type: 'string', enum: ['asc', 'desc'] },
+        },
         required: ['field', 'direction'],
         additionalProperties: false,
       },
     }),
     search: nullable({
       type: 'object',
-      properties: { query: { type: 'string' }, fields: nullable({ type: 'array', items: { type: 'string' } }) },
+      properties: {
+        query: { type: 'string' },
+        fields: nullable({ type: 'array', items: { type: 'string' } }),
+      },
       required: ['query', 'fields'],
       additionalProperties: false,
     }),
@@ -135,7 +147,10 @@ export const MODEL_OUTPUT_JSON_SCHEMA: Readonly<Record<string, unknown>> = {
     },
     unsupported: nullable({
       type: 'object',
-      properties: { reason: { type: 'string' }, suggestedFields: { type: 'array', items: { type: 'string' } } },
+      properties: {
+        reason: { type: 'string' },
+        suggestedFields: { type: 'array', items: { type: 'string' } },
+      },
       required: ['reason', 'suggestedFields'],
       additionalProperties: false,
     }),
@@ -185,8 +200,12 @@ const zAction = z.object({
   logic: opt(z.enum(['and', 'or'])),
   field: opt(z.string().max(128)),
   filterId: opt(z.string().max(128)),
-  sort: opt(z.array(z.object({ field: z.string().max(128), direction: z.enum(['asc', 'desc']) })).max(20)),
-  search: opt(z.object({ query: z.string().max(200), fields: opt(z.array(z.string().max(128)).max(50)) })),
+  sort: opt(
+    z.array(z.object({ field: z.string().max(128), direction: z.enum(['asc', 'desc']) })).max(20),
+  ),
+  search: opt(
+    z.object({ query: z.string().max(200), fields: opt(z.array(z.string().max(128)).max(50)) }),
+  ),
   page: opt(z.number().int()),
   pageSize: opt(z.number().int()),
 });
@@ -198,12 +217,25 @@ export const modelOutputSchema = z.object({
       z.object({
         question: z.string().max(500),
         kind: z.enum(['field', 'value', 'date_range', 'operator', 'intent']).catch('intent'),
-        options: z.array(z.object({ label: z.string().max(200), actions: z.array(zAction).max(20), isDefault: opt(z.boolean()) })).max(20),
+        options: z
+          .array(
+            z.object({
+              label: z.string().max(200),
+              actions: z.array(zAction).max(20),
+              isDefault: opt(z.boolean()),
+            }),
+          )
+          .max(20),
       }),
     )
     .max(10)
     .default([]),
-  unsupported: opt(z.object({ reason: z.string().max(500), suggestedFields: opt(z.array(z.string().max(128)).max(20)) })),
+  unsupported: opt(
+    z.object({
+      reason: z.string().max(500),
+      suggestedFields: opt(z.array(z.string().max(128)).max(20)),
+    }),
+  ),
 });
 
 export type ModelOutput = z.infer<typeof modelOutputSchema>;
@@ -230,13 +262,34 @@ export function extractJson(text: string): unknown {
  *
  * @internal
  */
-export function toProposal(output: ModelOutput, schema: ResolvedSchema, ids: IdGenerator): Proposal {
+export function toProposal(
+  output: ModelOutput,
+  schema: ResolvedSchema,
+  ids: IdGenerator,
+): Proposal {
   if (output.unsupported) {
     const suggestions: Suggestion[] = (output.unsupported.suggestedFields ?? []).flatMap((id) => {
       const field = schema.fieldsById.get(id.replace(/^@/, ''));
-      return field ? [{ kind: 'field' as const, label: field.label, insertText: `@${field.id}`, field: field.id }] : [];
+      return field
+        ? [
+            {
+              kind: 'field' as const,
+              label: field.label,
+              insertText: `@${field.id}`,
+              field: field.id,
+            },
+          ]
+        : [];
     });
-    return { mutations: [], ambiguities: [], unsupported: { reason: output.unsupported.reason, messageKey: 'model.unsupported', suggestions } };
+    return {
+      mutations: [],
+      ambiguities: [],
+      unsupported: {
+        reason: output.unsupported.reason,
+        messageKey: 'model.unsupported',
+        suggestions,
+      },
+    };
   }
   const mutations = output.actions.flatMap((a) => toMutation(a, ids));
   const ambiguities: Ambiguity[] = output.ambiguities
@@ -260,7 +313,14 @@ function toMutation(action: ModelAction, ids: IdGenerator): Mutation[] {
   switch (action.op) {
     case 'setSearch':
       if (!action.search) return [];
-      return [{ op: 'setSearch', search: action.search.fields ? { query: action.search.query, fields: action.search.fields } : { query: action.search.query } }];
+      return [
+        {
+          op: 'setSearch',
+          search: action.search.fields
+            ? { query: action.search.query, fields: action.search.fields }
+            : { query: action.search.query },
+        },
+      ];
     case 'addFilter':
     case 'replaceFilter': {
       const node = action.filter ? toNode(action.filter, ids) : undefined;
@@ -280,7 +340,9 @@ function toMutation(action: ModelAction, ids: IdGenerator): Mutation[] {
     case 'setPage':
       return typeof action.page === 'number' ? [{ op: 'setPage', page: action.page }] : [];
     case 'setPageSize':
-      return typeof action.pageSize === 'number' ? [{ op: 'setPageSize', size: action.pageSize }] : [];
+      return typeof action.pageSize === 'number'
+        ? [{ op: 'setPageSize', size: action.pageSize }]
+        : [];
     case 'clearSearch':
     case 'clearFilters':
     case 'clearSort':
@@ -295,9 +357,17 @@ function toMutation(action: ModelAction, ids: IdGenerator): Mutation[] {
 
 function toNode(filter: ModelFilter, ids: IdGenerator): FilterNode | undefined {
   if (filter.conditions && filter.conditions.length > 0) {
-    const children = filter.conditions.map((c) => toNode(c, ids)).filter((c): c is FilterNode => c !== undefined);
+    const children = filter.conditions
+      .map((c) => toNode(c, ids))
+      .filter((c): c is FilterNode => c !== undefined);
     if (children.length === 0) return undefined;
-    return { type: 'group', id: ids('g'), logic: filter.logic ?? 'and', ...(filter.not === true ? { not: true } : {}), children };
+    return {
+      type: 'group',
+      id: ids('g'),
+      logic: filter.logic ?? 'and',
+      ...(filter.not === true ? { not: true } : {}),
+      children,
+    };
   }
   if (!filter.field || !filter.operator) return undefined;
   const value = toValue(filter.value);
@@ -307,13 +377,16 @@ function toNode(filter: ModelFilter, ids: IdGenerator): FilterNode | undefined {
     field: filter.field.replace(/^@/, ''),
     operator: filter.operator as Operator,
     ...(value === undefined ? {} : { value }),
-    ...(typeof filter.caseSensitive === 'boolean' ? { options: { caseSensitive: filter.caseSensitive } } : {}),
+    ...(typeof filter.caseSensitive === 'boolean'
+      ? { options: { caseSensitive: filter.caseSensitive } }
+      : {}),
   };
 }
 
 function toValue(value: ModelFilter['value']): FilterValue | undefined {
   if (value === null || value === undefined) return undefined;
   if (Array.isArray(value)) return value;
-  if (typeof value === 'object') return { amount: value.amount, unit: value.unit as (typeof DURATION_UNITS)[number] };
+  if (typeof value === 'object')
+    return { amount: value.amount, unit: value.unit as (typeof DURATION_UNITS)[number] };
   return value;
 }

@@ -122,7 +122,12 @@ export interface EngineLimits {
 
 /** @public */
 export type EngineEvent =
-  | { readonly type: 'interpret.start'; readonly requestId: string; readonly instructionLength: number; readonly instruction?: string }
+  | {
+      readonly type: 'interpret.start';
+      readonly requestId: string;
+      readonly instructionLength: number;
+      readonly instruction?: string;
+    }
   | {
       readonly type: 'interpret.complete';
       readonly requestId: string;
@@ -191,7 +196,11 @@ export interface Engine {
   /** Interpret a natural-language instruction. Never rejects for runtime problems. */
   interpret(instruction: string, options?: InterpretOptions): Promise<InterpretResult>;
   /** Apply the chosen options of a `needs_clarification` result locally (no model call). */
-  resolve(result: ClarificationResult, choices: Readonly<Record<string, string>>, options?: LocalOptions): InterpretResult;
+  resolve(
+    result: ClarificationResult,
+    choices: Readonly<Record<string, string>>,
+    options?: LocalOptions,
+  ): InterpretResult;
   /** Validate and apply mutations locally, e.g. when a user removes a chip. */
   apply(mutations: unknown, options?: LocalOptions): InterpretResult;
   /** The starting query (schema defaults, engine timezone). */
@@ -242,21 +251,30 @@ function validateOptions(options: EngineOptions): ResolvedConfig {
   // Widened to string: these checks protect untyped (JavaScript) callers.
   const mode: string = options.mode ?? 'auto';
   if (!isRouterMode(mode)) problems.push(`Unknown mode "${mode}".`);
-  if (mode === 'llm-only' && !options.interpreter) problems.push('mode "llm-only" requires an interpreter.');
+  if (mode === 'llm-only' && !options.interpreter)
+    problems.push('mode "llm-only" requires an interpreter.');
   const ambiguity: string = options.ambiguity ?? 'ask';
   if (!isAmbiguityPolicy(ambiguity)) problems.push(`Unknown ambiguity policy "${ambiguity}".`);
   const timezone = options.timezone ?? 'UTC';
   if (!isValidTimeZone(timezone)) problems.push(`Unknown timezone "${timezone}".`);
   const timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
-  if (!Number.isFinite(timeoutMs) || timeoutMs <= 0) problems.push('timeoutMs must be a positive number.');
+  if (!Number.isFinite(timeoutMs) || timeoutMs <= 0)
+    problems.push('timeoutMs must be a positive number.');
   const limits = { ...DEFAULT_LIMITS, ...options.limits };
   for (const [key, value] of Object.entries(limits)) {
-    if (!Number.isInteger(value) || value <= 0) problems.push(`limits.${key} must be a positive integer.`);
+    if (!Number.isInteger(value) || value <= 0)
+      problems.push(`limits.${key} must be a positive integer.`);
   }
   if (problems.length > 0) {
-    throw new PragmaConfigError('CONFIG_ERROR', `Invalid engine configuration:\n${problems.map((p) => `  - ${p}`).join('\n')}`, {
-      issues: problems.map((message) => createIssue('CONFIG_ERROR', { message, messageKey: 'config.invalid' })),
-    });
+    throw new PragmaConfigError(
+      'CONFIG_ERROR',
+      `Invalid engine configuration:\n${problems.map((p) => `  - ${p}`).join('\n')}`,
+      {
+        issues: problems.map((message) =>
+          createIssue('CONFIG_ERROR', { message, messageKey: 'config.invalid' }),
+        ),
+      },
+    );
   }
   return {
     mode: mode as RouterMode,
@@ -289,7 +307,10 @@ class PragmaEngine implements Engine {
   ) {
     this.ids = options.idGenerator ?? randomId;
     this.now = options.now ?? Date.now;
-    this.cache = options.cache === false ? undefined : (options.cache ?? new MemoryCache<Proposal>({ maxEntries: 500 }));
+    this.cache =
+      options.cache === false
+        ? undefined
+        : (options.cache ?? new MemoryCache<Proposal>({ maxEntries: 500 }));
   }
 
   initialQuery(): TableQuery {
@@ -303,7 +324,11 @@ class PragmaEngine implements Engine {
   suggest(text: string, caret: number, limit = 8): MentionSuggestions {
     const active = getActiveMention(text, Math.max(0, Math.min(caret, text.length)));
     if (!active) return { start: null, query: '', suggestions: [] };
-    return { start: active.start, query: active.query, suggestions: suggestMentions(this.schema, active.query, { limit }) };
+    return {
+      start: active.start,
+      query: active.query,
+      suggestions: suggestMentions(this.schema, active.query, { limit }),
+    };
   }
 
   async interpret(instruction: string, options: InterpretOptions = {}): Promise<InterpretResult> {
@@ -327,14 +352,28 @@ class PragmaEngine implements Engine {
     return result;
   }
 
-  private async run(text: string, options: InterpretOptions, requestId: string, started: number): Promise<InterpretResult> {
-    const meta = (parser: ParserKind, extra: Partial<ResultMeta> = {}): ResultMeta => this.meta(requestId, parser, started, extra);
+  private async run(
+    text: string,
+    options: InterpretOptions,
+    requestId: string,
+    started: number,
+  ): Promise<InterpretResult> {
+    const meta = (parser: ParserKind, extra: Partial<ResultMeta> = {}): ResultMeta =>
+      this.meta(requestId, parser, started, extra);
 
     const state = this.resolveState(options.currentState);
     if ('issues' in state) return this.errorResult(state.issues, meta('local'));
 
     if (text === '') {
-      return this.errorResult([createIssue('PARSE_ERROR', { message: 'The instruction is empty.', messageKey: 'instruction.empty' })], meta('local'));
+      return this.errorResult(
+        [
+          createIssue('PARSE_ERROR', {
+            message: 'The instruction is empty.',
+            messageKey: 'instruction.empty',
+          }),
+        ],
+        meta('local'),
+      );
     }
     if (text.length > this.config.limits.maxInstructionLength) {
       return this.errorResult(
@@ -377,7 +416,8 @@ class PragmaEngine implements Engine {
         return this.unsupported(
           [
             createIssue(interpreter ? 'UNSUPPORTED_OPERATION' : 'MODEL_UNAVAILABLE', {
-              message: 'This instruction could not be understood. Try naming a column with @, for example "@status is active".',
+              message:
+                'This instruction could not be understood. Try naming a column with @, for example "@status is active".',
               messageKey: 'instruction.notUnderstood',
             }),
           ],
@@ -385,8 +425,15 @@ class PragmaEngine implements Engine {
           meta('deterministic'),
         );
       }
-      const outcome = await this.callModel(interpreter, text, state.query, requestId, options.signal);
-      if ('issue' in outcome) return this.errorResult([outcome.issue], meta('llm', { provider: interpreter.id }));
+      const outcome = await this.callModel(
+        interpreter,
+        text,
+        state.query,
+        requestId,
+        options.signal,
+      );
+      if ('issue' in outcome)
+        return this.errorResult([outcome.issue], meta('llm', { provider: interpreter.id }));
       proposal = outcome.proposal;
       parser = 'llm';
       modelMeta = {
@@ -401,7 +448,11 @@ class PragmaEngine implements Engine {
     return this.finalize(proposal, state.query, meta(parser, modelMeta), options.pageInfo);
   }
 
-  resolve(result: ClarificationResult, choices: Readonly<Record<string, string>>, options: LocalOptions = {}): InterpretResult {
+  resolve(
+    result: ClarificationResult,
+    choices: Readonly<Record<string, string>>,
+    options: LocalOptions = {},
+  ): InterpretResult {
     const started = this.now();
     const meta = this.meta(result.meta.requestId, 'local', started);
     const state = this.resolveState(options.currentState);
@@ -414,8 +465,14 @@ class PragmaEngine implements Engine {
         return this.errorResult(
           [
             createIssue('VALIDATION_ERROR', {
-              message: optionId === undefined ? `Choose an option for: ${ambiguity.message}` : `Unknown option "${optionId}" for: ${ambiguity.message}`,
-              messageKey: optionId === undefined ? 'clarification.missingChoice' : 'clarification.unknownOption',
+              message:
+                optionId === undefined
+                  ? `Choose an option for: ${ambiguity.message}`
+                  : `Unknown option "${optionId}" for: ${ambiguity.message}`,
+              messageKey:
+                optionId === undefined
+                  ? 'clarification.missingChoice'
+                  : 'clarification.unknownOption',
               params: { ambiguity: ambiguity.id },
             }),
           ],
@@ -424,7 +481,12 @@ class PragmaEngine implements Engine {
       }
       chosen.push(...option.mutations);
     }
-    return this.finalize({ mutations: [...result.partial, ...chosen], ambiguities: [] }, state.query, meta, options.pageInfo);
+    return this.finalize(
+      { mutations: [...result.partial, ...chosen], ambiguities: [] },
+      state.query,
+      meta,
+      options.pageInfo,
+    );
   }
 
   apply(mutations: unknown, options: LocalOptions = {}): InterpretResult {
@@ -434,7 +496,12 @@ class PragmaEngine implements Engine {
     if ('issues' in state) return this.errorResult(state.issues, meta);
     const parsed = parseMutations(mutations);
     if (!parsed.success) return this.errorResult(parsed.issues, meta);
-    return this.finalize({ mutations: parsed.data, ambiguities: [] }, state.query, meta, options.pageInfo);
+    return this.finalize(
+      { mutations: parsed.data, ambiguities: [] },
+      state.query,
+      meta,
+      options.pageInfo,
+    );
   }
 
   /* ------------------------------ finalization ------------------------------ */
@@ -443,21 +510,35 @@ class PragmaEngine implements Engine {
    * Turn an untrusted proposal into a result: validate, resolve ambiguity per
    * policy, apply to state, re-validate, normalize, analyze and explain.
    */
-  private finalize(proposal: Proposal, state: TableQuery, meta: ResultMeta, pageInfo: PageInfo | undefined): InterpretResult {
+  private finalize(
+    proposal: Proposal,
+    state: TableQuery,
+    meta: ResultMeta,
+    pageInfo: PageInfo | undefined,
+  ): InterpretResult {
     if (proposal.unsupported) {
       const relayed = proposal.unsupported.errors;
       return this.unsupported(
         relayed && relayed.length > 0
           ? relayed
-          : [createIssue('UNSUPPORTED_OPERATION', { message: proposal.unsupported.reason, messageKey: proposal.unsupported.messageKey })],
+          : [
+              createIssue('UNSUPPORTED_OPERATION', {
+                message: proposal.unsupported.reason,
+                messageKey: proposal.unsupported.messageKey,
+              }),
+            ],
         proposal.unsupported.suggestions,
         meta,
       );
     }
 
     const validationOptions = {
-      limits: { maxConditions: this.config.limits.maxConditions, maxDepth: this.config.limits.maxDepth },
-      pageSizeOverflow: this.config.ambiguity === 'bestGuess' ? ('clamp' as const) : ('error' as const),
+      limits: {
+        maxConditions: this.config.limits.maxConditions,
+        maxDepth: this.config.limits.maxDepth,
+      },
+      pageSizeOverflow:
+        this.config.ambiguity === 'bestGuess' ? ('clamp' as const) : ('error' as const),
     };
     const warnings: PragmaWarning[] = [];
 
@@ -476,7 +557,12 @@ class PragmaEngine implements Engine {
     warnings.push(...validated.warnings);
 
     const proposed = proposal.ambiguities
-      .map((a) => ({ ...a, options: a.options.filter((o) => validateMutations(o.mutations, this.schema, validationOptions).value !== undefined) }))
+      .map((a) => ({
+        ...a,
+        options: a.options.filter(
+          (o) => validateMutations(o.mutations, this.schema, validationOptions).value !== undefined,
+        ),
+      }))
       .filter((a) => a.options.length > 0);
 
     if (valueAmbiguities.length > 0 || (proposed.length > 0 && this.config.ambiguity === 'ask')) {
@@ -501,11 +587,17 @@ class PragmaEngine implements Engine {
       );
     }
 
-    const applied = applyMutations(state, mutations, { schema: this.schema, idGenerator: this.ids, ...(pageInfo ? { pageInfo } : {}) });
+    const applied = applyMutations(state, mutations, {
+      schema: this.schema,
+      idGenerator: this.ids,
+      ...(pageInfo ? { pageInfo } : {}),
+    });
     if (applied.issues.length > 0) return this.unsupported(applied.issues, [], meta);
     warnings.push(...applied.warnings);
 
-    const withContext: TableQuery = applied.query.context ? applied.query : { ...applied.query, context: this.context() };
+    const withContext: TableQuery = applied.query.context
+      ? applied.query
+      : { ...applied.query, context: this.context() };
     const checked = validateQuery(withContext, this.schema, validationOptions);
     if (!checked.value) return this.unsupported(checked.issues, [], meta);
     warnings.push(...checked.warnings);
@@ -514,7 +606,11 @@ class PragmaEngine implements Engine {
     warnings.push(...normalized.warnings);
     warnings.push(...analyzeConflicts(normalized.query, this.schema, { now: this.now() }));
     // Relative dates resolved in the implicit default timezone: say so on every such result.
-    if (!this.config.timezoneExplicit && normalized.query.context?.timezone === this.config.timezone && usesRelativeDates(normalized.query)) {
+    if (
+      !this.config.timezoneExplicit &&
+      normalized.query.context?.timezone === this.config.timezone &&
+      usesRelativeDates(normalized.query)
+    ) {
       warnings.push(
         createWarning('TIMEZONE_DEFAULTED', {
           message: 'No timezone was configured; relative dates use UTC.',
@@ -538,8 +634,12 @@ class PragmaEngine implements Engine {
    * mutations and turn each bad value into a `value` ambiguity whose options
    * are the field's real values. Returns `undefined` otherwise.
    */
-  private enumValueAmbiguities(mutations: readonly Mutation[], issues: readonly PragmaIssue[]): { kept: Mutation[]; ambiguities: Ambiguity[] } | undefined {
-    if (issues.length === 0 || !issues.every((i) => i.messageKey === 'value.notInEnum')) return undefined;
+  private enumValueAmbiguities(
+    mutations: readonly Mutation[],
+    issues: readonly PragmaIssue[],
+  ): { kept: Mutation[]; ambiguities: Ambiguity[] } | undefined {
+    if (issues.length === 0 || !issues.every((i) => i.messageKey === 'value.notInEnum'))
+      return undefined;
     const kept: Mutation[] = [];
     const ambiguities: Ambiguity[] = [];
     mutations.forEach((mutation, index) => {
@@ -549,11 +649,17 @@ class PragmaEngine implements Engine {
         if (ok) kept.push(...ok);
         return;
       }
-      if (mutation.op !== 'addFilter' || mutation.node.type !== 'condition' || issue.field === undefined) return;
+      if (
+        mutation.op !== 'addFilter' ||
+        mutation.node.type !== 'condition' ||
+        issue.field === undefined
+      )
+        return;
       const node = mutation.node;
       const field = this.schema.fieldsById.get(issue.field);
       if (!field) return;
-      const received = typeof issue.details?.['received'] === 'string' ? issue.details['received'] : '';
+      const received =
+        typeof issue.details?.['received'] === 'string' ? issue.details['received'] : '';
       ambiguities.push({
         id: this.ids('amb'),
         kind: 'value',
@@ -563,7 +669,12 @@ class PragmaEngine implements Engine {
         options: field.values.map((ev) => ({
           id: this.ids('opt'),
           label: ev.label ?? ev.value,
-          mutations: [{ op: 'addFilter', node: { ...node, operator: node.operator === 'neq' ? 'neq' : 'eq', value: ev.value } }],
+          mutations: [
+            {
+              op: 'addFilter',
+              node: { ...node, operator: node.operator === 'neq' ? 'neq' : 'eq', value: ev.value },
+            },
+          ],
         })),
       });
     });
@@ -583,11 +694,20 @@ class PragmaEngine implements Engine {
   private resolveState(input: unknown): { query: TableQuery } | { issues: readonly PragmaIssue[] } {
     if (input === undefined || input === null) return { query: this.initialQuery() };
     const parsed = parseTableQuery(input);
-    if (!parsed.success) return { issues: parsed.issues.map((i) => ({ ...i, path: ['currentState', ...(i.path ?? [])] })) };
+    if (!parsed.success)
+      return {
+        issues: parsed.issues.map((i) => ({ ...i, path: ['currentState', ...(i.path ?? [])] })),
+      };
     const validated = validateQuery(parsed.data, this.schema, {
-      limits: { maxConditions: this.config.limits.maxConditions, maxDepth: this.config.limits.maxDepth },
+      limits: {
+        maxConditions: this.config.limits.maxConditions,
+        maxDepth: this.config.limits.maxDepth,
+      },
     });
-    if (!validated.value) return { issues: validated.issues.map((i) => ({ ...i, path: ['currentState', ...(i.path ?? [])] })) };
+    if (!validated.value)
+      return {
+        issues: validated.issues.map((i) => ({ ...i, path: ['currentState', ...(i.path ?? [])] })),
+      };
     return { query: validated.value };
   }
 
@@ -618,31 +738,49 @@ class PragmaEngine implements Engine {
         );
       }
     }
-    return errors.length > 0 ? { status: 'unsupported', errors, suggestions: dedupeSuggestions(suggestions) } : undefined;
+    return errors.length > 0
+      ? { status: 'unsupported', errors, suggestions: dedupeSuggestions(suggestions) }
+      : undefined;
   }
 
-  private unsupported(errors: readonly PragmaIssue[], suggestions: readonly Suggestion[], meta: ResultMeta): UnsupportedResult {
+  private unsupported(
+    errors: readonly PragmaIssue[],
+    suggestions: readonly Suggestion[],
+    meta: ResultMeta,
+  ): UnsupportedResult {
     const derived: Suggestion[] = [...suggestions];
     for (const issue of errors) {
       const fromDetails = issue.details?.['suggestions'];
       if (Array.isArray(fromDetails)) {
         for (const s of fromDetails as { id?: unknown; label?: unknown }[]) {
-          if (typeof s.id === 'string' && typeof s.label === 'string') derived.push(fieldSuggestion(s.id, s.label));
+          if (typeof s.id === 'string' && typeof s.label === 'string')
+            derived.push(fieldSuggestion(s.id, s.label));
         }
       }
       const allowed = issue.details?.['allowed'];
       if (issue.code === 'INVALID_OPERATOR' && Array.isArray(allowed)) {
-        for (const op of allowed as unknown[]) if (typeof op === 'string') derived.push({ kind: 'operator', label: op });
+        for (const op of allowed as unknown[])
+          if (typeof op === 'string') derived.push({ kind: 'operator', label: op });
       }
     }
-    return { status: 'unsupported', errors, suggestions: dedupeSuggestions(derived).slice(0, 10), meta };
+    return {
+      status: 'unsupported',
+      errors,
+      suggestions: dedupeSuggestions(derived).slice(0, 10),
+      meta,
+    };
   }
 
   private errorResult(errors: readonly PragmaIssue[], meta: ResultMeta): ErrorResult {
     return { status: 'error', errors, meta };
   }
 
-  private meta(requestId: string, parser: ParserKind, started: number, extra: Partial<ResultMeta> = {}): ResultMeta {
+  private meta(
+    requestId: string,
+    parser: ParserKind,
+    started: number,
+    extra: Partial<ResultMeta> = {},
+  ): ResultMeta {
     return {
       requestId,
       parser,
@@ -656,7 +794,12 @@ class PragmaEngine implements Engine {
 
   private cacheKey(text: string, state: TableQuery): string {
     const tz = this.timezoneOf(state);
-    const day = new Intl.DateTimeFormat('en-CA', { timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(this.now()));
+    const day = new Intl.DateTimeFormat('en-CA', {
+      timeZone: tz,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    }).format(new Date(this.now()));
     return sha256(
       stableStringify({
         v: ENGINE_VERSION,
@@ -716,7 +859,12 @@ class PragmaEngine implements Engine {
       });
     } catch (error) {
       if (callerSignal?.aborted === true) {
-        return { issue: createIssue('ABORTED', { message: 'The request was cancelled.', messageKey: 'error.ABORTED' }) };
+        return {
+          issue: createIssue('ABORTED', {
+            message: 'The request was cancelled.',
+            messageKey: 'error.ABORTED',
+          }),
+        };
       }
       if (timeout.signal.aborted) {
         return {
@@ -770,7 +918,8 @@ function dedupeSuggestions(suggestions: readonly Suggestion[]): Suggestion[] {
 }
 
 function usesRelativeDates(query: TableQuery): boolean {
-  for (const c of iterateConditions(query.filter)) if (RELATIVE_DATE_OPERATORS.has(c.operator)) return true;
+  for (const c of iterateConditions(query.filter))
+    if (RELATIVE_DATE_OPERATORS.has(c.operator)) return true;
   return false;
 }
 
@@ -784,9 +933,13 @@ function anySignal(signals: readonly AbortSignal[]): AbortSignal {
       controller.abort(s.reason);
       break;
     }
-    s.addEventListener('abort', () => {
-      controller.abort(s.reason);
-    }, { once: true });
+    s.addEventListener(
+      'abort',
+      () => {
+        controller.abort(s.reason);
+      },
+      { once: true },
+    );
   }
   return controller.signal;
 }

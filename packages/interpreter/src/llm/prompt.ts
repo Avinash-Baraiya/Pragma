@@ -1,4 +1,9 @@
-import { describeFilter, type ResolvedField, type ResolvedSchema, type TableQuery } from '@pragma/core';
+import {
+  describeFilter,
+  type ResolvedField,
+  type ResolvedSchema,
+  type TableQuery,
+} from '@pragma/core';
 import type { AmbiguityPolicy } from '../engine.js';
 
 /** @internal */
@@ -22,9 +27,13 @@ export interface PromptInput {
  */
 export function buildPrompt(input: PromptInput): { system: string; user: string } {
   const { schema, state } = input;
-  const today = new Intl.DateTimeFormat('en-CA', { timeZone: input.timezone, year: 'numeric', month: '2-digit', day: '2-digit', weekday: 'long' }).format(
-    new Date(input.now),
-  );
+  const today = new Intl.DateTimeFormat('en-CA', {
+    timeZone: input.timezone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    weekday: 'long',
+  }).format(new Date(input.now));
 
   const system = `You translate a user's natural-language instruction about a data table into structured table actions.
 
@@ -72,20 +81,28 @@ Instruction: active users older than 25, newest first
 }
 
 function describeField(field: ResolvedField): string {
-  const parts = [`- ${field.id} (${field.type}${field.format ? `, ${field.format}${field.currency ? ` ${field.currency}` : ''}` : ''}) "${field.label}"`];
+  const parts = [
+    `- ${field.id} (${field.type}${field.format ? `, ${field.format}${field.currency ? ` ${field.currency}` : ''}` : ''}) "${field.label}"`,
+  ];
   if (field.aliases.length > 0) parts.push(`aliases: ${field.aliases.join(', ')}`);
   if (field.description) parts.push(`description: ${field.description}`);
   if (field.type === 'enum') {
     parts.push(
       `values: ${field.values
         .map((v) => {
-          const extra = [v.label && v.label !== v.value ? v.label : undefined, ...(v.aliases ?? [])].filter((x): x is string => x !== undefined);
+          const extra = [
+            v.label && v.label !== v.value ? v.label : undefined,
+            ...(v.aliases ?? []),
+          ].filter((x): x is string => x !== undefined);
           return extra.length > 0 ? `${v.value} (${extra.join(', ')})` : v.value;
         })
         .join('; ')}`,
     );
   }
-  if (field.format === 'percent') parts.push(`stored as ${field.percentScale === 'fraction' ? 'a fraction (20% = 0.2)' : 'a whole number (20% = 20)'}`);
+  if (field.format === 'percent')
+    parts.push(
+      `stored as ${field.percentScale === 'fraction' ? 'a fraction (20% = 0.2)' : 'a whole number (20% = 20)'}`,
+    );
   if (field.filterable) {
     parts.push(`operators: ${field.operators.join(', ')}`);
   } else {
@@ -103,11 +120,17 @@ function describeState(state: TableQuery, schema: ResolvedSchema): string {
     lines.push('filters: none');
   } else {
     lines.push(`filters: ${describeFilter(state.filter, schema)}`);
-    const ids = state.filter.children.map((c) => `${c.id}=${c.type === 'condition' ? c.field : 'group'}`);
+    const ids = state.filter.children.map(
+      (c) => `${c.id}=${c.type === 'condition' ? c.field : 'group'}`,
+    );
     lines.push(`top-level filter ids: ${ids.join(', ')}`);
   }
-  lines.push(`sort: ${state.sort.length > 0 ? state.sort.map((s) => `${s.field} ${s.direction}`).join(', ') : 'none'}`);
+  lines.push(
+    `sort: ${state.sort.length > 0 ? state.sort.map((s) => `${s.field} ${s.direction}`).join(', ') : 'none'}`,
+  );
   const p = state.pagination;
-  lines.push(`pagination: ${p.type === 'page' ? `page ${p.page}, ${p.pageSize} per page` : p.type === 'offset' ? `offset ${p.offset}, limit ${p.limit}` : `cursor, limit ${p.limit}`}`);
+  lines.push(
+    `pagination: ${p.type === 'page' ? `page ${p.page}, ${p.pageSize} per page` : p.type === 'offset' ? `offset ${p.offset}, limit ${p.limit}` : `cursor, limit ${p.limit}`}`,
+  );
   return lines.join('\n');
 }

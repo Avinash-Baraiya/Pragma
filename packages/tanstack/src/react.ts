@@ -54,25 +54,44 @@ export interface UsePragmaTableOptions<TFeatures extends TableFeatures, TData ex
  *
  * @public
  */
-export function usePragmaTable<TData extends RowData, TFeatures extends TableFeatures = typeof pragmaTableFeatures>(
-  options: UsePragmaTableOptions<TFeatures, TData>,
-) {
-  const { schema, query, onQueryChange, mode = 'client', data, columns, rowCount, getValue, now } = options;
+export function usePragmaTable<
+  TData extends RowData,
+  TFeatures extends TableFeatures = typeof pragmaTableFeatures,
+>(options: UsePragmaTableOptions<TFeatures, TData>) {
+  const {
+    schema,
+    query,
+    onQueryChange,
+    mode = 'client',
+    data,
+    columns,
+    rowCount,
+    getValue,
+    now,
+  } = options;
   const features = (options.features ?? pragmaTableFeatures) as TFeatures;
 
   const execution = useMemo(
     () =>
       mode === 'client'
-        ? executeForTable(data, query, { schema, ...(getValue ? { getValue } : {}), ...(now ? { now: now() } : {}) })
+        ? executeForTable(data, query, {
+            schema,
+            ...(getValue ? { getValue } : {}),
+            ...(now ? { now: now() } : {}),
+          })
         : undefined,
     [mode, data, query, schema, getValue, now],
   );
 
-  const sorting: SortingState = useMemo(() => query.sort.map((s) => ({ id: s.field, desc: s.direction === 'desc' })), [query.sort]);
+  const sorting: SortingState = useMemo(
+    () => query.sort.map((s) => ({ id: s.field, desc: s.direction === 'desc' })),
+    [query.sort],
+  );
   const pagination: PaginationState = useMemo(() => {
     const p = query.pagination;
     if (p.type === 'page') return { pageIndex: p.page - 1, pageSize: p.pageSize };
-    if (p.type === 'offset') return { pageIndex: Math.floor(p.offset / p.limit), pageSize: p.limit };
+    if (p.type === 'offset')
+      return { pageIndex: Math.floor(p.offset / p.limit), pageSize: p.limit };
     return { pageIndex: 0, pageSize: p.limit };
   }, [query.pagination]);
 
@@ -113,5 +132,9 @@ export function usePragmaTable<TData extends RowData, TFeatures extends TableFea
     // wrapper cannot satisfy statically; the caller's `features` is checked at its own call site.
   } as unknown as Parameters<typeof useTable<TFeatures, TData>>[0]);
 
-  return { table, rowCount: execution?.rowCount ?? rowCount ?? data.length, pageInfo: execution?.pageInfo };
+  return {
+    table,
+    rowCount: execution?.rowCount ?? rowCount ?? data.length,
+    pageInfo: execution?.pageInfo,
+  };
 }

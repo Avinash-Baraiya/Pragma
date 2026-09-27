@@ -23,7 +23,10 @@ type Next = (error?: unknown) => void;
  *
  * @public
  */
-export function toNodeHandler(handler: PragmaHandler, options: NodeHandlerOptions = {}): (req: NodeRequest, res: ServerResponse, next?: Next) => void {
+export function toNodeHandler(
+  handler: PragmaHandler,
+  options: NodeHandlerOptions = {},
+): (req: NodeRequest, res: ServerResponse, next?: Next) => void {
   const maxBuffer = options.maxBufferBytes ?? 1_048_576;
   return (req, res, next) => {
     void (async () => {
@@ -54,7 +57,9 @@ export function toNodeHandler(handler: PragmaHandler, options: NodeHandlerOption
       if (!res.headersSent) {
         res.statusCode = 500;
         res.setHeader('content-type', 'application/problem+json; charset=utf-8');
-        res.end(JSON.stringify({ title: 'Internal Server Error', status: 500, code: 'INTERNAL_ERROR' }));
+        res.end(
+          JSON.stringify({ title: 'Internal Server Error', status: 500, code: 'INTERNAL_ERROR' }),
+        );
       } else {
         res.end();
       }
@@ -64,7 +69,8 @@ export function toNodeHandler(handler: PragmaHandler, options: NodeHandlerOption
 
 async function readNodeBody(req: NodeRequest, limit: number): Promise<string | undefined> {
   // A body parser (express.json()) may have consumed the stream already.
-  if (req.body !== undefined) return typeof req.body === 'string' ? req.body : JSON.stringify(req.body);
+  if (req.body !== undefined)
+    return typeof req.body === 'string' ? req.body : JSON.stringify(req.body);
   const chunks: Buffer[] = [];
   let size = 0;
   for await (const chunk of req as AsyncIterable<Buffer | string>) {

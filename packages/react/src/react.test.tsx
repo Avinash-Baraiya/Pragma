@@ -24,8 +24,16 @@ const schema = defineSchema({
 });
 
 function makeEngine(latencyMs = 0): Engine {
-  const provider = mockProvider({ latencyMs, rules: [{ match: /indian/i, output: mock.output([mock.filter('country', 'eq', 'India')]) }] });
-  return createEngine({ schema, timezone: 'UTC', idGenerator: sequentialIds(), interpreter: createModelInterpreter({ provider }) });
+  const provider = mockProvider({
+    latencyMs,
+    rules: [{ match: /indian/i, output: mock.output([mock.filter('country', 'eq', 'India')]) }],
+  });
+  return createEngine({
+    schema,
+    timezone: 'UTC',
+    idGenerator: sequentialIds(),
+    interpreter: createModelInterpreter({ provider }),
+  });
 }
 
 function Ui({ engine, children }: { engine: Engine; children?: ReactNode }): ReactNode {
@@ -42,7 +50,9 @@ function Ui({ engine, children }: { engine: Engine; children?: ReactNode }): Rea
 }
 
 async function expectAccessible(container: HTMLElement): Promise<void> {
-  const results = await axe.run(container, { rules: { 'color-contrast': { enabled: false }, region: { enabled: false } } });
+  const results = await axe.run(container, {
+    rules: { 'color-contrast': { enabled: false }, region: { enabled: false } },
+  });
   expect(results.violations.map((v) => `${v.id}: ${v.help}`)).toEqual([]);
 }
 
@@ -83,7 +93,10 @@ describe('AskBar autocomplete', () => {
     await user.keyboard('{ArrowLeft}{ArrowRight}');
     expect(screen.queryByRole('option')).toBeNull(); // caret moves keep it closed
     await user.type(input, 'na'); // typing reopens it
-    await user.pointer({ keys: '[MouseLeft>]', target: screen.getByRole('option', { name: /Name/ }) });
+    await user.pointer({
+      keys: '[MouseLeft>]',
+      target: screen.getByRole('option', { name: /Name/ }),
+    });
     expect(input).toHaveValue('@name ');
   });
 
@@ -104,7 +117,11 @@ describe('interpretation flow', () => {
     expect(screen.getByRole('button', { name: 'Apply' })).toBeDisabled();
     await user.type(input, 'age > 25 and country is India{Enter}');
     const chips = await screen.findByRole('list', { name: 'Active filters' });
-    expect(within(chips).getAllByRole('listitem').map((li) => li.textContent)).toEqual(['Age > 25×', 'Country = "India"×']);
+    expect(
+      within(chips)
+        .getAllByRole('listitem')
+        .map((li) => li.textContent),
+    ).toEqual(['Age > 25×', 'Country = "India"×']);
     expect(screen.getByRole('heading', { name: 'Interpreted as' })).toBeInTheDocument();
     expect(input).toHaveValue('');
     await expectAccessible(container);
@@ -115,11 +132,16 @@ describe('interpretation flow', () => {
     const engine = makeEngine();
     const interpret = vi.spyOn(engine, 'interpret');
     render(<Ui engine={engine} />);
-    await user.type(screen.getByRole('combobox'), 'age > 25 and country is India, sort by name{Enter}');
+    await user.type(
+      screen.getByRole('combobox'),
+      'age > 25 and country is India, sort by name{Enter}',
+    );
     await screen.findByRole('button', { name: 'Remove filter: Age > 25' });
     await user.click(screen.getByRole('button', { name: 'Remove filter: Age > 25' }));
     expect(screen.queryByText('Age > 25')).toBeNull();
-    await user.click(screen.getByRole('button', { name: 'Remove sort: Sorted by Name (ascending)' }));
+    await user.click(
+      screen.getByRole('button', { name: 'Remove sort: Sorted by Name (ascending)' }),
+    );
     expect(screen.queryByText(/Sorted by Name/)).toBeNull();
     expect(interpret).toHaveBeenCalledTimes(1);
     await user.type(screen.getByRole('combobox'), 'search rahul and age > 1{Enter}');
@@ -167,7 +189,9 @@ describe('interpretation flow', () => {
     const user = userEvent.setup();
     render(<Ui engine={makeEngine()} />);
     await user.type(screen.getByRole('combobox'), 'age > 30 and age < 20{Enter}');
-    expect(await screen.findByRole('list', { name: 'Warnings' })).toHaveTextContent('cannot all be true');
+    expect(await screen.findByRole('list', { name: 'Warnings' })).toHaveTextContent(
+      'cannot all be true',
+    );
   });
 
   it('uses the model when needed, with cancel while busy', async () => {
@@ -234,7 +258,9 @@ describe('PragmaProvider', () => {
 
   it('drops superseded results when a newer instruction is submitted', async () => {
     const engine = makeEngine(50);
-    const { result } = renderHook(() => usePragma(), { wrapper: ({ children }) => <PragmaProvider engine={engine}>{children}</PragmaProvider> });
+    const { result } = renderHook(() => usePragma(), {
+      wrapper: ({ children }) => <PragmaProvider engine={engine}>{children}</PragmaProvider>,
+    });
     let first: Promise<unknown> | undefined;
     act(() => {
       first = result.current.submit('show Indian users');
@@ -246,7 +272,10 @@ describe('PragmaProvider', () => {
       await first;
     });
     await waitFor(() => {
-      expect(result.current.explanation.map((e) => e.text)).toEqual(['Age > 3', 'Page 1, 20 per page']);
+      expect(result.current.explanation.map((e) => e.text)).toEqual([
+        'Age > 3',
+        'Page 1, 20 per page',
+      ]);
     });
     expect(result.current.resolve({})).toBeUndefined();
   });

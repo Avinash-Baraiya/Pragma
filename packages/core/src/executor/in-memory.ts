@@ -1,7 +1,13 @@
 import { rowEpochDay, rowInstant } from '../dates/calendar.js';
 import { compileDateRange, inDateRange } from '../dates/intervals.js';
 import type { PageInfo } from '../mutations/apply.js';
-import type { FilterCondition, FilterNode, ScalarValue, SortSpec, TableQuery } from '../protocol/types.js';
+import type {
+  FilterCondition,
+  FilterNode,
+  ScalarValue,
+  SortSpec,
+  TableQuery,
+} from '../protocol/types.js';
 import type { ResolvedField, ResolvedSchema } from '../schema/types.js';
 
 /** @public */
@@ -41,7 +47,8 @@ export function defaultGetValue(row: unknown, fieldId: string): unknown {
   if (!fieldId.includes('.')) return undefined;
   let current: unknown = row;
   for (const segment of fieldId.split('.')) {
-    if (current === null || typeof current !== 'object' || !Object.hasOwn(current, segment)) return undefined;
+    if (current === null || typeof current !== 'object' || !Object.hasOwn(current, segment))
+      return undefined;
     current = (current as Record<string, unknown>)[segment];
   }
   return current;
@@ -63,7 +70,11 @@ export function defaultGetValue(row: unknown, fieldId: string): unknown {
  *
  * @public
  */
-export function executeQuery<Row>(rows: readonly Row[], query: TableQuery, options: ExecuteOptions<Row>): ExecuteResult<Row> {
+export function executeQuery<Row>(
+  rows: readonly Row[],
+  query: TableQuery,
+  options: ExecuteOptions<Row>,
+): ExecuteResult<Row> {
   const predicate = compilePredicate(query, options);
   const matched = rows.filter(predicate);
   const comparator = compileComparator<Row>(query.sort, options);
@@ -91,24 +102,46 @@ export function executeQuery<Row>(rows: readonly Row[], query: TableQuery, optio
   const hasNext = offset + limit < total;
   const pageInfo: PageInfo = {
     nextCursor: hasNext ? encodeCursor(offset + limit) : null,
-    ...(offset > 0 ? { prevCursor: offset - limit <= 0 ? null : encodeCursor(offset - limit) } : {}),
+    ...(offset > 0
+      ? { prevCursor: offset - limit <= 0 ? null : encodeCursor(offset - limit) }
+      : {}),
   };
   return { rows: page, total, pageInfo };
 }
 
 /** Compile search + filter into a single row predicate. @public */
-export function compilePredicate<Row>(query: Pick<TableQuery, 'search' | 'filter' | 'context'>, options: ExecuteOptions<Row>): Predicate<Row> {
-  const getValue = options.getValue ?? (defaultGetValue);
-  const ctx = { now: options.now ?? Date.now(), timezone: query.context?.timezone ?? 'UTC', weekStartsOn: query.context?.weekStartsOn ?? 1 };
-  const filter = query.filter === null ? undefined : compileNode<Row>(query.filter, options.schema, getValue, ctx);
-  const search = query.search === null ? undefined : compileSearch<Row>(query.search.query, query.search.fields, options.schema, getValue);
+export function compilePredicate<Row>(
+  query: Pick<TableQuery, 'search' | 'filter' | 'context'>,
+  options: ExecuteOptions<Row>,
+): Predicate<Row> {
+  const getValue = options.getValue ?? defaultGetValue;
+  const ctx = {
+    now: options.now ?? Date.now(),
+    timezone: query.context?.timezone ?? 'UTC',
+    weekStartsOn: query.context?.weekStartsOn ?? 1,
+  };
+  const filter =
+    query.filter === null
+      ? undefined
+      : compileNode<Row>(query.filter, options.schema, getValue, ctx);
+  const search =
+    query.search === null
+      ? undefined
+      : compileSearch<Row>(query.search.query, query.search.fields, options.schema, getValue);
   if (!filter && !search) return () => true;
   return (row) => (search ? search(row) : true) && (filter ? filter(row) : true);
 }
 
-function compileSearch<Row>(text: string, fields: readonly string[] | undefined, schema: ResolvedSchema, getValue: ValueGetter<Row>): Predicate<Row> {
+function compileSearch<Row>(
+  text: string,
+  fields: readonly string[] | undefined,
+  schema: ResolvedSchema,
+  getValue: ValueGetter<Row>,
+): Predicate<Row> {
   const needle = fold(text);
-  const targets = (fields ?? [...schema.fieldsById.values()].filter((f) => f.searchable).map((f) => f.id))
+  const targets = (
+    fields ?? [...schema.fieldsById.values()].filter((f) => f.searchable).map((f) => f.id)
+  )
     .map((id) => schema.fieldsById.get(id))
     .filter((f): f is ResolvedField => f !== undefined);
   return (row) =>
@@ -126,10 +159,18 @@ function compileSearch<Row>(text: string, fields: readonly string[] | undefined,
 
 type DateCtx = { now: number; timezone: string; weekStartsOn: 0 | 1 };
 
-function compileNode<Row>(node: FilterNode, schema: ResolvedSchema, getValue: ValueGetter<Row>, ctx: DateCtx): Predicate<Row> {
+function compileNode<Row>(
+  node: FilterNode,
+  schema: ResolvedSchema,
+  getValue: ValueGetter<Row>,
+  ctx: DateCtx,
+): Predicate<Row> {
   if (node.type === 'condition') return compileCondition(node, schema, getValue, ctx);
   const children = node.children.map((c) => compileNode(c, schema, getValue, ctx));
-  const combined: Predicate<Row> = node.logic === 'and' ? (row) => children.every((p) => p(row)) : (row) => children.some((p) => p(row));
+  const combined: Predicate<Row> =
+    node.logic === 'and'
+      ? (row) => children.every((p) => p(row))
+      : (row) => children.some((p) => p(row));
   return node.not === true ? (row) => !combined(row) : combined;
 }
 
@@ -158,7 +199,12 @@ function fold(text: string): string {
   return text.normalize('NFKC').toLowerCase();
 }
 
-function compileCondition<Row>(condition: FilterCondition, schema: ResolvedSchema, getValue: ValueGetter<Row>, ctx: DateCtx): Predicate<Row> {
+function compileCondition<Row>(
+  condition: FilterCondition,
+  schema: ResolvedSchema,
+  getValue: ValueGetter<Row>,
+  ctx: DateCtx,
+): Predicate<Row> {
   const field = schema.fieldsById.get(condition.field);
   if (!field) return () => false;
   const read = (row: Row): unknown => getValue(row, field.id);
@@ -166,19 +212,24 @@ function compileCondition<Row>(condition: FilterCondition, schema: ResolvedSchem
 
   if (operator === 'isNull') return (row) => isNullish(read(row));
   if (operator === 'isNotNull') return (row) => !isNullish(read(row));
-  if (operator === 'isEmpty') return (row) => {
-    const v = read(row);
-    return isNullish(v) || v === '';
-  };
-  if (operator === 'isNotEmpty') return (row) => {
-    const v = read(row);
-    return !isNullish(v) && v !== '';
-  };
+  if (operator === 'isEmpty')
+    return (row) => {
+      const v = read(row);
+      return isNullish(v) || v === '';
+    };
+  if (operator === 'isNotEmpty')
+    return (row) => {
+      const v = read(row);
+      return !isNullish(v) && v !== '';
+    };
 
   if (field.type === 'date' || field.type === 'datetime') {
     const range = compileDateRange(condition, field.type, ctx);
     if (!range) return () => false;
-    const toComparable = field.type === 'date' ? (v: unknown): number | undefined => rowEpochDay(v, ctx.timezone) : (v: unknown): number | undefined => rowInstant(v, ctx.timezone);
+    const toComparable =
+      field.type === 'date'
+        ? (v: unknown): number | undefined => rowEpochDay(v, ctx.timezone)
+        : (v: unknown): number | undefined => rowInstant(v, ctx.timezone);
     return (row) => {
       const v = toComparable(read(row));
       return v !== undefined && inDateRange(v, range);
@@ -207,7 +258,11 @@ function compileCondition<Row>(condition: FilterCondition, schema: ResolvedSchem
   }
 }
 
-function compileTextCondition<Row>(condition: FilterCondition, read: (row: Row) => unknown, text: (v: unknown) => string): Predicate<Row> {
+function compileTextCondition<Row>(
+  condition: FilterCondition,
+  read: (row: Row) => unknown,
+  text: (v: unknown) => string,
+): Predicate<Row> {
   const { operator } = condition;
   if (operator === 'in' || operator === 'notIn' || operator === 'eq' || operator === 'neq') {
     return scalarMembership(operator, listOf(condition.value).map(text), read, text);
@@ -235,7 +290,12 @@ function compileTextCondition<Row>(condition: FilterCondition, read: (row: Row) 
   };
 }
 
-function scalarMembership<Row>(operator: string, values: readonly string[], read: (row: Row) => unknown, key: (v: unknown) => string): Predicate<Row> {
+function scalarMembership<Row>(
+  operator: string,
+  values: readonly string[],
+  read: (row: Row) => unknown,
+  key: (v: unknown) => string,
+): Predicate<Row> {
   const set = new Set(values);
   const negate = operator === 'neq' || operator === 'notIn';
   return (row) => {
@@ -246,7 +306,10 @@ function scalarMembership<Row>(operator: string, values: readonly string[], read
   };
 }
 
-function compileNumberCondition<Row>(condition: FilterCondition, read: (row: Row) => unknown): Predicate<Row> {
+function compileNumberCondition<Row>(
+  condition: FilterCondition,
+  read: (row: Row) => unknown,
+): Predicate<Row> {
   const { operator } = condition;
   const values = listOf(condition.value) as number[];
   const [a = Number.NaN, b = Number.NaN] = values;
@@ -306,10 +369,16 @@ function toBoolean(value: unknown): boolean | undefined {
 }
 
 /** Compile a multi-field, null-aware, stable comparator. Returns `undefined` when there is no sort. @public */
-export function compileComparator<Row>(sort: readonly SortSpec[], options: ExecuteOptions<Row>): ((a: Row, b: Row) => number) | undefined {
+export function compileComparator<Row>(
+  sort: readonly SortSpec[],
+  options: ExecuteOptions<Row>,
+): ((a: Row, b: Row) => number) | undefined {
   if (sort.length === 0) return undefined;
-  const getValue = options.getValue ?? (defaultGetValue);
-  const collator = new Intl.Collator(options.locale ?? 'en', { sensitivity: 'base', numeric: true });
+  const getValue = options.getValue ?? defaultGetValue;
+  const collator = new Intl.Collator(options.locale ?? 'en', {
+    sensitivity: 'base',
+    numeric: true,
+  });
   const keys = sort
     .map((spec) => ({ spec, field: options.schema.fieldsById.get(spec.field) }))
     .filter((k): k is { spec: SortSpec; field: ResolvedField } => k.field !== undefined)
@@ -326,7 +395,10 @@ export function compileComparator<Row>(sort: readonly SortSpec[], options: Execu
       if (va === undefined && vb === undefined) continue;
       if (va === undefined) return key.nullsFirst ? -1 : 1;
       if (vb === undefined) return key.nullsFirst ? 1 : -1;
-      const cmp = typeof va === 'string' && typeof vb === 'string' ? collator.compare(va, vb) : (va as number) - (vb as number);
+      const cmp =
+        typeof va === 'string' && typeof vb === 'string'
+          ? collator.compare(va, vb)
+          : (va as number) - (vb as number);
       if (cmp !== 0) return cmp * key.direction;
     }
     return 0;

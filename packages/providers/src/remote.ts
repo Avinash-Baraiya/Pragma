@@ -1,5 +1,18 @@
-import { createIssue, isAbortError, PragmaTransportError, PROTOCOL_VERSION, type ErrorCode, type InterpretResult, type PragmaIssue } from '@pragma/core';
-import type { MaybePromise, ModelInterpretation, ModelInterpreter, ModelInterpretRequest } from '@pragma/interpreter';
+import {
+  createIssue,
+  isAbortError,
+  PragmaTransportError,
+  PROTOCOL_VERSION,
+  type ErrorCode,
+  type InterpretResult,
+  type PragmaIssue,
+} from '@pragma/core';
+import type {
+  MaybePromise,
+  ModelInterpretation,
+  ModelInterpreter,
+  ModelInterpretRequest,
+} from '@pragma/interpreter';
 
 /** Body posted to a Pragma server handler. @public */
 export interface RemoteInterpretRequestBody {
@@ -15,7 +28,8 @@ export interface RemoteInterpreterOptions {
   /** Endpoint served by `createPragmaHandler`, e.g. `/api/pragma`. */
   readonly url: string;
   /** Static headers, or a function returning them per request (e.g. a fresh auth token). */
-  readonly headers?: Readonly<Record<string, string>> | (() => MaybePromise<Readonly<Record<string, string>>>);
+  readonly headers?:
+    Readonly<Record<string, string>> | (() => MaybePromise<Readonly<Record<string, string>>>);
   /** Fetch credentials mode. Default `same-origin`. */
   readonly credentials?: RequestCredentials;
   readonly fetch?: typeof fetch;
@@ -39,7 +53,8 @@ export function remoteInterpreter(options: RemoteInterpreterOptions): ModelInter
   return {
     id,
     async interpret(request: ModelInterpretRequest): Promise<ModelInterpretation> {
-      const headers = typeof options.headers === 'function' ? await options.headers() : (options.headers ?? {});
+      const headers =
+        typeof options.headers === 'function' ? await options.headers() : (options.headers ?? {});
       const body: RemoteInterpretRequestBody = {
         protocolVersion: PROTOCOL_VERSION,
         resource: request.schema.resource,
@@ -51,14 +66,22 @@ export function remoteInterpreter(options: RemoteInterpreterOptions): ModelInter
       try {
         response = await doFetch(options.url, {
           method: 'POST',
-          headers: { 'content-type': 'application/json', accept: 'application/json', 'x-request-id': request.requestId, ...headers },
+          headers: {
+            'content-type': 'application/json',
+            accept: 'application/json',
+            'x-request-id': request.requestId,
+            ...headers,
+          },
           body: JSON.stringify(body),
           signal: request.signal,
           credentials: options.credentials ?? 'same-origin',
         });
       } catch (error) {
         if (isAbortError(error) || request.signal.aborted) throw error;
-        throw new PragmaTransportError('Could not reach the Pragma server.', { cause: error, retryable: true });
+        throw new PragmaTransportError('Could not reach the Pragma server.', {
+          cause: error,
+          retryable: true,
+        });
       }
 
       const payload = await readJson(response);
@@ -79,25 +102,52 @@ async function readJson(response: Response): Promise<unknown> {
 
 /** Convert an RFC 9457 problem+json body into a typed transport error. */
 function problemToError(status: number, payload: unknown): PragmaTransportError {
-  const problem = (payload ?? {}) as { code?: unknown; detail?: unknown; title?: unknown; issues?: unknown };
+  const problem = (payload ?? {}) as {
+    code?: unknown;
+    detail?: unknown;
+    title?: unknown;
+    issues?: unknown;
+  };
   const code = typeof problem.code === 'string' ? (problem.code as ErrorCode) : 'TRANSPORT_ERROR';
-  const message = typeof problem.detail === 'string' ? problem.detail : typeof problem.title === 'string' ? problem.title : `The Pragma server returned HTTP ${status}.`;
-  const issues = Array.isArray(problem.issues) ? (problem.issues as PragmaIssue[]) : [createIssue(code, { message, messageKey: `error.${code}` })];
-  return new PragmaTransportError(message, { status, code, retryable: RETRYABLE_STATUS.has(status), issues });
+  const message =
+    typeof problem.detail === 'string'
+      ? problem.detail
+      : typeof problem.title === 'string'
+        ? problem.title
+        : `The Pragma server returned HTTP ${status}.`;
+  const issues = Array.isArray(problem.issues)
+    ? (problem.issues as PragmaIssue[])
+    : [createIssue(code, { message, messageKey: `error.${code}` })];
+  return new PragmaTransportError(message, {
+    status,
+    code,
+    retryable: RETRYABLE_STATUS.has(status),
+    issues,
+  });
 }
 
 function asInterpretResult(payload: unknown): InterpretResult {
   const status = (payload as { status?: unknown } | undefined)?.status;
   const meta = (payload as { meta?: { protocolVersion?: unknown } } | undefined)?.meta;
-  if (status !== 'ok' && status !== 'needs_clarification' && status !== 'unsupported' && status !== 'error') {
-    throw new PragmaTransportError('The Pragma server returned an unexpected response.', { retryable: false });
+  if (
+    status !== 'ok' &&
+    status !== 'needs_clarification' &&
+    status !== 'unsupported' &&
+    status !== 'error'
+  ) {
+    throw new PragmaTransportError('The Pragma server returned an unexpected response.', {
+      retryable: false,
+    });
   }
   const version = typeof meta?.protocolVersion === 'string' ? meta.protocolVersion : undefined;
   if (version !== undefined && version.split('.')[0] !== PROTOCOL_VERSION.split('.')[0]) {
-    throw new PragmaTransportError(`The Pragma server speaks protocol ${version}; this client supports ${PROTOCOL_VERSION}.`, {
-      code: 'UNSUPPORTED_PROTOCOL_VERSION',
-      retryable: false,
-    });
+    throw new PragmaTransportError(
+      `The Pragma server speaks protocol ${version}; this client supports ${PROTOCOL_VERSION}.`,
+      {
+        code: 'UNSUPPORTED_PROTOCOL_VERSION',
+        retryable: false,
+      },
+    );
   }
   return payload as InterpretResult;
 }

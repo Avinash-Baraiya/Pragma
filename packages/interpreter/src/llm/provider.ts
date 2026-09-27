@@ -64,6 +64,9 @@ export interface LanguageModelProvider {
  *
  * @public
  */
-export function customProvider(id: string, generate: (request: GenerateRequest) => Promise<GenerateResponse>): LanguageModelProvider {
+export function customProvider(
+  id: string,
+  generate: (request: GenerateRequest) => Promise<GenerateResponse>,
+): LanguageModelProvider {
   return { id, generate };
 }

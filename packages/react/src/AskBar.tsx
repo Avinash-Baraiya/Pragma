@@ -1,5 +1,15 @@
 import type { MentionSuggestion } from '@pragma/core';
-import { useCallback, useId, useMemo, useRef, useState, type ChangeEvent, type KeyboardEvent, type ReactNode, type RefObject } from 'react';
+import {
+  useCallback,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+  type ChangeEvent,
+  type KeyboardEvent,
+  type ReactNode,
+  type RefObject,
+} from 'react';
 import { usePragma } from './context.js';
 
 /** @public */
@@ -39,12 +49,15 @@ export function useMentionAutocomplete(
   const [dismissedAt, setDismissedAt] = useState<number | null>(null);
 
   const mention = useMemo(() => engine.suggest(value, caret, limit), [engine, value, caret, limit]);
-  const open = mention.start !== null && mention.suggestions.length > 0 && dismissedAt !== mention.start;
+  const open =
+    mention.start !== null && mention.suggestions.length > 0 && dismissedAt !== mention.start;
 
   const update = useCallback((text: string, position: number, typed = false) => {
     setCaret(position);
     setActiveIndex(0);
-    setDismissedAt((d) => (typed || (d !== null && text.lastIndexOf('@', position - 1) !== d) ? null : d));
+    setDismissedAt((d) =>
+      typed || (d !== null && text.lastIndexOf('@', position - 1) !== d) ? null : d,
+    );
   }, []);
 
   const select = useCallback(
@@ -101,7 +114,16 @@ export function useMentionAutocomplete(
     [open, mention.suggestions, activeIndex, select, close],
   );
 
-  return { open, suggestions: mention.suggestions, activeIndex, setActiveIndex, select, close, onKeyDown, update };
+  return {
+    open,
+    suggestions: mention.suggestions,
+    activeIndex,
+    setActiveIndex,
+    select,
+    close,
+    onKeyDown,
+    update,
+  };
 }
 
 /** @public */
@@ -187,13 +209,21 @@ export function AskBar(props: AskBarProps): ReactNode {
         aria-busy={busy}
         autoComplete="off"
         spellCheck={false}
-        placeholder={props.placeholder ?? 'Try: active users older than 25, newest first — type @ for columns'}
+        placeholder={
+          props.placeholder ?? 'Try: active users older than 25, newest first — type @ for columns'
+        }
         value={draft}
         onChange={onChange}
         onKeyDown={onKeyDown}
         onClick={syncCaret}
         onKeyUp={(event) => {
-          if (event.key === 'ArrowLeft' || event.key === 'ArrowRight' || event.key === 'Home' || event.key === 'End') syncCaret();
+          if (
+            event.key === 'ArrowLeft' ||
+            event.key === 'ArrowRight' ||
+            event.key === 'Home' ||
+            event.key === 'End'
+          )
+            syncCaret();
         }}
         onBlur={() => {
           // Allow option clicks (mousedown) to land before closing.
@@ -201,7 +231,13 @@ export function AskBar(props: AskBarProps): ReactNode {
         }}
         autoFocus={props.autoFocus}
       />
-      <ul id={listId} role="listbox" aria-label="Column suggestions" className="pragma-askbar__listbox" hidden={!auto.open}>
+      <ul
+        id={listId}
+        role="listbox"
+        aria-label="Column suggestions"
+        className="pragma-askbar__listbox"
+        hidden={!auto.open}
+      >
         {auto.open &&
           auto.suggestions.map((suggestion, index) => (
             <li

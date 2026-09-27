@@ -97,7 +97,11 @@ export class PragmaError extends Error {
   readonly issues: readonly PragmaIssue[];
   readonly retryable: boolean;
 
-  constructor(code: ErrorCode, message: string, options?: { issues?: readonly PragmaIssue[]; cause?: unknown; retryable?: boolean }) {
+  constructor(
+    code: ErrorCode,
+    message: string,
+    options?: { issues?: readonly PragmaIssue[]; cause?: unknown; retryable?: boolean },
+  ) {
     super(message, options?.cause === undefined ? undefined : { cause: options.cause });
     this.name = 'PragmaError';
     this.code = code;
@@ -118,14 +122,30 @@ export class PragmaError extends Error {
     });
   }
 
-  toJSON(): { name: string; code: ErrorCode; message: string; retryable: boolean; issues: readonly PragmaIssue[] } {
-    return { name: this.name, code: this.code, message: this.message, retryable: this.retryable, issues: this.issues };
+  toJSON(): {
+    name: string;
+    code: ErrorCode;
+    message: string;
+    retryable: boolean;
+    issues: readonly PragmaIssue[];
+  } {
+    return {
+      name: this.name,
+      code: this.code,
+      message: this.message,
+      retryable: this.retryable,
+      issues: this.issues,
+    };
   }
 }
 
 /** Invalid schema or configuration. Thrown synchronously at construction time. @public */
 export class PragmaConfigError extends PragmaError {
-  constructor(code: 'SCHEMA_ERROR' | 'CONFIG_ERROR', message: string, options?: { issues?: readonly PragmaIssue[]; cause?: unknown }) {
+  constructor(
+    code: 'SCHEMA_ERROR' | 'CONFIG_ERROR',
+    message: string,
+    options?: { issues?: readonly PragmaIssue[]; cause?: unknown },
+  ) {
     super(code, message, { ...options, retryable: false });
     this.name = 'PragmaConfigError';
   }
@@ -150,7 +170,13 @@ export class PragmaModelError extends PragmaError {
   constructor(
     code: 'MODEL_ERROR' | 'MODEL_OUTPUT_INVALID' | 'RATE_LIMITED' | 'UNAUTHORIZED',
     message: string,
-    options?: { cause?: unknown; status?: number; retryAfterMs?: number; retryable?: boolean; issues?: readonly PragmaIssue[] },
+    options?: {
+      cause?: unknown;
+      status?: number;
+      retryAfterMs?: number;
+      retryable?: boolean;
+      issues?: readonly PragmaIssue[];
+    },
   ) {
     super(code, message, options);
     this.name = 'PragmaModelError';
@@ -162,7 +188,16 @@ export class PragmaModelError extends PragmaError {
 /** Failure between the client SDK and the Pragma server handler. @public */
 export class PragmaTransportError extends PragmaError {
   readonly status: number | undefined;
-  constructor(message: string, options?: { cause?: unknown; status?: number; retryable?: boolean; issues?: readonly PragmaIssue[]; code?: ErrorCode }) {
+  constructor(
+    message: string,
+    options?: {
+      cause?: unknown;
+      status?: number;
+      retryable?: boolean;
+      issues?: readonly PragmaIssue[];
+      code?: ErrorCode;
+    },
+  ) {
     super(options?.code ?? 'TRANSPORT_ERROR', message, options);
     this.name = 'PragmaTransportError';
     this.status = options?.status;
@@ -187,7 +222,11 @@ export class PragmaTimeoutError extends PragmaError {
  * @public
  */
 export function isPragmaError(value: unknown): value is PragmaError {
-  return typeof value === 'object' && value !== null && (value as Record<symbol, unknown>)[PRAGMA_ERROR_BRAND] === true;
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    (value as Record<symbol, unknown>)[PRAGMA_ERROR_BRAND] === true
+  );
 }
 
 /**
@@ -199,7 +238,10 @@ export function isPragmaError(value: unknown): value is PragmaError {
 export function toIssue(error: unknown): PragmaIssue {
   if (isPragmaError(error)) return error.toIssue();
   if (isAbortError(error)) {
-    return createIssue('ABORTED', { message: 'The operation was cancelled.', messageKey: 'error.ABORTED' });
+    return createIssue('ABORTED', {
+      message: 'The operation was cancelled.',
+      messageKey: 'error.ABORTED',
+    });
   }
   return createIssue('INTERNAL_ERROR', {
     message: 'An unexpected internal error occurred.',
@@ -213,6 +255,6 @@ export function isAbortError(error: unknown): boolean {
     typeof error === 'object' &&
     error !== null &&
     'name' in error &&
-    ((error).name === 'AbortError' || (error).name === 'TimeoutError')
+    (error.name === 'AbortError' || error.name === 'TimeoutError')
   );
 }

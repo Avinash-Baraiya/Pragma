@@ -42,7 +42,11 @@ export function defineSchema(input: TableSchema): ResolvedSchema {
   if (!parsed.success) throw schemaError(parsed.issues);
   const schema = parsed.data;
   const issues: PragmaIssue[] = [];
-  const push = (message: string, path: (string | number)[], messageKey = 'schema.invalid'): void => {
+  const push = (
+    message: string,
+    path: (string | number)[],
+    messageKey = 'schema.invalid',
+  ): void => {
     issues.push(createIssue('SCHEMA_ERROR', { message, messageKey, path }));
   };
 
@@ -58,7 +62,11 @@ export function defineSchema(input: TableSchema): ResolvedSchema {
     if (normalized === '') return;
     const owner = termOwner.get(normalized);
     if (owner !== undefined && owner !== fieldId) {
-      push(`Name "${term}" is used by both "${owner}" and "${fieldId}"; names and aliases must be unique across fields.`, path, 'schema.nameCollision');
+      push(
+        `Name "${term}" is used by both "${owner}" and "${fieldId}"; names and aliases must be unique across fields.`,
+        path,
+        'schema.nameCollision',
+      );
       return;
     }
     termOwner.set(normalized, fieldId);
@@ -71,7 +79,8 @@ export function defineSchema(input: TableSchema): ResolvedSchema {
     if (!FIELD_ID_PATTERN.test(field.id)) {
       push(`Field id "${field.id}" must match ${FIELD_ID_PATTERN.source}.`, [...path, 'id']);
     }
-    if (seenIds.has(field.id)) push(`Duplicate field id "${field.id}".`, [...path, 'id'], 'schema.duplicateField');
+    if (seenIds.has(field.id))
+      push(`Duplicate field id "${field.id}".`, [...path, 'id'], 'schema.duplicateField');
     seenIds.add(field.id);
 
     claimTerm(field.id, field.id, [...path, 'id']);
@@ -85,7 +94,11 @@ export function defineSchema(input: TableSchema): ResolvedSchema {
   });
 
   if (termOwner.has(normalizeTerm(schema.resource))) {
-    push(`Resource name "${schema.resource}" collides with a field name or alias.`, ['resource'], 'schema.nameCollision');
+    push(
+      `Resource name "${schema.resource}" collides with a field name or alias.`,
+      ['resource'],
+      'schema.nameCollision',
+    );
   }
 
   const visibleById = new Map(resolvedFields.filter((f) => !f.hidden).map((f) => [f.id, f]));
@@ -100,34 +113,63 @@ export function defineSchema(input: TableSchema): ResolvedSchema {
     push('capabilities.pagination contains duplicates.', ['capabilities', 'pagination']);
   }
 
-  const pageSize = schema.defaults?.pageSize ?? Math.min(DEFAULT_PAGE_SIZE, capabilities.maxPageSize);
+  const pageSize =
+    schema.defaults?.pageSize ?? Math.min(DEFAULT_PAGE_SIZE, capabilities.maxPageSize);
   if (pageSize > capabilities.maxPageSize) {
-    push(`defaults.pageSize (${pageSize}) exceeds capabilities.maxPageSize (${capabilities.maxPageSize}).`, ['defaults', 'pageSize']);
+    push(
+      `defaults.pageSize (${pageSize}) exceeds capabilities.maxPageSize (${capabilities.maxPageSize}).`,
+      ['defaults', 'pageSize'],
+    );
   }
 
   const defaultSort = schema.defaults?.sort ?? [];
   if (defaultSort.length > capabilities.maxSorts) {
-    push(`defaults.sort has more entries than capabilities.maxSorts (${capabilities.maxSorts}).`, ['defaults', 'sort']);
+    push(`defaults.sort has more entries than capabilities.maxSorts (${capabilities.maxSorts}).`, [
+      'defaults',
+      'sort',
+    ]);
   }
   defaultSort.forEach((spec, i) => {
     const field = visibleById.get(spec.field);
-    if (!field) push(`defaults.sort references unknown or hidden field "${spec.field}".`, ['defaults', 'sort', i, 'field']);
-    else if (!field.sortable) push(`defaults.sort references non-sortable field "${spec.field}".`, ['defaults', 'sort', i, 'field']);
+    if (!field)
+      push(`defaults.sort references unknown or hidden field "${spec.field}".`, [
+        'defaults',
+        'sort',
+        i,
+        'field',
+      ]);
+    else if (!field.sortable)
+      push(`defaults.sort references non-sortable field "${spec.field}".`, [
+        'defaults',
+        'sort',
+        i,
+        'field',
+      ]);
   });
 
   const recencyField = schema.defaults?.recencyField;
   if (recencyField !== undefined) {
     const field = visibleById.get(recencyField);
     if (!field) {
-      push(`defaults.recencyField references unknown or hidden field "${recencyField}".`, ['defaults', 'recencyField']);
+      push(`defaults.recencyField references unknown or hidden field "${recencyField}".`, [
+        'defaults',
+        'recencyField',
+      ]);
     } else if (field.type !== 'date' && field.type !== 'datetime') {
-      push(`defaults.recencyField "${recencyField}" must be a date or datetime field.`, ['defaults', 'recencyField']);
+      push(`defaults.recencyField "${recencyField}" must be a date or datetime field.`, [
+        'defaults',
+        'recencyField',
+      ]);
     } else if (!field.sortable) {
-      push(`defaults.recencyField "${recencyField}" must be sortable.`, ['defaults', 'recencyField']);
+      push(`defaults.recencyField "${recencyField}" must be sortable.`, [
+        'defaults',
+        'recencyField',
+      ]);
     }
   }
 
-  if (visibleById.size === 0) push('Schema must declare at least one visible (non-hidden) field.', ['fields']);
+  if (visibleById.size === 0)
+    push('Schema must declare at least one visible (non-hidden) field.', ['fields']);
 
   if (issues.length > 0) throw schemaError(issues);
 
@@ -165,35 +207,58 @@ function validateFieldSemantics(
           const normalized = normalizeTerm(term);
           const owner = seen.get(normalized);
           if (owner !== undefined && owner !== ev.value) {
-            push(`Enum field "${field.id}": "${term}" matches both "${owner}" and "${ev.value}".`, [...path, 'values', i], 'schema.nameCollision');
+            push(
+              `Enum field "${field.id}": "${term}" matches both "${owner}" and "${ev.value}".`,
+              [...path, 'values', i],
+              'schema.nameCollision',
+            );
           }
           seen.set(normalized, ev.value);
         }
       });
     }
   } else if (field.values !== undefined) {
-    push(`"values" is only allowed on enum fields (field "${field.id}" is ${field.type}).`, [...path, 'values']);
+    push(`"values" is only allowed on enum fields (field "${field.id}" is ${field.type}).`, [
+      ...path,
+      'values',
+    ]);
   }
 
   if (field.format !== undefined && FORMAT_BASE_TYPE[field.format] !== field.type) {
-    push(`Format "${field.format}" requires type "${FORMAT_BASE_TYPE[field.format]}" (field "${field.id}" is ${field.type}).`, [...path, 'format']);
+    push(
+      `Format "${field.format}" requires type "${FORMAT_BASE_TYPE[field.format]}" (field "${field.id}" is ${field.type}).`,
+      [...path, 'format'],
+    );
   }
   if (field.currency !== undefined && field.format !== 'currency') {
     push(`"currency" requires format "currency" (field "${field.id}").`, [...path, 'currency']);
   }
   if (field.percentScale !== undefined && field.format !== 'percent') {
-    push(`"percentScale" requires format "percent" (field "${field.id}").`, [...path, 'percentScale']);
+    push(`"percentScale" requires format "percent" (field "${field.id}").`, [
+      ...path,
+      'percentScale',
+    ]);
   }
   if (field.searchable === true && field.type !== 'string' && field.type !== 'enum') {
-    push(`Only string and enum fields can be searchable (field "${field.id}" is ${field.type}).`, [...path, 'searchable']);
+    push(`Only string and enum fields can be searchable (field "${field.id}" is ${field.type}).`, [
+      ...path,
+      'searchable',
+    ]);
   }
   if (field.operators !== undefined) {
     if (field.operators.length === 0 && field.filterable !== false) {
-      push(`Field "${field.id}" declares an empty operator list; set filterable: false instead.`, [...path, 'operators']);
+      push(`Field "${field.id}" declares an empty operator list; set filterable: false instead.`, [
+        ...path,
+        'operators',
+      ]);
     }
     field.operators.forEach((op, i) => {
       if (!typeOperators.includes(op)) {
-        push(`Operator "${op}" is not valid for ${field.type} field "${field.id}".`, [...path, 'operators', i]);
+        push(`Operator "${op}" is not valid for ${field.type} field "${field.id}".`, [
+          ...path,
+          'operators',
+          i,
+        ]);
       }
     });
   }
@@ -226,9 +291,13 @@ function schemaError(issues: readonly PragmaIssue[]): PragmaConfigError {
     .map((i) => `  - ${i.message}`)
     .join('\n');
   const more = issues.length > 5 ? `\n  ...and ${issues.length - 5} more` : '';
-  return new PragmaConfigError('SCHEMA_ERROR', `Invalid table schema (${issues.length} issue${issues.length === 1 ? '' : 's'}):\n${summary}${more}`, {
-    issues,
-  });
+  return new PragmaConfigError(
+    'SCHEMA_ERROR',
+    `Invalid table schema (${issues.length} issue${issues.length === 1 ? '' : 's'}):\n${summary}${more}`,
+    {
+      issues,
+    },
+  );
 }
 
 function deepFreeze<T>(value: T): T {

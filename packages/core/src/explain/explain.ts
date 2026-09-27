@@ -1,6 +1,13 @@
 import type { MessageParam } from '../errors/errors.js';
 import { OPERATOR_ARITY, OPERATOR_LABELS } from '../operators/catalog.js';
-import type { ExplanationItem, FilterCondition, FilterNode, RelativeDuration, ScalarValue, TableQuery } from '../protocol/types.js';
+import type {
+  ExplanationItem,
+  FilterCondition,
+  FilterNode,
+  RelativeDuration,
+  ScalarValue,
+  TableQuery,
+} from '../protocol/types.js';
 import type { ResolvedField, ResolvedSchema } from '../schema/types.js';
 
 /**
@@ -30,10 +37,23 @@ export function explainQuery(query: TableQuery, schema: ResolvedSchema): Explana
     for (const node of topLevel) {
       if (node.type === 'condition') {
         const { text, messageKey, params } = describeCondition(node, schema);
-        items.push({ kind: 'filter', nodeId: node.id, field: node.field, text, messageKey, params });
+        items.push({
+          kind: 'filter',
+          nodeId: node.id,
+          field: node.field,
+          text,
+          messageKey,
+          params,
+        });
       } else {
         const text = describeNode(node, schema, false);
-        items.push({ kind: 'filter', nodeId: node.id, text, messageKey: 'explain.group', params: { text } });
+        items.push({
+          kind: 'filter',
+          nodeId: node.id,
+          text,
+          messageKey: 'explain.group',
+          params: { text },
+        });
       }
     }
   }
@@ -69,7 +89,12 @@ export function explainQuery(query: TableQuery, schema: ResolvedSchema): Explana
       });
       break;
     case 'cursor':
-      items.push({ kind: 'pagination', text: `${p.limit} per page`, messageKey: 'explain.cursor', params: { limit: p.limit } });
+      items.push({
+        kind: 'pagination',
+        text: `${p.limit} per page`,
+        messageKey: 'explain.cursor',
+        params: { limit: p.limit },
+      });
       break;
   }
 
@@ -83,7 +108,9 @@ export function describeFilter(node: FilterNode | null, schema: ResolvedSchema):
 
 function describeNode(node: FilterNode, schema: ResolvedSchema, nested: boolean): string {
   if (node.type === 'condition') return describeCondition(node, schema).text;
-  const inner = node.children.map((c) => describeNode(c, schema, true)).join(node.logic === 'and' ? ' and ' : ' or ');
+  const inner = node.children
+    .map((c) => describeNode(c, schema, true))
+    .join(node.logic === 'and' ? ' and ' : ' or ');
   if (node.not === true) return `not (${inner})`;
   return nested && node.children.length > 1 ? `(${inner})` : inner;
 }
@@ -107,16 +134,26 @@ function describeCondition(
       const [a, b] = condition.value as readonly [ScalarValue, ScalarValue];
       const from = formatValue(field, a);
       const to = formatValue(field, b);
-      return { text: `${label} ${op} ${from} and ${to}`, messageKey, params: { field: label, from, to } };
+      return {
+        text: `${label} ${op} ${from} and ${to}`,
+        messageKey,
+        params: { field: label, from, to },
+      };
     }
     case 'list': {
-      const value = (condition.value as readonly ScalarValue[]).map((v) => formatValue(field, v)).join(', ');
+      const value = (condition.value as readonly ScalarValue[])
+        .map((v) => formatValue(field, v))
+        .join(', ');
       return { text: `${label} ${op} ${value}`, messageKey, params: { field: label, value } };
     }
     case 'duration': {
       const { amount, unit } = condition.value as RelativeDuration;
       const value = `${amount} ${unit}${amount === 1 ? '' : 's'}`;
-      return { text: `${label} ${op} ${value}`, messageKey, params: { field: label, amount, unit } };
+      return {
+        text: `${label} ${op} ${value}`,
+        messageKey,
+        params: { field: label, amount, unit },
+      };
     }
   }
 }
@@ -133,12 +170,18 @@ export function formatValue(field: ResolvedField | undefined, value: ScalarValue
       if (typeof value !== 'number') return String(value);
       if (field.format === 'currency' && field.currency) {
         try {
-          return new Intl.NumberFormat('en', { style: 'currency', currency: field.currency, minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(value);
+          return new Intl.NumberFormat('en', {
+            style: 'currency',
+            currency: field.currency,
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 2,
+          }).format(value);
         } catch {
           return `${value} ${field.currency}`;
         }
       }
-      if (field.format === 'percent') return `${field.percentScale === 'fraction' ? round(value * 100) : value}%`;
+      if (field.format === 'percent')
+        return `${field.percentScale === 'fraction' ? round(value * 100) : value}%`;
       return String(value);
     }
     case 'string':

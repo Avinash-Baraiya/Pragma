@@ -24,7 +24,8 @@ export interface Token {
 const QUOTE_PAIRS: Readonly<Record<string, string>> = { '"': '"', "'": "'", '“': '”', '‘': '’' };
 const SYMBOLS = ['>=', '<=', '!=', '==', '≥', '≤', '≠', '>', '<', '=', ':'] as const;
 const MENTION = /^@(?:"([^"\n]{1,100})"|([A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)*))/;
-const DATE = /^\d{4}-\d{2}-\d{2}(?:[T ]\d{2}:\d{2}(?::\d{2}(?:\.\d{1,9})?)?(?:Z|[+-]\d{2}:?\d{2})?)?(?![\w-])/i;
+const DATE =
+  /^\d{4}-\d{2}-\d{2}(?:[T ]\d{2}:\d{2}(?::\d{2}(?:\.\d{1,9})?)?(?:Z|[+-]\d{2}:?\d{2})?)?(?![\w-])/i;
 const NUMBER = /^[₹$€£¥]?\s?[+-]?(?:\d{1,3}(?:[,_]\d{2,3})+|\d+)(?:\.\d+)?(?:%)?(?![\p{L}\d])/u;
 const NUMBER_WITH_SUFFIX = /^[₹$€£¥]?\s?[+-]?(?:\d+(?:\.\d+)?)(k|m|b|mn|bn|cr|l)(?![\p{L}\d])/iu;
 const WORD = /^[\p{L}\p{N}_][\p{L}\p{N}_'’@.+-]*/u;
@@ -95,7 +96,13 @@ export function tokenize(input: string): Token[] {
 
     const date = DATE.exec(rest);
     if (date) {
-      tokens.push({ kind: 'date', text: date[0], norm: fold(date[0]), start: i, end: i + date[0].length });
+      tokens.push({
+        kind: 'date',
+        text: date[0],
+        norm: fold(date[0]),
+        start: i,
+        end: i + date[0].length,
+      });
       i += date[0].length;
       continue;
     }

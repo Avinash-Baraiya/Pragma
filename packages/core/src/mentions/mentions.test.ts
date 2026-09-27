@@ -4,7 +4,8 @@ import { findMentions, getActiveMention, resolveMention, suggestMentions } from 
 
 describe('findMentions', () => {
   it('finds plain, dotted and quoted mentions with positions', () => {
-    const text = 'Show @users where @age > 25 and @"Created At" is today and @users.country = India';
+    const text =
+      'Show @users where @age > 25 and @"Created At" is today and @users.country = India';
     expect(findMentions(text).map((m) => [m.text, text.slice(m.start, m.end)])).toEqual([
       ['users', '@users'],
       ['age', '@age'],
@@ -40,7 +41,10 @@ describe('resolveMention', () => {
   });
 
   it('reports other resources', () => {
-    expect(resolveMention(usersSchema, 'orders.total')).toEqual({ kind: 'unknownResource', resource: 'orders' });
+    expect(resolveMention(usersSchema, 'orders.total')).toEqual({
+      kind: 'unknownResource',
+      resource: 'orders',
+    });
   });
 });
 
@@ -61,7 +65,8 @@ describe('getActiveMention', () => {
 });
 
 describe('suggestMentions', () => {
-  const ids = (q: string, limit?: number) => suggestMentions(usersSchema, q, limit === undefined ? {} : { limit }).map((s) => s.id);
+  const ids = (q: string, limit?: number) =>
+    suggestMentions(usersSchema, q, limit === undefined ? {} : { limit }).map((s) => s.id);
 
   it('lists the resource then fields for an empty query', () => {
     const all = suggestMentions(usersSchema, '', { limit: 50 });
@@ -83,13 +88,19 @@ describe('suggestMentions', () => {
   });
 
   it('reports which alias matched', () => {
-    expect(suggestMentions(usersSchema, 'sign')[0]).toMatchObject({ id: 'createdAt', matchedAlias: 'signup date' });
+    expect(suggestMentions(usersSchema, 'sign')[0]).toMatchObject({
+      id: 'createdAt',
+      matchedAlias: 'signup date',
+    });
   });
 
   it('strips the resource prefix and respects limits and predicates', () => {
     expect(ids('users.ag')).toEqual(['age']);
     expect(ids('', 3)).toHaveLength(3);
-    const numeric = suggestMentions(usersSchema, '', { predicate: (f) => f.type === 'number', limit: 50 });
+    const numeric = suggestMentions(usersSchema, '', {
+      predicate: (f) => f.type === 'number',
+      limit: 50,
+    });
     expect(numeric.filter((s) => s.kind === 'field').every((s) => s.type === 'number')).toBe(true);
   });
 

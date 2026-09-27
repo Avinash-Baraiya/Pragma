@@ -39,7 +39,8 @@ export interface RequestContext {
 }
 
 /** @public */
-export type AuthorizeResult = boolean | { readonly allowed: false; readonly status?: 401 | 403; readonly message?: string };
+export type AuthorizeResult =
+  boolean | { readonly allowed: false; readonly status?: 401 | 403; readonly message?: string };
 
 /** @public */
 export interface RateLimitResult {
@@ -125,7 +126,11 @@ const ERROR_STATUS: Partial<Record<ErrorCode, number>> = {
   INTERNAL_ERROR: 500,
 };
 
-const MODEL_FAILURE_CODES: ReadonlySet<ErrorCode> = new Set<ErrorCode>(['MODEL_ERROR', 'TIMEOUT', 'RATE_LIMITED']);
+const MODEL_FAILURE_CODES: ReadonlySet<ErrorCode> = new Set<ErrorCode>([
+  'MODEL_ERROR',
+  'TIMEOUT',
+  'RATE_LIMITED',
+]);
 
 /* -------------------------------------------------------------------------- */
 /* Handler                                                                    */
@@ -147,14 +152,22 @@ const MODEL_FAILURE_CODES: ReadonlySet<ErrorCode> = new Set<ErrorCode>(['MODEL_E
 export function createPragmaHandler(options: PragmaHandlerOptions): PragmaHandler {
   const now = options.now ?? Date.now;
   const maxBodyBytes = options.maxBodyBytes ?? 16_384;
-  if (!Number.isInteger(maxBodyBytes) || maxBodyBytes <= 0) throw new PragmaConfigError('CONFIG_ERROR', 'maxBodyBytes must be a positive integer.');
+  if (!Number.isInteger(maxBodyBytes) || maxBodyBytes <= 0)
+    throw new PragmaConfigError('CONFIG_ERROR', 'maxBodyBytes must be a positive integer.');
   if (Object.keys(options.schemas).length === 0 && options.allowClientSchema !== true) {
-    throw new PragmaConfigError('CONFIG_ERROR', 'createPragmaHandler requires at least one schema (or allowClientSchema: true).');
+    throw new PragmaConfigError(
+      'CONFIG_ERROR',
+      'createPragmaHandler requires at least one schema (or allowClientSchema: true).',
+    );
   }
 
   const interpreter: ModelInterpreter | undefined =
-    options.interpreter ?? (options.provider ? createModelInterpreter({ provider: options.provider }) : undefined);
-  const breaker = options.circuitBreaker === false || !interpreter ? undefined : new CircuitBreaker(options.circuitBreaker ?? {}, now);
+    options.interpreter ??
+    (options.provider ? createModelInterpreter({ provider: options.provider }) : undefined);
+  const breaker =
+    options.circuitBreaker === false || !interpreter
+      ? undefined
+      : new CircuitBreaker(options.circuitBreaker ?? {}, now);
   // One interpretation cache shared by all engines (keys include the schema hash).
   const sharedCache = options.engine?.cache ?? new MemoryCache<Proposal>({ maxEntries: 1000 });
 
@@ -175,20 +188,30 @@ export function createPragmaHandler(options: PragmaHandlerOptions): PragmaHandle
   for (const [resource, schema] of Object.entries(options.schemas)) {
     const resolved = 'fieldsById' in schema ? schema : defineSchema(schema);
     if (resolved.resource !== resource) {
-      throw new PragmaConfigError('CONFIG_ERROR', `Schema registered as "${resource}" declares resource "${resolved.resource}".`);
+      throw new PragmaConfigError(
+        'CONFIG_ERROR',
+        `Schema registered as "${resource}" declares resource "${resolved.resource}".`,
+      );
     }
-    registered.set(resource, { full: build(resolved, true), deterministic: build(resolved, false) });
+    registered.set(resource, {
+      full: build(resolved, true),
+      deterministic: build(resolved, false),
+    });
   }
   const clientEngines = new Map<string, EnginePair>(); // by schema hash, bounded
 
   return async function pragmaHandler(request: Request): Promise<Response> {
     const incomingId = request.headers.get('x-request-id');
-    const requestId = incomingId !== null && REQUEST_ID.test(incomingId) ? incomingId : randomId('req');
+    const requestId =
+      incomingId !== null && REQUEST_ID.test(incomingId) ? incomingId : randomId('req');
     const cors = corsHeaders(options.cors, request.headers.get('origin'));
 
     try {
       if (request.method === 'OPTIONS') {
-        if (!cors) return problem(405, 'VALIDATION_ERROR', 'Method not allowed.', requestId, undefined, { allow: 'POST' });
+        if (!cors)
+          return problem(405, 'VALIDATION_ERROR', 'Method not allowed.', requestId, undefined, {
+            allow: 'POST',
+          });
         return new Response(null, {
           status: 204,
           headers: {
@@ -199,15 +222,31 @@ export function createPragmaHandler(options: PragmaHandlerOptions): PragmaHandle
           },
         });
       }
-      if (request.method !== 'POST') return problem(405, 'VALIDATION_ERROR', 'Method not allowed; use POST.', requestId, cors, { allow: 'POST' });
+      if (request.method !== 'POST')
+        return problem(405, 'VALIDATION_ERROR', 'Method not allowed; use POST.', requestId, cors, {
+          allow: 'POST',
+        });
 
       const contentType = request.headers.get('content-type') ?? '';
       if (!/^application\/(?:[\w.+-]+\+)?json\b/i.test(contentType)) {
-        return problem(415, 'VALIDATION_ERROR', 'Content-Type must be application/json.', requestId, cors);
+        return problem(
+          415,
+          'VALIDATION_ERROR',
+          'Content-Type must be application/json.',
+          requestId,
+          cors,
+        );
       }
 
       const text = await readBody(request, maxBodyBytes);
-      if (text === undefined) return problem(413, 'LIMIT_EXCEEDED', `Request body exceeds ${maxBodyBytes} bytes.`, requestId, cors);
+      if (text === undefined)
+        return problem(
+          413,
+          'LIMIT_EXCEEDED',
+          `Request body exceeds ${maxBodyBytes} bytes.`,
+          requestId,
+          cors,
+        );
 
       let json: unknown;
       try {
@@ -224,14 +263,34 @@ export function createPragmaHandler(options: PragmaHandlerOptions): PragmaHandle
             path: i.path.filter((p): p is string | number => typeof p !== 'symbol'),
           }),
         );
-        return problem(422, 'VALIDATION_ERROR', 'The request body is invalid.', requestId, cors, undefined, issues);
+        return problem(
+          422,
+          'VALIDATION_ERROR',
+          'The request body is invalid.',
+          requestId,
+          cors,
+          undefined,
+          issues,
+        );
       }
       const body = parsed.data;
       if (body.protocolVersion.split('.')[0] !== PROTOCOL_VERSION.split('.')[0]) {
-        return problem(400, 'UNSUPPORTED_PROTOCOL_VERSION', `Protocol ${body.protocolVersion} is not supported; this server speaks ${PROTOCOL_VERSION}.`, requestId, cors);
+        return problem(
+          400,
+          'UNSUPPORTED_PROTOCOL_VERSION',
+          `Protocol ${body.protocolVersion} is not supported; this server speaks ${PROTOCOL_VERSION}.`,
+          requestId,
+          cors,
+        );
       }
       if (body.timezone !== undefined && !isValidTimeZone(body.timezone)) {
-        return problem(422, 'VALIDATION_ERROR', `Unknown timezone "${body.timezone}".`, requestId, cors);
+        return problem(
+          422,
+          'VALIDATION_ERROR',
+          `Unknown timezone "${body.timezone}".`,
+          requestId,
+          cors,
+        );
       }
 
       const context: RequestContext = { request, requestId, resource: body.resource };
@@ -240,7 +299,8 @@ export function createPragmaHandler(options: PragmaHandlerOptions): PragmaHandle
         const decision = await options.authorize(context);
         if (decision !== true) {
           const status = typeof decision === 'object' ? (decision.status ?? 403) : 403;
-          const message = typeof decision === 'object' && decision.message ? decision.message : 'Not authorized.';
+          const message =
+            typeof decision === 'object' && decision.message ? decision.message : 'Not authorized.';
           return problem(status, 'UNAUTHORIZED', message, requestId, cors);
         }
       }
@@ -248,21 +308,41 @@ export function createPragmaHandler(options: PragmaHandlerOptions): PragmaHandle
         const limit = await options.rateLimit(context);
         if (!limit.allowed) {
           const retryAfter = Math.max(1, Math.ceil(limit.retryAfterSeconds ?? 1));
-          return problem(429, 'RATE_LIMITED', 'Too many requests.', requestId, cors, { 'retry-after': String(retryAfter) });
+          return problem(429, 'RATE_LIMITED', 'Too many requests.', requestId, cors, {
+            'retry-after': String(retryAfter),
+          });
         }
       }
 
       const engines = resolveEngines(body.resource, body.schema);
-      if ('problem' in engines) return problem(engines.problem.status, engines.problem.code, engines.problem.message, requestId, cors, undefined, engines.problem.issues);
+      if ('problem' in engines)
+        return problem(
+          engines.problem.status,
+          engines.problem.code,
+          engines.problem.message,
+          requestId,
+          cors,
+          undefined,
+          engines.problem.issues,
+        );
 
       const useModel = breaker ? breaker.allowModel() : true;
       const engine = useModel ? engines.full : engines.deterministic;
-      const currentState = body.currentState ?? (body.timezone ? { ...engine.initialQuery(), context: { timezone: body.timezone, weekStartsOn: 1 } } : undefined);
+      const currentState =
+        body.currentState ??
+        (body.timezone
+          ? { ...engine.initialQuery(), context: { timezone: body.timezone, weekStartsOn: 1 } }
+          : undefined);
 
-      const result = await engine.interpret(body.instruction, { currentState, requestId, signal: request.signal });
+      const result = await engine.interpret(body.instruction, {
+        currentState,
+        requestId,
+        signal: request.signal,
+      });
 
       if (breaker && useModel && result.meta.parser === 'llm') {
-        if (result.status === 'error' && result.errors.some((e) => MODEL_FAILURE_CODES.has(e.code))) breaker.recordFailure();
+        if (result.status === 'error' && result.errors.some((e) => MODEL_FAILURE_CODES.has(e.code)))
+          breaker.recordFailure();
         else breaker.recordSuccess();
       }
 
@@ -274,7 +354,15 @@ export function createPragmaHandler(options: PragmaHandlerOptions): PragmaHandle
         const code = first?.code ?? 'INTERNAL_ERROR';
         const status = ERROR_STATUS[code] ?? 500;
         const headers = code === 'RATE_LIMITED' ? { ...extra, 'retry-after': '1' } : extra;
-        return problem(status, code, first?.message ?? 'The request failed.', requestId, cors, headers, result.errors);
+        return problem(
+          status,
+          code,
+          first?.message ?? 'The request failed.',
+          requestId,
+          cors,
+          headers,
+          result.errors,
+        );
       }
       return json200(result, requestId, { ...cors, ...extra });
     } catch (error) {
@@ -291,21 +379,49 @@ export function createPragmaHandler(options: PragmaHandlerOptions): PragmaHandle
   function resolveEngines(
     resource: string,
     clientSchema: unknown,
-  ): EnginePair | { problem: { status: number; code: ErrorCode; message: string; issues?: readonly PragmaIssue[] } } {
+  ):
+    | EnginePair
+    | {
+        problem: {
+          status: number;
+          code: ErrorCode;
+          message: string;
+          issues?: readonly PragmaIssue[];
+        };
+      } {
     const known = registered.get(resource);
     if (known) return known;
     if (options.allowClientSchema !== true || clientSchema === undefined) {
-      return { problem: { status: 404, code: 'UNKNOWN_RESOURCE', message: `Unknown resource "${resource}".` } };
+      return {
+        problem: {
+          status: 404,
+          code: 'UNKNOWN_RESOURCE',
+          message: `Unknown resource "${resource}".`,
+        },
+      };
     }
     let resolved: ResolvedSchema;
     try {
       resolved = defineSchema(clientSchema as TableSchema);
     } catch (error) {
       const issues = isPragmaError(error) ? error.issues : [toIssue(error)];
-      return { problem: { status: 422, code: 'SCHEMA_ERROR', message: 'The provided schema is invalid.', issues } };
+      return {
+        problem: {
+          status: 422,
+          code: 'SCHEMA_ERROR',
+          message: 'The provided schema is invalid.',
+          issues,
+        },
+      };
     }
     if (resolved.resource !== resource) {
-      return { problem: { status: 422, code: 'SCHEMA_ERROR', message: `Schema resource "${resolved.resource}" does not match "${resource}".` } };
+      return {
+        problem: {
+          status: 422,
+          code: 'SCHEMA_ERROR',
+          message: `Schema resource "${resolved.resource}" does not match "${resource}".`,
+        },
+      };
     }
     const cached = clientEngines.get(resolved.hash);
     if (cached) return cached;
@@ -325,10 +441,19 @@ export function createPragmaHandler(options: PragmaHandlerOptions): PragmaHandle
 
 const BASE_HEADERS = { 'cache-control': 'no-store', 'x-content-type-options': 'nosniff' } as const;
 
-function json200(result: InterpretResult, requestId: string, headers: Record<string, string>): Response {
+function json200(
+  result: InterpretResult,
+  requestId: string,
+  headers: Record<string, string>,
+): Response {
   return new Response(JSON.stringify(result), {
     status: 200,
-    headers: { ...BASE_HEADERS, ...headers, 'content-type': 'application/json; charset=utf-8', 'x-request-id': requestId },
+    headers: {
+      ...BASE_HEADERS,
+      ...headers,
+      'content-type': 'application/json; charset=utf-8',
+      'x-request-id': requestId,
+    },
   });
 }
 
@@ -375,11 +500,20 @@ export function problem(
   };
   return new Response(JSON.stringify(body), {
     status,
-    headers: { ...BASE_HEADERS, ...cors, ...extraHeaders, 'content-type': 'application/problem+json; charset=utf-8', 'x-request-id': requestId },
+    headers: {
+      ...BASE_HEADERS,
+      ...cors,
+      ...extraHeaders,
+      'content-type': 'application/problem+json; charset=utf-8',
+      'x-request-id': requestId,
+    },
   });
 }
 
-function corsHeaders(cors: CorsOptions | undefined, origin: string | null): Record<string, string> | undefined {
+function corsHeaders(
+  cors: CorsOptions | undefined,
+  origin: string | null,
+): Record<string, string> | undefined {
   if (!cors || origin === null) return undefined;
   const allowed = typeof cors.origin === 'string' ? [cors.origin] : cors.origin;
   if (!allowed.includes(origin)) return undefined;

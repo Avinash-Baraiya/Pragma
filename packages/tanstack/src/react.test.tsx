@@ -34,8 +34,16 @@ const columns = [
 
 function useHarness(mode: 'client' | 'server' = 'client', initial?: TableQuery) {
   const [query, setQuery] = useState<TableQuery>(initial ?? createInitialQuery(schema));
-  const result = usePragmaTable<Row>({ schema, query, onQueryChange: setQuery, data, columns: columns, mode, rowCount: 42 });
-  const ids = result.table.getRowModel().rows.map((r) => (r.original).id);
+  const result = usePragmaTable<Row>({
+    schema,
+    query,
+    onQueryChange: setQuery,
+    data,
+    columns: columns,
+    mode,
+    rowCount: 42,
+  });
+  const ids = result.table.getRowModel().rows.map((r) => r.original.id);
   return { query, ids, ...result };
 }
 
@@ -81,9 +89,19 @@ describe('usePragmaTable', () => {
   });
 
   it('reflects offset and cursor pagination', () => {
-    const offset = renderHook(() => useHarness('client', { ...createInitialQuery(schema), pagination: { type: 'offset', offset: 2, limit: 2 } }));
+    const offset = renderHook(() =>
+      useHarness('client', {
+        ...createInitialQuery(schema),
+        pagination: { type: 'offset', offset: 2, limit: 2 },
+      }),
+    );
     expect(offset.result.current.table.state.pagination).toEqual({ pageIndex: 1, pageSize: 2 });
-    const cursor = renderHook(() => useHarness('server', { ...createInitialQuery(schema), pagination: { type: 'cursor', cursor: null, limit: 3 } }));
+    const cursor = renderHook(() =>
+      useHarness('server', {
+        ...createInitialQuery(schema),
+        pagination: { type: 'cursor', cursor: null, limit: 3 },
+      }),
+    );
     expect(cursor.result.current.table.state.pagination).toEqual({ pageIndex: 0, pageSize: 3 });
   });
 });

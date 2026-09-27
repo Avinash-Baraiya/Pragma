@@ -36,7 +36,11 @@ export interface FieldSuggestionOptions {
  *
  * @public
  */
-export function suggestFields(schema: ResolvedSchema, term: string, options: FieldSuggestionOptions = {}): readonly ResolvedField[] {
+export function suggestFields(
+  schema: ResolvedSchema,
+  term: string,
+  options: FieldSuggestionOptions = {},
+): readonly ResolvedField[] {
   const limit = options.limit ?? 3;
   const candidates = [...schema.fieldsById.values()].filter((f) => options.predicate?.(f) ?? true);
   const needle = normalizeTerm(term);

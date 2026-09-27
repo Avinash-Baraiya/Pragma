@@ -18,6 +18,11 @@ export type {
 export { pragmaFilterFn, pragmaGlobalFilterFn, pragmaSortFn } from './fns.js';
 export type { PragmaColumnFilterFn, PragmaFnOptions, ValueRow } from './fns.js';
 export { schemaFromColumns, withPragmaColumns } from './columns.js';
-export type { PragmaColumnAdditions, PragmaColumnLike, PragmaColumnMeta, SchemaFromColumnsOptions } from './columns.js';
+export type {
+  PragmaColumnAdditions,
+  PragmaColumnLike,
+  PragmaColumnMeta,
+  SchemaFromColumnsOptions,
+} from './columns.js';
 export { executeForTable } from './controlled.js';
 export type { ExecuteForTableOptions, TableExecution } from './controlled.js';

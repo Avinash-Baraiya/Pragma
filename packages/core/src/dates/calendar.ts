@@ -10,7 +10,8 @@ const MS_PER_DAY = 86_400_000;
 
 const PLAIN_DATE = /^(\d{4})-(\d{2})-(\d{2})$/;
 const LOCAL_DATE_TIME = /^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})(?::(\d{2})(?:\.(\d{1,3}))?)?$/;
-const INSTANT = /^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})(?::(\d{2})(?:\.(\d{1,9}))?)?(Z|[+-]\d{2}:?\d{2})$/i;
+const INSTANT =
+  /^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})(?::(\d{2})(?:\.(\d{1,9}))?)?(Z|[+-]\d{2}:?\d{2})$/i;
 
 export interface PlainDate {
   readonly year: number;
@@ -93,7 +94,11 @@ export function isValidTimeZone(timezone: string): boolean {
 /** Calendar date of an instant, as seen in `timezone`. */
 export function epochDayInZone(epochMs: number, timezone: string): number {
   const zoned = new TZDate(epochMs, timezone);
-  return toEpochDay({ year: zoned.getFullYear(), month: zoned.getMonth() + 1, day: zoned.getDate() });
+  return toEpochDay({
+    year: zoned.getFullYear(),
+    month: zoned.getMonth() + 1,
+    day: zoned.getDate(),
+  });
 }
 
 /** Instant of local midnight at the start of `epochDay` in `timezone` (DST-safe). */
@@ -103,7 +108,12 @@ export function startOfDayInZone(epochDay: number, timezone: string): number {
 }
 
 /** Shift an instant by whole calendar units in `timezone` (wall-clock arithmetic across DST). */
-export function shiftInZone(epochMs: number, timezone: string, unit: 'day' | 'week' | 'month' | 'year', amount: number): number {
+export function shiftInZone(
+  epochMs: number,
+  timezone: string,
+  unit: 'day' | 'week' | 'month' | 'year',
+  amount: number,
+): number {
   const zoned = new TZDate(epochMs, timezone);
   switch (unit) {
     case 'day':
@@ -151,7 +161,14 @@ export function parseDateTimeOperand(value: string, timezone: string): Interval 
   }
   const instant = INSTANT.exec(value);
   if (instant) {
-    if (!isValidCalendarDate({ year: Number(instant[1]), month: Number(instant[2]), day: Number(instant[3]) })) return undefined;
+    if (
+      !isValidCalendarDate({
+        year: Number(instant[1]),
+        month: Number(instant[2]),
+        day: Number(instant[3]),
+      })
+    )
+      return undefined;
     if (!validTime(instant[4], instant[5], instant[6])) return undefined;
     const ms = Date.parse(value.replace(' ', 'T'));
     if (Number.isNaN(ms)) return undefined;
@@ -162,7 +179,16 @@ export function parseDateTimeOperand(value: string, timezone: string): Interval 
     const date = { year: Number(local[1]), month: Number(local[2]), day: Number(local[3]) };
     if (!isValidCalendarDate(date) || !validTime(local[4], local[5], local[6])) return undefined;
     const fraction = local[7] === undefined ? 0 : Number(local[7].padEnd(3, '0'));
-    const ms = new TZDate(date.year, date.month - 1, date.day, Number(local[4]), Number(local[5]), Number(local[6] ?? 0), fraction, timezone).getTime();
+    const ms = new TZDate(
+      date.year,
+      date.month - 1,
+      date.day,
+      Number(local[4]),
+      Number(local[5]),
+      Number(local[6] ?? 0),
+      fraction,
+      timezone,
+    ).getTime();
     return { start: ms, end: ms + precisionMs(local[6], local[7]) };
   }
   return undefined;

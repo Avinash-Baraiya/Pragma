@@ -47,14 +47,16 @@ const FILLER = new Set(
   (
     'show me list display get give fetch find all the a an of please pls plz kindly only just records record rows row entries entry ' +
     'items item results result data those these that which who whose where with having have has are is was were be been filter filtered ' +
-    'filtering by for to can could you i we want need see let lets let’s let\'s and also then but now ok okay table view in on them ones ' +
+    "filtering by for to can could you i we want need see let lets let’s let's and also then but now ok okay table view in on them ones " +
     'one everyone anyone any some each every thanks thank hey hi showing shown return select pick whom'
   ).split(' '),
 );
 
 /** Words that end an unquoted text value. */
 const BOUNDARY = new Set(
-  'and or but sort sorted order ordered then page per show with where who whose that having search limit rows results'.split(' '),
+  'and or but sort sorted order ordered then page per show with where who whose that having search limit rows results'.split(
+    ' ',
+  ),
 );
 
 interface OpPhrase {
@@ -74,39 +76,113 @@ const phrase = (p: string, op: Operator, types?: readonly FieldType[]): OpPhrase
 
 const OP_PHRASES: readonly OpPhrase[] = [
   // null / empty (no value)
-  ...['is not null', 'is not missing', 'has a value', 'is set', 'exists', 'is present', 'is not blank'].map((p) =>
+  ...[
+    'is not null',
+    'is not missing',
+    'has a value',
+    'is set',
+    'exists',
+    'is present',
+    'is not blank',
+  ].map((p) =>
     p === 'is not blank' ? phrase(p, 'isNotEmpty', ['string']) : phrase(p, 'isNotNull'),
   ),
   phrase('is not empty', 'isNotEmpty', ['string']),
-  ...['is null', 'is missing', 'is unset', 'is not set', 'has no value', 'is unknown'].map((p) => phrase(p, 'isNull')),
+  ...['is null', 'is missing', 'is unset', 'is not set', 'has no value', 'is unknown'].map((p) =>
+    phrase(p, 'isNull'),
+  ),
   ...['is empty', 'is blank'].map((p) => phrase(p, 'isEmpty', ['string'])),
   // ranges
   ...['is not between', 'not between'].map((p) => phrase(p, 'notBetween', NUM_OR_DATE)),
   ...['is between', 'between', 'from'].map((p) => phrase(p, 'between', NUM_OR_DATE)),
   // lists
-  ...['is not one of', 'is not any of', 'is not in', 'not in', 'none of', 'not one of'].map((p) => phrase(p, 'notIn')),
+  ...['is not one of', 'is not any of', 'is not in', 'not in', 'none of', 'not one of'].map((p) =>
+    phrase(p, 'notIn'),
+  ),
   ...['is one of', 'is any of', 'one of', 'any of', 'is in', 'in'].map((p) => phrase(p, 'in')),
   // text
-  ...['does not contain', "doesn't contain", 'doesnt contain', 'not containing', 'not contains', 'excludes', 'does not include', "doesn't include"].map((p) =>
-    phrase(p, 'notContains', ['string']),
+  ...[
+    'does not contain',
+    "doesn't contain",
+    'doesnt contain',
+    'not containing',
+    'not contains',
+    'excludes',
+    'does not include',
+    "doesn't include",
+  ].map((p) => phrase(p, 'notContains', ['string'])),
+  ...['contains', 'containing', 'includes', 'including', 'like', 'has'].map((p) =>
+    phrase(p, 'contains', ['string']),
   ),
-  ...['contains', 'containing', 'includes', 'including', 'like', 'has'].map((p) => phrase(p, 'contains', ['string'])),
-  ...['starts with', 'starting with', 'begins with', 'beginning with', 'start with', 'begin with'].map((p) => phrase(p, 'startsWith', ['string'])),
+  ...[
+    'starts with',
+    'starting with',
+    'begins with',
+    'beginning with',
+    'start with',
+    'begin with',
+  ].map((p) => phrase(p, 'startsWith', ['string'])),
   ...['ends with', 'ending with', 'end with'].map((p) => phrase(p, 'endsWith', ['string'])),
   // comparisons
-  ...['>=', '≥', 'is at least', 'at least', 'greater than or equal to', 'is greater than or equal to', 'no less than', 'not less than', 'minimum', 'min'].map((p) =>
-    phrase(p, 'gte', NUM_OR_DATE),
-  ),
-  ...['<=', '≤', 'is at most', 'at most', 'less than or equal to', 'is less than or equal to', 'no more than', 'not more than', 'up to', 'maximum', 'max'].map((p) =>
-    phrase(p, 'lte', NUM_OR_DATE),
-  ),
-  ...['>', 'greater than', 'is greater than', 'more than', 'is more than', 'over', 'above', 'is above', 'is over', 'exceeds', 'exceeding', 'higher than', 'is higher than'].map((p) =>
-    phrase(p, 'gt', ['number']),
-  ),
-  ...['<', 'less than', 'is less than', 'fewer than', 'under', 'below', 'is below', 'is under', 'lower than', 'is lower than'].map((p) => phrase(p, 'lt', ['number'])),
+  ...[
+    '>=',
+    '≥',
+    'is at least',
+    'at least',
+    'greater than or equal to',
+    'is greater than or equal to',
+    'no less than',
+    'not less than',
+    'minimum',
+    'min',
+  ].map((p) => phrase(p, 'gte', NUM_OR_DATE)),
+  ...[
+    '<=',
+    '≤',
+    'is at most',
+    'at most',
+    'less than or equal to',
+    'is less than or equal to',
+    'no more than',
+    'not more than',
+    'up to',
+    'maximum',
+    'max',
+  ].map((p) => phrase(p, 'lte', NUM_OR_DATE)),
+  ...[
+    '>',
+    'greater than',
+    'is greater than',
+    'more than',
+    'is more than',
+    'over',
+    'above',
+    'is above',
+    'is over',
+    'exceeds',
+    'exceeding',
+    'higher than',
+    'is higher than',
+  ].map((p) => phrase(p, 'gt', ['number'])),
+  ...[
+    '<',
+    'less than',
+    'is less than',
+    'fewer than',
+    'under',
+    'below',
+    'is below',
+    'is under',
+    'lower than',
+    'is lower than',
+  ].map((p) => phrase(p, 'lt', ['number'])),
   // dates
-  ...['>', 'is before', 'before', 'earlier than', 'prior to'].map((p) => (p === '>' ? phrase(p, 'after', DATE_TYPES) : phrase(p, 'before', DATE_TYPES))),
-  ...['<', 'is after', 'after', 'later than'].map((p) => (p === '<' ? phrase(p, 'before', DATE_TYPES) : phrase(p, 'after', DATE_TYPES))),
+  ...['>', 'is before', 'before', 'earlier than', 'prior to'].map((p) =>
+    p === '>' ? phrase(p, 'after', DATE_TYPES) : phrase(p, 'before', DATE_TYPES),
+  ),
+  ...['<', 'is after', 'after', 'later than'].map((p) =>
+    p === '<' ? phrase(p, 'before', DATE_TYPES) : phrase(p, 'after', DATE_TYPES),
+  ),
   ...['on or before', 'until', 'till', 'through'].map((p) => phrase(p, 'onOrBefore', DATE_TYPES)),
   ...['on or after', 'since'].map((p) => phrase(p, 'onOrAfter', DATE_TYPES)),
   ...['is on', 'on'].map((p) => phrase(p, 'eq', DATE_TYPES)),
@@ -116,34 +192,106 @@ const OP_PHRASES: readonly OpPhrase[] = [
   ...['this week', 'is this week'].map((p) => phrase(p, 'thisWeek', DATE_TYPES)),
   ...['last week', 'is last week', 'previous week'].map((p) => phrase(p, 'lastWeek', DATE_TYPES)),
   ...['this month', 'is this month'].map((p) => phrase(p, 'thisMonth', DATE_TYPES)),
-  ...['last month', 'is last month', 'previous month'].map((p) => phrase(p, 'lastMonth', DATE_TYPES)),
-  ...['this year', 'is this year'].map((p) => phrase(p, 'thisYear', DATE_TYPES)),
-  ...['in the last', 'in the past', 'within the last', 'within the past', 'over the last', 'over the past', 'during the last', 'during the past', 'in last', 'in past', 'last', 'past'].map(
-    (p) => phrase(p, 'last', DATE_TYPES),
+  ...['last month', 'is last month', 'previous month'].map((p) =>
+    phrase(p, 'lastMonth', DATE_TYPES),
   ),
-  ...['in the next', 'within the next', 'over the next', 'during the next', 'in next', 'next'].map((p) => phrase(p, 'next', DATE_TYPES)),
+  ...['this year', 'is this year'].map((p) => phrase(p, 'thisYear', DATE_TYPES)),
+  ...[
+    'in the last',
+    'in the past',
+    'within the last',
+    'within the past',
+    'over the last',
+    'over the past',
+    'during the last',
+    'during the past',
+    'in last',
+    'in past',
+    'last',
+    'past',
+  ].map((p) => phrase(p, 'last', DATE_TYPES)),
+  ...['in the next', 'within the next', 'over the next', 'during the next', 'in next', 'next'].map(
+    (p) => phrase(p, 'next', DATE_TYPES),
+  ),
   // equality
-  ...['!=', '≠', 'is not', "isn't", 'isnt', 'not equal to', 'is not equal to', 'does not equal', "doesn't equal", 'not'].map((p) => phrase(p, 'neq')),
+  ...[
+    '!=',
+    '≠',
+    'is not',
+    "isn't",
+    'isnt',
+    'not equal to',
+    'is not equal to',
+    'does not equal',
+    "doesn't equal",
+    'not',
+  ].map((p) => phrase(p, 'neq')),
   ...['=', '==', ':', 'is', 'equals', 'equal to', 'is equal to', 'eq'].map((p) => phrase(p, 'eq')),
 ].sort((a, b) => b.words.length - a.words.length);
 
 type Direction = 'asc' | 'desc';
 
 const DIRECTION_PHRASES: readonly { words: readonly string[]; dir: Direction }[] = [
-  ...['in ascending order', 'ascending', 'asc', 'a to z', 'a-z', 'low to high', 'lowest first', 'smallest first', 'increasing', 'oldest first', 'earliest first'].map((p) => ({
+  ...[
+    'in ascending order',
+    'ascending',
+    'asc',
+    'a to z',
+    'a-z',
+    'low to high',
+    'lowest first',
+    'smallest first',
+    'increasing',
+    'oldest first',
+    'earliest first',
+  ].map((p) => ({
     words: p.split(' '),
     dir: 'asc' as const,
   })),
-  ...['in descending order', 'descending', 'desc', 'z to a', 'z-a', 'high to low', 'highest first', 'largest first', 'biggest first', 'decreasing', 'newest first', 'latest first', 'most recent first'].map(
-    (p) => ({ words: p.split(' '), dir: 'desc' as const }),
-  ),
+  ...[
+    'in descending order',
+    'descending',
+    'desc',
+    'z to a',
+    'z-a',
+    'high to low',
+    'highest first',
+    'largest first',
+    'biggest first',
+    'decreasing',
+    'newest first',
+    'latest first',
+    'most recent first',
+  ].map((p) => ({ words: p.split(' '), dir: 'desc' as const })),
 ].sort((a, b) => b.words.length - a.words.length);
 
-const SORT_PREFIXES = ['sort by', 'sorted by', 'order by', 'ordered by', 'arrange by', 'arranged by', 'rank by', 'ranked by', 'sort', 'order'].map((p) => p.split(' '));
+const SORT_PREFIXES = [
+  'sort by',
+  'sorted by',
+  'order by',
+  'ordered by',
+  'arrange by',
+  'arranged by',
+  'rank by',
+  'ranked by',
+  'sort',
+  'order',
+].map((p) => p.split(' '));
 
 const RECENCY_PHRASES: readonly { words: readonly string[]; dir: Direction }[] = [
-  ...['most recent first', 'most recent', 'newest first', 'newest', 'latest first', 'latest', 'recent first'].map((p) => ({ words: p.split(' '), dir: 'desc' as const })),
-  ...['oldest first', 'oldest', 'earliest first', 'earliest', 'least recent'].map((p) => ({ words: p.split(' '), dir: 'asc' as const })),
+  ...[
+    'most recent first',
+    'most recent',
+    'newest first',
+    'newest',
+    'latest first',
+    'latest',
+    'recent first',
+  ].map((p) => ({ words: p.split(' '), dir: 'desc' as const })),
+  ...['oldest first', 'oldest', 'earliest first', 'earliest', 'least recent'].map((p) => ({
+    words: p.split(' '),
+    dir: 'asc' as const,
+  })),
 ].sort((a, b) => b.words.length - a.words.length);
 
 const PAGE_SIZE_NOUNS = new Set(['rows', 'results', 'records', 'items', 'entries']);
@@ -202,24 +350,41 @@ class Parser {
     this.tokens = tokenize(input);
     const fields = [...ctx.schema.fieldsById.values()];
     this.fieldTerms = fields
-      .flatMap((field) => [field.id, field.label, ...field.aliases].map((t) => ({ words: normalizeTerm(t).split(' '), field })))
+      .flatMap((field) =>
+        [field.id, field.label, ...field.aliases].map((t) => ({
+          words: normalizeTerm(t).split(' '),
+          field,
+        })),
+      )
       .sort((a, b) => b.words.length - a.words.length);
     this.enumTerms = fields
       .filter((f) => f.type === 'enum' && f.filterable)
       .flatMap((field) =>
         field.values.flatMap((ev) =>
-          [ev.value, ...(ev.label === undefined ? [] : [ev.label]), ...(ev.aliases ?? [])].map((t) => ({ words: normalizeTerm(t).split(' '), field, value: ev.value })),
+          [ev.value, ...(ev.label === undefined ? [] : [ev.label]), ...(ev.aliases ?? [])].map(
+            (t) => ({ words: normalizeTerm(t).split(' '), field, value: ev.value }),
+          ),
         ),
       )
       .sort((a, b) => b.words.length - a.words.length);
-    const resourceTerms = [ctx.schema.resource, ctx.schema.label, ...ctx.schema.aliases].map(normalizeTerm);
+    const resourceTerms = [ctx.schema.resource, ctx.schema.label, ...ctx.schema.aliases].map(
+      normalizeTerm,
+    );
     this.resourceTerms = new Set(resourceTerms.flatMap((t) => [t, singular(t)]));
     this.currentYear = yearIn(ctx.now, ctx.timezone);
   }
 
   run(): DeterministicResult {
     while (this.pos < this.tokens.length) {
-      if (this.tryCommand() || this.trySort() || this.tryPagination() || this.trySearch() || this.tryRecency() || this.tryFilter()) continue;
+      if (
+        this.tryCommand() ||
+        this.trySort() ||
+        this.tryPagination() ||
+        this.trySearch() ||
+        this.tryRecency() ||
+        this.tryFilter()
+      )
+        continue;
       const token = this.tokens[this.pos]!;
       if (!this.isFiller(token)) this.unconsumed.push(token.text);
       this.pos++;
@@ -244,7 +409,12 @@ class Parser {
   private matchWords(at: number, words: readonly string[]): number {
     for (let i = 0; i < words.length; i++) {
       const t = this.tokens[at + i];
-      if (!t || (t.kind !== 'word' && t.kind !== 'symbol' && t.kind !== 'sep') || t.norm !== words[i]) return 0;
+      if (
+        !t ||
+        (t.kind !== 'word' && t.kind !== 'symbol' && t.kind !== 'sep') ||
+        t.norm !== words[i]
+      )
+        return 0;
     }
     return words.length;
   }
@@ -264,9 +434,14 @@ class Parser {
 
   private isFiller(token: Token): boolean {
     if (token.kind === 'sep') return true;
-    if (token.kind === 'mention') return resolveMention(this.ctx.schema, token.text).kind === 'resource';
+    if (token.kind === 'mention')
+      return resolveMention(this.ctx.schema, token.text).kind === 'resource';
     if (token.kind !== 'word') return false;
-    return FILLER.has(token.norm) || this.resourceTerms.has(token.norm) || this.resourceTerms.has(singular(token.norm));
+    return (
+      FILLER.has(token.norm) ||
+      this.resourceTerms.has(token.norm) ||
+      this.resourceTerms.has(singular(token.norm))
+    );
   }
 
   private skipArticles(at: number): number {
@@ -296,24 +471,41 @@ class Parser {
       if (t?.kind !== 'word' && t?.kind !== 'number') return false;
       const expected = words[i]!;
       if (t.norm === expected) continue;
-      if (i === words.length - 1 && (t.norm === `${expected}s` || t.norm === `${expected}'s` || t.norm === `${expected}’s` || t.norm === `${expected}es`)) continue;
+      if (
+        i === words.length - 1 &&
+        (t.norm === `${expected}s` ||
+          t.norm === `${expected}'s` ||
+          t.norm === `${expected}’s` ||
+          t.norm === `${expected}es`)
+      )
+        continue;
       return false;
     }
     return true;
   }
 
-  private matchEnum(at: number, field?: ResolvedField): { candidates: EnumTerm[]; length: number } | undefined {
+  private matchEnum(
+    at: number,
+    field?: ResolvedField,
+  ): { candidates: EnumTerm[]; length: number } | undefined {
     const t = this.tokens[at];
     if (t?.kind === 'string') {
       const needle = normalizeTerm(t.text);
-      const candidates = this.enumTerms.filter((e) => (field ? e.field.id === field.id : true) && e.words.join(' ') === needle);
+      const candidates = this.enumTerms.filter(
+        (e) => (field ? e.field.id === field.id : true) && e.words.join(' ') === needle,
+      );
       return candidates.length > 0 ? { candidates: dedupeEnum(candidates), length: 1 } : undefined;
     }
     for (const term of this.enumTerms) {
       if (field && term.field.id !== field.id) continue;
       if (!this.matchTerm(at, term.words)) continue;
       const length = term.words.length;
-      const candidates = this.enumTerms.filter((e) => (field ? e.field.id === field.id : true) && e.words.length === length && this.matchTerm(at, e.words));
+      const candidates = this.enumTerms.filter(
+        (e) =>
+          (field ? e.field.id === field.id : true) &&
+          e.words.length === length &&
+          this.matchTerm(at, e.words),
+      );
       return { candidates: dedupeEnum(candidates), length };
     }
     return undefined;
@@ -323,10 +515,22 @@ class Parser {
 
   private tryCommand(): boolean {
     const start = this.pos;
-    const verb = this.matchAnyPhrase(start, [['clear'], ['remove'], ['reset'], ['delete'], ['drop'], ['undo'], ['stop'], ['cancel']]);
+    const verb = this.matchAnyPhrase(start, [
+      ['clear'],
+      ['remove'],
+      ['reset'],
+      ['delete'],
+      ['drop'],
+      ['undo'],
+      ['stop'],
+      ['cancel'],
+    ]);
     if (verb > 0) {
       let i = this.skipArticles(start + verb);
-      if (this.isWord(i, 'filters', 'filter', 'conditions', 'criteria') && !this.isWord(i + 1, 'on', 'for', 'by')) {
+      if (
+        this.isWord(i, 'filters', 'filter', 'conditions', 'criteria') &&
+        !this.isWord(i + 1, 'on', 'for', 'by')
+      ) {
         this.emit({ op: 'clearFilters' }, i + 1);
         return true;
       }
@@ -378,7 +582,11 @@ class Parser {
       }
       return false;
     }
-    const startOver = this.matchAnyPhrase(start, [['start', 'over'], ['start', 'again'], ['show', 'everything']]);
+    const startOver = this.matchAnyPhrase(start, [
+      ['start', 'over'],
+      ['start', 'again'],
+      ['show', 'everything'],
+    ]);
     if (startOver > 0) {
       this.emit({ op: 'reset' }, start + startOver);
       return true;
@@ -392,7 +600,11 @@ class Parser {
 
   private atClauseEnd(at: number): boolean {
     const t = this.tokens[at];
-    return t === undefined || t.kind === 'sep' || (t.kind === 'word' && (t.norm === 'and' || t.norm === 'then'));
+    return (
+      t === undefined ||
+      t.kind === 'sep' ||
+      (t.kind === 'word' && (t.norm === 'and' || t.norm === 'then'))
+    );
   }
 
   /* ---------------------------------- sort ---------------------------------- */
@@ -437,7 +649,11 @@ class Parser {
     const recency = this.matchRecency(at);
     if (recency) {
       const field = this.recencyFieldAt(at + recency.length);
-      if (field) return { spec: { field: field.field.id, direction: recency.dir }, end: at + recency.length + field.length };
+      if (field)
+        return {
+          spec: { field: field.field.id, direction: recency.dir },
+          end: at + recency.length + field.length,
+        };
     }
     const f = this.matchField(at);
     if (!f) return undefined;
@@ -474,7 +690,12 @@ class Parser {
    */
   private recencyFieldAt(at: number): { field: ResolvedField; length: number } | undefined {
     const explicit = this.matchField(at);
-    if (explicit && (explicit.field.type === 'date' || explicit.field.type === 'datetime') && explicit.field.sortable) return explicit;
+    if (
+      explicit &&
+      (explicit.field.type === 'date' || explicit.field.type === 'datetime') &&
+      explicit.field.sortable
+    )
+      return explicit;
     const recency = this.ctx.schema.defaults.recencyField;
     if (recency !== undefined) {
       const f = this.ctx.schema.fieldsById.get(recency);
@@ -485,7 +706,9 @@ class Parser {
   }
 
   private dateFields(): ResolvedField[] {
-    return [...this.ctx.schema.fieldsById.values()].filter((f) => f.type === 'date' || f.type === 'datetime');
+    return [...this.ctx.schema.fieldsById.values()].filter(
+      (f) => f.type === 'date' || f.type === 'datetime',
+    );
   }
 
   private tryRecency(): boolean {
@@ -504,7 +727,10 @@ class Parser {
           kind: 'field',
           message: `Which date should "${recency.dir === 'desc' ? 'newest' : 'oldest'}" use?`,
           messageKey: 'ambiguity.recencyField',
-          options: dates.map((f) => ({ label: f.label, mutations: [{ op: 'setSort', sort: [{ field: f.id, direction: recency.dir }] }] })),
+          options: dates.map((f) => ({
+            label: f.label,
+            mutations: [{ op: 'setSort', sort: [{ field: f.id, direction: recency.dir }] }],
+          })),
         });
         this.pos = after;
         return true;
@@ -521,12 +747,24 @@ class Parser {
       for (const f of fields) {
         const suffix = fields.length > 1 ? ` (${f.label})` : '';
         options.push(
-          { label: `Last 7 days${suffix}`, mutations: [this.addCondition(f.id, 'last', { amount: 7, unit: 'day' })] },
-          { label: `Last 30 days${suffix}`, mutations: [this.addCondition(f.id, 'last', { amount: 30, unit: 'day' })], isDefault: f === fields[0] },
+          {
+            label: `Last 7 days${suffix}`,
+            mutations: [this.addCondition(f.id, 'last', { amount: 7, unit: 'day' })],
+          },
+          {
+            label: `Last 30 days${suffix}`,
+            mutations: [this.addCondition(f.id, 'last', { amount: 30, unit: 'day' })],
+            isDefault: f === fields[0],
+          },
           { label: `This month${suffix}`, mutations: [this.addCondition(f.id, 'thisMonth')] },
         );
       }
-      this.ambiguity({ kind: 'date_range', message: 'What does "recent" mean?', messageKey: 'ambiguity.recent', options });
+      this.ambiguity({
+        kind: 'date_range',
+        message: 'What does "recent" mean?',
+        messageKey: 'ambiguity.recent',
+        options,
+      });
       this.pos += 1 + (field?.length ?? 0);
       return true;
     }
@@ -537,22 +775,44 @@ class Parser {
 
   private tryPagination(): boolean {
     const at = this.pos;
-    const next = this.matchAnyPhrase(at, [['go', 'to', 'the', 'next', 'page'], ['go', 'to', 'next', 'page'], ['next', 'page']]);
+    const next = this.matchAnyPhrase(at, [
+      ['go', 'to', 'the', 'next', 'page'],
+      ['go', 'to', 'next', 'page'],
+      ['next', 'page'],
+    ]);
     if (next > 0) {
       this.emit({ op: 'nextPage' }, at + next);
       return true;
     }
-    const prev = this.matchAnyPhrase(at, [['go', 'to', 'the', 'previous', 'page'], ['go', 'to', 'previous', 'page'], ['previous', 'page'], ['prev', 'page'], ['go', 'back'], ['back', 'a', 'page']]);
+    const prev = this.matchAnyPhrase(at, [
+      ['go', 'to', 'the', 'previous', 'page'],
+      ['go', 'to', 'previous', 'page'],
+      ['previous', 'page'],
+      ['prev', 'page'],
+      ['go', 'back'],
+      ['back', 'a', 'page'],
+    ]);
     if (prev > 0) {
       this.emit({ op: 'prevPage' }, at + prev);
       return true;
     }
-    const first = this.matchAnyPhrase(at, [['go', 'to', 'the', 'first', 'page'], ['go', 'to', 'first', 'page'], ['first', 'page']]);
+    const first = this.matchAnyPhrase(at, [
+      ['go', 'to', 'the', 'first', 'page'],
+      ['go', 'to', 'first', 'page'],
+      ['first', 'page'],
+    ]);
     if (first > 0) {
       this.emit({ op: 'setPage', page: 1 }, at + first);
       return true;
     }
-    const pageWord = this.matchAnyPhrase(at, [['go', 'to', 'page'], ['jump', 'to', 'page'], ['show', 'page'], ['open', 'page'], ['page', 'number'], ['page']]);
+    const pageWord = this.matchAnyPhrase(at, [
+      ['go', 'to', 'page'],
+      ['jump', 'to', 'page'],
+      ['show', 'page'],
+      ['open', 'page'],
+      ['page', 'number'],
+      ['page'],
+    ]);
     if (pageWord > 0) {
       const n = parseNumber(this.tokens, at + pageWord);
       if (n && Number.isInteger(n.value) && n.value >= 1) {
@@ -560,7 +820,13 @@ class Parser {
         return true;
       }
     }
-    const sizeWord = this.matchAnyPhrase(at, [['page', 'size', 'of'], ['page', 'size', 'to'], ['page', 'size'], ['limit', 'to'], ['limit']]);
+    const sizeWord = this.matchAnyPhrase(at, [
+      ['page', 'size', 'of'],
+      ['page', 'size', 'to'],
+      ['page', 'size'],
+      ['limit', 'to'],
+      ['limit'],
+    ]);
     if (sizeWord > 0) {
       let i = at + sizeWord;
       const symbol = this.tokens[i];
@@ -593,7 +859,11 @@ class Parser {
         return true;
       }
       const noun = this.tokens[after];
-      const isNoun = noun?.kind === 'word' && (PAGE_SIZE_NOUNS.has(noun.norm) || this.resourceTerms.has(noun.norm) || this.resourceTerms.has(singular(noun.norm)));
+      const isNoun =
+        noun?.kind === 'word' &&
+        (PAGE_SIZE_NOUNS.has(noun.norm) ||
+          this.resourceTerms.has(noun.norm) ||
+          this.resourceTerms.has(singular(noun.norm)));
       if (i > at && isNoun && this.atClauseEnd(after + 1)) {
         this.emit({ op: 'setPageSize', size: n.value }, after + 1);
         return true;
@@ -606,7 +876,13 @@ class Parser {
 
   private trySearch(): boolean {
     const at = this.pos;
-    const verb = this.matchAnyPhrase(at, [['search', 'for'], ['search'], ['look', 'for'], ['look', 'up'], ['lookup']]);
+    const verb = this.matchAnyPhrase(at, [
+      ['search', 'for'],
+      ['search'],
+      ['look', 'for'],
+      ['look', 'up'],
+      ['lookup'],
+    ]);
     if (verb === 0) {
       // A lone quoted string is a global search.
       const t = this.tok();
@@ -627,7 +903,14 @@ class Parser {
       const startTok = i;
       while (i < this.tokens.length) {
         const t = this.tokens[i]!;
-        if (t.kind === 'sep' || (t.kind === 'word' && ['sort', 'sorted', 'order', 'ordered', 'then', 'page', 'per', 'in', 'within'].includes(t.norm))) break;
+        if (
+          t.kind === 'sep' ||
+          (t.kind === 'word' &&
+            ['sort', 'sorted', 'order', 'ordered', 'then', 'page', 'per', 'in', 'within'].includes(
+              t.norm,
+            ))
+        )
+          break;
         if (t.kind === 'word' && t.norm === 'and' && i > startTok) break;
         i++;
       }
@@ -651,7 +934,10 @@ class Parser {
         if (this.isWord(i, 'field', 'fields', 'column', 'columns')) i++;
       }
     }
-    this.emit({ op: 'setSearch', search: fields.length > 0 ? { query: text, fields } : { query: text } }, i);
+    this.emit(
+      { op: 'setSearch', search: fields.length > 0 ? { query: text, fields } : { query: text } },
+      i,
+    );
     return true;
   }
 
@@ -667,7 +953,10 @@ class Parser {
     const nodes: FilterNode[] = [first.node];
     let end = this.pos + first.length;
     // "A or B", "country is India or US"
-    while (this.isWord(end, 'or') || (this.tokens[end]?.kind === 'sep' && this.isWord(end + 1, 'or'))) {
+    while (
+      this.isWord(end, 'or') ||
+      (this.tokens[end]?.kind === 'sep' && this.isWord(end + 1, 'or'))
+    ) {
       const orAt = this.isWord(end, 'or') ? end + 1 : end + 2;
       const full = this.parseCondition(orAt);
       if (full) {
@@ -680,7 +969,10 @@ class Parser {
       nodes.push(same.node);
       end = orAt + same.length;
     }
-    const node: FilterNode = nodes.length === 1 ? nodes[0]! : { type: 'group', id: this.ctx.ids('g'), logic: 'or', children: nodes };
+    const node: FilterNode =
+      nodes.length === 1
+        ? nodes[0]!
+        : { type: 'group', id: this.ctx.ids('g'), logic: 'or', children: nodes };
     this.emit({ op: 'addFilter', node }, end);
     return true;
   }
@@ -723,7 +1015,10 @@ class Parser {
         if (!t.norm.startsWith(prefix) || t.norm.length <= prefix.length + 2) continue;
         const rest = t.norm.slice(prefix.length);
         const field = [...this.ctx.schema.fieldsById.values()].find(
-          (f) => f.type === 'boolean' && f.filterable && [f.id, f.label, ...f.aliases].some((term) => normalizeTerm(term) === rest),
+          (f) =>
+            f.type === 'boolean' &&
+            f.filterable &&
+            [f.id, f.label, ...f.aliases].some((term) => normalizeTerm(term) === rest),
         );
         if (field) return { node: this.condition(field.id, 'eq', false), length: 1 };
       }
@@ -740,7 +1035,11 @@ class Parser {
     return this.atClauseEnd(at) || this.isFiller(this.tokens[at]!) || this.isWord(at, 'or');
   }
 
-  private parseFieldCondition(field: ResolvedField, at: number, fieldLength: number): ParsedCondition | undefined {
+  private parseFieldCondition(
+    field: ResolvedField,
+    at: number,
+    fieldLength: number,
+  ): ParsedCondition | undefined {
     if (!field.filterable) return undefined;
     const opAt = at + fieldLength;
     for (const p of OP_PHRASES) {
@@ -750,15 +1049,27 @@ class Parser {
       const operator = p.op;
       if (!field.operators.includes(operator)) continue;
       const value = this.parseOperatorValue(field, operator, opAt + n);
-      if (value) return { node: this.condition(field.id, operator, value.value), length: fieldLength + n + value.length };
+      if (value)
+        return {
+          node: this.condition(field.id, operator, value.value),
+          length: fieldLength + n + value.length,
+        };
     }
     // Implicit equality: "status active", "country India", "age 25"
     if (field.type !== 'boolean' && field.operators.includes('eq')) {
       const value = this.parseScalar(field, opAt, { requireQuotedText: field.type !== 'string' });
-      if (value) return { node: this.condition(field.id, 'eq', value.value), length: fieldLength + value.length };
+      if (value)
+        return {
+          node: this.condition(field.id, 'eq', value.value),
+          length: fieldLength + value.length,
+        };
     }
     // Bare boolean field: "verified users"
-    if (field.type === 'boolean' && field.operators.includes('eq') && this.isStandaloneField(opAt)) {
+    if (
+      field.type === 'boolean' &&
+      field.operators.includes('eq') &&
+      this.isStandaloneField(opAt)
+    ) {
       return { node: this.condition(field.id, 'eq', true), length: fieldLength };
     }
     return undefined;
@@ -769,17 +1080,38 @@ class Parser {
     if (!field || field.length !== 0 || !field.field.filterable) return undefined;
     for (const p of OP_PHRASES) {
       if (p.types !== DATE_TYPES) continue;
-      if (!['last', 'next', 'today', 'yesterday', 'thisWeek', 'lastWeek', 'thisMonth', 'lastMonth', 'thisYear'].includes(p.op)) continue;
+      if (
+        ![
+          'last',
+          'next',
+          'today',
+          'yesterday',
+          'thisWeek',
+          'lastWeek',
+          'thisMonth',
+          'lastMonth',
+          'thisYear',
+        ].includes(p.op)
+      )
+        continue;
       const n = this.matchWords(at, p.words);
       if (n === 0) continue;
       const value = this.parseOperatorValue(field.field, p.op, at + n);
-      if (value) return { node: this.condition(field.field.id, p.op, value.value), length: n + value.length };
+      if (value)
+        return {
+          node: this.condition(field.field.id, p.op, value.value),
+          length: n + value.length,
+        };
     }
     return undefined;
   }
 
   /** Parse the value shape an operator requires. */
-  private parseOperatorValue(field: ResolvedField, operator: Operator, at: number): Parsed<FilterCondition['value']> | undefined {
+  private parseOperatorValue(
+    field: ResolvedField,
+    operator: Operator,
+    at: number,
+  ): Parsed<FilterCondition['value']> | undefined {
     switch (OPERATOR_ARITY[operator]) {
       case 'none':
         return { value: undefined, length: 0 };
@@ -788,7 +1120,14 @@ class Parser {
       case 'range': {
         const a = this.parseScalar(field, at);
         if (!a) return undefined;
-        const sep = this.matchAnyPhrase(at + a.length, [['and'], ['to'], ['-'], ['through'], ['till'], ['until']]);
+        const sep = this.matchAnyPhrase(at + a.length, [
+          ['and'],
+          ['to'],
+          ['-'],
+          ['through'],
+          ['till'],
+          ['until'],
+        ]);
         if (sep === 0) return undefined;
         const b = this.parseScalar(field, at + a.length + sep);
         if (!b) return undefined;
@@ -821,7 +1160,11 @@ class Parser {
     }
   }
 
-  private parseScalar(field: ResolvedField, at: number, options: { requireQuotedText?: boolean } = {}): Parsed<ScalarValue> | undefined {
+  private parseScalar(
+    field: ResolvedField,
+    at: number,
+    options: { requireQuotedText?: boolean } = {},
+  ): Parsed<ScalarValue> | undefined {
     const t = this.tokens[at];
     if (!t) return undefined;
     switch (field.type) {
@@ -830,7 +1173,9 @@ class Parser {
           const n = Number(t.text.replace(/[,_\s]/g, ''));
           return Number.isFinite(n) && t.text.trim() !== '' ? { value: n, length: 1 } : undefined;
         }
-        return parseNumber(this.tokens, at, { percentAsFraction: field.format === 'percent' && field.percentScale === 'fraction' });
+        return parseNumber(this.tokens, at, {
+          percentAsFraction: field.format === 'percent' && field.percentScale === 'fraction',
+        });
       }
       case 'boolean':
         return parseBoolean(this.tokens, at);
@@ -861,8 +1206,19 @@ class Parser {
 
   private isBoundaryAfterValue(at: number): boolean {
     const t = this.tokens[at];
-    if (!t || t.kind === 'sep' || t.kind === 'symbol' || t.kind === 'mention' || t.kind === 'string') return true;
-    if (t.kind === 'word' && (BOUNDARY.has(t.norm) || FILLER.has(t.norm) || this.resourceTerms.has(t.norm))) return true;
+    if (
+      !t ||
+      t.kind === 'sep' ||
+      t.kind === 'symbol' ||
+      t.kind === 'mention' ||
+      t.kind === 'string'
+    )
+      return true;
+    if (
+      t.kind === 'word' &&
+      (BOUNDARY.has(t.norm) || FILLER.has(t.norm) || this.resourceTerms.has(t.norm))
+    )
+      return true;
     return this.matchField(at) !== undefined || this.matchRecency(at) !== undefined;
   }
 
@@ -874,14 +1230,20 @@ class Parser {
     if (byField.size === 1) {
       const c = e.candidates[0]!;
       if (!c.field.operators.includes('eq')) return false;
-      this.emit({ op: 'addFilter', node: this.condition(c.field.id, 'eq', c.value) }, this.pos + e.length);
+      this.emit(
+        { op: 'addFilter', node: this.condition(c.field.id, 'eq', c.value) },
+        this.pos + e.length,
+      );
       return true;
     }
     this.ambiguity({
       kind: 'field',
       message: `"${this.input.slice(this.tokens[this.pos]!.start, this.tokens[this.pos + e.length - 1]!.end)}" matches several fields. Which one did you mean?`,
       messageKey: 'ambiguity.valueField',
-      options: [...byField.values()].map((c) => ({ label: `${c.field.label}: ${c.value}`, mutations: [{ op: 'addFilter', node: this.condition(c.field.id, 'eq', c.value) }] })),
+      options: [...byField.values()].map((c) => ({
+        label: `${c.field.label}: ${c.value}`,
+        mutations: [{ op: 'addFilter', node: this.condition(c.field.id, 'eq', c.value) }],
+      })),
     });
     this.pos += e.length;
     return true;
@@ -889,11 +1251,25 @@ class Parser {
 
   /* ------------------------------ construction ------------------------------ */
 
-  private condition(field: string, operator: Operator, value?: FilterCondition['value']): FilterCondition {
-    return { type: 'condition', id: this.ctx.ids('f'), field, operator, ...(value === undefined ? {} : { value }) };
+  private condition(
+    field: string,
+    operator: Operator,
+    value?: FilterCondition['value'],
+  ): FilterCondition {
+    return {
+      type: 'condition',
+      id: this.ctx.ids('f'),
+      field,
+      operator,
+      ...(value === undefined ? {} : { value }),
+    };
   }
 
-  private addCondition(field: string, operator: Operator, value?: FilterCondition['value']): Mutation {
+  private addCondition(
+    field: string,
+    operator: Operator,
+    value?: FilterCondition['value'],
+  ): Mutation {
     return { op: 'addFilter', node: this.condition(field, operator, value) };
   }
 
@@ -902,7 +1278,12 @@ class Parser {
     this.pos = end;
   }
 
-  private ambiguity(spec: { kind: Ambiguity['kind']; message: string; messageKey: string; options: readonly Omit<AmbiguityOption, 'id'>[] }): void {
+  private ambiguity(spec: {
+    kind: Ambiguity['kind'];
+    message: string;
+    messageKey: string;
+    options: readonly Omit<AmbiguityOption, 'id'>[];
+  }): void {
     this.ambiguities.push({
       id: this.ctx.ids('amb'),
       kind: spec.kind,
@@ -920,12 +1301,27 @@ class Parser {
   private applyEqualityRefinement(mutations: readonly Mutation[]): Mutation[] {
     const out: Mutation[] = [];
     const replaced = new Set<string>();
-    const explicitlyRemoved = new Set(mutations.flatMap((m) => (m.op === 'removeFilter' && 'field' in m.target ? [m.target.field] : [])));
-    const cleared = mutations.some((m) => m.op === 'clearFilters' || m.op === 'reset' || m.op === 'replaceFilter');
+    const explicitlyRemoved = new Set(
+      mutations.flatMap((m) =>
+        m.op === 'removeFilter' && 'field' in m.target ? [m.target.field] : [],
+      ),
+    );
+    const cleared = mutations.some(
+      (m) => m.op === 'clearFilters' || m.op === 'reset' || m.op === 'replaceFilter',
+    );
     for (const m of mutations) {
-      if (!cleared && m.op === 'addFilter' && m.node.type === 'condition' && EQUALITY_OPS.has(m.node.operator)) {
+      if (
+        !cleared &&
+        m.op === 'addFilter' &&
+        m.node.type === 'condition' &&
+        EQUALITY_OPS.has(m.node.operator)
+      ) {
         const fieldId = m.node.field;
-        if (!replaced.has(fieldId) && !explicitlyRemoved.has(fieldId) && onlyEqualityConditionsOn(this.ctx.state, fieldId)) {
+        if (
+          !replaced.has(fieldId) &&
+          !explicitlyRemoved.has(fieldId) &&
+          onlyEqualityConditionsOn(this.ctx.state, fieldId)
+        ) {
           out.push({ op: 'removeFilter', target: { field: fieldId } });
           replaced.add(fieldId);
         }
@@ -940,11 +1336,14 @@ const EQUALITY_OPS: ReadonlySet<Operator> = new Set<Operator>(['eq', 'neq', 'in'
 
 function rootConditions(state: TableQuery, fieldId: string): FilterCondition[] {
   if (state.filter === null || state.filter.logic !== 'and' || state.filter.not === true) return [];
-  return state.filter.children.filter((c): c is FilterCondition => c.type === 'condition' && c.field === fieldId);
+  return state.filter.children.filter(
+    (c): c is FilterCondition => c.type === 'condition' && c.field === fieldId,
+  );
 }
 
 function hasConditionOn(state: TableQuery, fieldId: string): boolean {
-  const walk = (node: FilterNode): boolean => (node.type === 'condition' ? node.field === fieldId : node.children.some(walk));
+  const walk = (node: FilterNode): boolean =>
+    node.type === 'condition' ? node.field === fieldId : node.children.some(walk);
   return state.filter !== null && walk(state.filter);
 }
 
@@ -971,7 +1370,9 @@ function singular(word: string): string {
 
 function yearIn(now: number, timezone: string): number {
   try {
-    const year = new Intl.DateTimeFormat('en-US', { timeZone: timezone, year: 'numeric' }).format(new Date(now));
+    const year = new Intl.DateTimeFormat('en-US', { timeZone: timezone, year: 'numeric' }).format(
+      new Date(now),
+    );
     return Number(year);
   } catch {
     return new Date(now).getUTCFullYear();

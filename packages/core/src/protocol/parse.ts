@@ -5,14 +5,22 @@ import { PROTOCOL_VERSION, type Mutation, type TableQuery } from './types.js';
 import { mutationListSchema, tableQuerySchema, tableSchemaSchema } from './zod.js';
 
 /** Result of parsing an untrusted payload. @public */
-export type ParseResult<T> = { readonly success: true; readonly data: T } | { readonly success: false; readonly issues: readonly PragmaIssue[] };
+export type ParseResult<T> =
+  | { readonly success: true; readonly data: T }
+  | { readonly success: false; readonly issues: readonly PragmaIssue[] };
 
 const MAX_REPORTED_ISSUES = 20;
 
 /** Convert Zod issues into Pragma issues (capped, no raw input echoed). @internal */
-export function zodIssuesToPragma(error: z.ZodError, pathPrefix: readonly (string | number)[] = []): PragmaIssue[] {
+export function zodIssuesToPragma(
+  error: z.ZodError,
+  pathPrefix: readonly (string | number)[] = [],
+): PragmaIssue[] {
   return error.issues.slice(0, MAX_REPORTED_ISSUES).map((issue) => {
-    const path = [...pathPrefix, ...issue.path.filter((p): p is string | number => typeof p !== 'symbol')];
+    const path = [
+      ...pathPrefix,
+      ...issue.path.filter((p): p is string | number => typeof p !== 'symbol'),
+    ];
     const where = path.length > 0 ? path.join('.') : '(root)';
     return createIssue('VALIDATION_ERROR', {
       message: `Invalid value at ${where}: ${issue.message}`,
@@ -30,7 +38,7 @@ export function zodIssuesToPragma(error: z.ZodError, pathPrefix: readonly (strin
  */
 function checkVersion(input: unknown): PragmaIssue | undefined {
   if (typeof input !== 'object' || input === null || !('version' in input)) return undefined;
-  const version = (input).version;
+  const version = input.version;
   if (typeof version !== 'string') return undefined;
   const [major] = version.split('.');
   const [supportedMajor] = PROTOCOL_VERSION.split('.');

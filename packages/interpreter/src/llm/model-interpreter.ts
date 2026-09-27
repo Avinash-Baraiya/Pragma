@@ -1,6 +1,19 @@
-import { createIssue, isAbortError, isPragmaError, PragmaConfigError, PragmaModelError, type TokenUsage } from '@pragma/core';
+import {
+  createIssue,
+  isAbortError,
+  isPragmaError,
+  PragmaConfigError,
+  PragmaModelError,
+  type TokenUsage,
+} from '@pragma/core';
 import type { ModelInterpretation, ModelInterpreter, ModelInterpretRequest } from '../engine.js';
-import { extractJson, MODEL_OUTPUT_JSON_SCHEMA, modelOutputSchema, toProposal, type ModelOutput } from './output.js';
+import {
+  extractJson,
+  MODEL_OUTPUT_JSON_SCHEMA,
+  modelOutputSchema,
+  toProposal,
+  type ModelOutput,
+} from './output.js';
 import { buildPrompt } from './prompt.js';
 import type { ChatMessage, GenerateResponse, LanguageModelProvider } from './provider.js';
 
@@ -41,11 +54,20 @@ export interface ModelInterpreterOptions {
  * @public
  */
 export function createModelInterpreter(options: ModelInterpreterOptions): ModelInterpreter {
-  const providers = Array.isArray(options.provider) ? [...(options.provider as readonly LanguageModelProvider[])] : [options.provider as LanguageModelProvider];
-  if (providers.length === 0) throw new PragmaConfigError('CONFIG_ERROR', 'createModelInterpreter requires at least one provider.');
+  const providers = Array.isArray(options.provider)
+    ? [...(options.provider as readonly LanguageModelProvider[])]
+    : [options.provider as LanguageModelProvider];
+  if (providers.length === 0)
+    throw new PragmaConfigError(
+      'CONFIG_ERROR',
+      'createModelInterpreter requires at least one provider.',
+    );
   for (const p of providers) {
     if (typeof (p as Partial<LanguageModelProvider>).generate !== 'function') {
-      throw new PragmaConfigError('CONFIG_ERROR', 'Every provider must implement generate(request).');
+      throw new PragmaConfigError(
+        'CONFIG_ERROR',
+        'Every provider must implement generate(request).',
+      );
     }
   }
   const maxRetries = options.retry?.maxRetries ?? 2;
@@ -68,7 +90,8 @@ export function createModelInterpreter(options: ModelInterpreterOptions): ModelI
       for (const [index, provider] of providers.entries()) {
         if (index > 0) retries++; // falling back counts as a retry
         for (let attempt = 0; attempt <= maxRetries; attempt++) {
-          if (request.signal.aborted) throw request.signal.reason ?? new DOMException('Aborted', 'AbortError');
+          if (request.signal.aborted)
+            throw request.signal.reason ?? new DOMException('Aborted', 'AbortError');
           try {
             const { output, model } = await generateValid(provider, prompt, request.signal, usage);
             return {
@@ -91,7 +114,9 @@ export function createModelInterpreter(options: ModelInterpreterOptions): ModelI
           }
         }
       }
-      throw lastError instanceof Error ? lastError : new PragmaModelError('MODEL_ERROR', 'All language model providers failed.');
+      throw lastError instanceof Error
+        ? lastError
+        : new PragmaModelError('MODEL_ERROR', 'All language model providers failed.');
     },
   };
 
@@ -108,10 +133,20 @@ export function createModelInterpreter(options: ModelInterpreterOptions): ModelI
       const parsed = parseOutput(response);
       if (parsed.ok) return { output: parsed.output, model: response.model };
       if (repair >= maxRepairs) {
-        throw new PragmaModelError('MODEL_OUTPUT_INVALID', 'The language model returned output that could not be understood.', {
-          retryable: false,
-          issues: [createIssue('MODEL_OUTPUT_INVALID', { message: parsed.error, messageKey: 'model.invalidOutput', retryable: false })],
-        });
+        throw new PragmaModelError(
+          'MODEL_OUTPUT_INVALID',
+          'The language model returned output that could not be understood.',
+          {
+            retryable: false,
+            issues: [
+              createIssue('MODEL_OUTPUT_INVALID', {
+                message: parsed.error,
+                messageKey: 'model.invalidOutput',
+                retryable: false,
+              }),
+            ],
+          },
+        );
       }
       messages.push(
         { role: 'assistant', content: response.text ?? JSON.stringify(response.json ?? null) },
@@ -123,7 +158,12 @@ export function createModelInterpreter(options: ModelInterpreterOptions): ModelI
     }
   }
 
-  async function callProvider(provider: LanguageModelProvider, system: string, messages: readonly ChatMessage[], signal: AbortSignal): Promise<GenerateResponse> {
+  async function callProvider(
+    provider: LanguageModelProvider,
+    system: string,
+    messages: readonly ChatMessage[],
+    signal: AbortSignal,
+  ): Promise<GenerateResponse> {
     try {
       return await provider.generate({
         system,
@@ -137,15 +177,21 @@ export function createModelInterpreter(options: ModelInterpreterOptions): ModelI
     } catch (error) {
       if (isPragmaError(error) || isAbortError(error)) throw error;
       // Unknown provider failures (e.g. fetch TypeError) are treated as transient network errors.
-      throw new PragmaModelError('MODEL_ERROR', `Provider "${provider.id}" failed.`, { cause: error, retryable: true });
+      throw new PragmaModelError('MODEL_ERROR', `Provider "${provider.id}" failed.`, {
+        cause: error,
+        retryable: true,
+      });
     }
   }
 }
 
-function parseOutput(response: GenerateResponse): { ok: true; output: ModelOutput } | { ok: false; error: string } {
+function parseOutput(
+  response: GenerateResponse,
+): { ok: true; output: ModelOutput } | { ok: false; error: string } {
   let raw: unknown = response.json;
   if (raw === undefined) {
-    if (typeof response.text !== 'string' || response.text.trim() === '') return { ok: false, error: 'the response was empty' };
+    if (typeof response.text !== 'string' || response.text.trim() === '')
+      return { ok: false, error: 'the response was empty' };
     try {
       raw = extractJson(response.text);
     } catch {
@@ -169,7 +215,10 @@ function isRetryable(error: unknown): boolean {
   return isPragmaError(error) && error.retryable;
 }
 
-function addUsage(total: { inputTokens: number; outputTokens: number }, usage: TokenUsage | undefined): void {
+function addUsage(
+  total: { inputTokens: number; outputTokens: number },
+  usage: TokenUsage | undefined,
+): void {
   if (!usage) return;
   total.inputTokens += usage.inputTokens;
   total.outputTokens += usage.outputTokens;
@@ -178,7 +227,9 @@ function addUsage(total: { inputTokens: number; outputTokens: number }, usage: T
 function abortableSleep(ms: number, signal: AbortSignal): Promise<void> {
   return new Promise((resolve, reject) => {
     if (signal.aborted) {
-      reject(signal.reason instanceof Error ? signal.reason : new DOMException('Aborted', 'AbortError'));
+      reject(
+        signal.reason instanceof Error ? signal.reason : new DOMException('Aborted', 'AbortError'),
+      );
       return;
     }
     const timer = setTimeout(() => {
@@ -187,7 +238,9 @@ function abortableSleep(ms: number, signal: AbortSignal): Promise<void> {
     }, ms);
     const onAbort = (): void => {
       clearTimeout(timer);
-      reject(signal.reason instanceof Error ? signal.reason : new DOMException('Aborted', 'AbortError'));
+      reject(
+        signal.reason instanceof Error ? signal.reason : new DOMException('Aborted', 'AbortError'),
+      );
     };
     signal.addEventListener('abort', onAbort, { once: true });
   });

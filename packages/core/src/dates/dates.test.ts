@@ -14,9 +14,19 @@ import {
   startOfWeek,
   toEpochDay,
 } from './calendar.js';
-import { compileDateRange, inDateRange, operandInterval, resolveDates, type DateContext } from './intervals.js';
+import {
+  compileDateRange,
+  inDateRange,
+  operandInterval,
+  resolveDates,
+  type DateContext,
+} from './intervals.js';
 
-const cond = (field: string, operator: FilterCondition['operator'], value?: FilterCondition['value']): FilterCondition => ({
+const cond = (
+  field: string,
+  operator: FilterCondition['operator'],
+  value?: FilterCondition['value'],
+): FilterCondition => ({
   type: 'condition',
   id: 'f',
   field,
@@ -35,9 +45,21 @@ describe('calendar', () => {
   });
 
   it('clamps month arithmetic', () => {
-    expect(addMonths({ year: 2024, month: 3, day: 31 }, -1)).toEqual({ year: 2024, month: 2, day: 29 });
-    expect(addMonths({ year: 2024, month: 1, day: 15 }, -1)).toEqual({ year: 2023, month: 12, day: 15 });
-    expect(addMonths({ year: 2024, month: 12, day: 31 }, 2)).toEqual({ year: 2025, month: 2, day: 28 });
+    expect(addMonths({ year: 2024, month: 3, day: 31 }, -1)).toEqual({
+      year: 2024,
+      month: 2,
+      day: 29,
+    });
+    expect(addMonths({ year: 2024, month: 1, day: 15 }, -1)).toEqual({
+      year: 2023,
+      month: 12,
+      day: 15,
+    });
+    expect(addMonths({ year: 2024, month: 12, day: 31 }, 2)).toEqual({
+      year: 2025,
+      month: 2,
+      day: 28,
+    });
   });
 
   it('computes weekdays and week starts', () => {
@@ -80,11 +102,17 @@ describe('calendar', () => {
     expect(rowInstant('Mon, 01 Jan 2024 00:00:00 GMT', 'UTC')).toBe(Date.UTC(2024, 0, 1));
     expect(rowInstant('garbage', 'UTC')).toBeUndefined();
     expect(rowInstant({}, 'UTC')).toBeUndefined();
-    expect(rowEpochDay('2024-06-10T23:59:00Z', 'Asia/Kolkata')).toBe(toEpochDay({ year: 2024, month: 6, day: 10 }));
-    expect(rowEpochDay(new Date('2024-06-10T20:00:00Z'), 'Asia/Kolkata')).toBe(toEpochDay({ year: 2024, month: 6, day: 11 }));
+    expect(rowEpochDay('2024-06-10T23:59:00Z', 'Asia/Kolkata')).toBe(
+      toEpochDay({ year: 2024, month: 6, day: 10 }),
+    );
+    expect(rowEpochDay(new Date('2024-06-10T20:00:00Z'), 'Asia/Kolkata')).toBe(
+      toEpochDay({ year: 2024, month: 6, day: 11 }),
+    );
     expect(rowEpochDay('nope', 'UTC')).toBeUndefined();
     expect(rowEpochDay(null, 'UTC')).toBeUndefined();
-    expect(epochDayInZone(Date.UTC(2024, 5, 10, 20), 'UTC')).toBe(toEpochDay({ year: 2024, month: 6, day: 10 }));
+    expect(epochDayInZone(Date.UTC(2024, 5, 10, 20), 'UTC')).toBe(
+      toEpochDay({ year: 2024, month: 6, day: 10 }),
+    );
   });
 });
 
@@ -92,23 +120,45 @@ describe('compileDateRange', () => {
   // Wednesday 2024-06-12 15:00 in Asia/Kolkata (09:30Z).
   const ctx: DateContext = { now: Date.UTC(2024, 5, 12, 9, 30), timezone: 'Asia/Kolkata' };
 
-  const dt = (op: FilterCondition['operator'], value?: FilterCondition['value']): { start: string | null; end: string | null; negate: boolean } => {
+  const dt = (
+    op: FilterCondition['operator'],
+    value?: FilterCondition['value'],
+  ): { start: string | null; end: string | null; negate: boolean } => {
     const r = compileDateRange(cond('createdAt', op, value), 'datetime', ctx)!;
     return { start: iso(r.start), end: iso(r.end), negate: r.negate };
   };
-  const d = (op: FilterCondition['operator'], value?: FilterCondition['value']): { start: string | null; end: string | null } => {
+  const d = (
+    op: FilterCondition['operator'],
+    value?: FilterCondition['value'],
+  ): { start: string | null; end: string | null } => {
     const r = compileDateRange(cond('birthDate', op, value), 'date', ctx)!;
-    return { start: r.start === null ? null : formatEpochDay(r.start), end: r.end === null ? null : formatEpochDay(r.end) };
+    return {
+      start: r.start === null ? null : formatEpochDay(r.start),
+      end: r.end === null ? null : formatEpochDay(r.end),
+    };
   };
 
   it('resolves calendar periods in the context timezone', () => {
-    expect(dt('today')).toEqual({ start: '2024-06-11T18:30:00.000Z', end: '2024-06-12T18:30:00.000Z', negate: false });
+    expect(dt('today')).toEqual({
+      start: '2024-06-11T18:30:00.000Z',
+      end: '2024-06-12T18:30:00.000Z',
+      negate: false,
+    });
     expect(dt('yesterday').start).toBe('2024-06-10T18:30:00.000Z');
     expect(dt('thisWeek').start).toBe('2024-06-09T18:30:00.000Z'); // Monday 2024-06-10 local
     expect(dt('lastWeek').start).toBe('2024-06-02T18:30:00.000Z');
-    expect(dt('thisMonth')).toMatchObject({ start: '2024-05-31T18:30:00.000Z', end: '2024-06-30T18:30:00.000Z' });
-    expect(dt('lastMonth')).toMatchObject({ start: '2024-04-30T18:30:00.000Z', end: '2024-05-31T18:30:00.000Z' });
-    expect(dt('thisYear')).toMatchObject({ start: '2023-12-31T18:30:00.000Z', end: '2024-12-31T18:30:00.000Z' });
+    expect(dt('thisMonth')).toMatchObject({
+      start: '2024-05-31T18:30:00.000Z',
+      end: '2024-06-30T18:30:00.000Z',
+    });
+    expect(dt('lastMonth')).toMatchObject({
+      start: '2024-04-30T18:30:00.000Z',
+      end: '2024-05-31T18:30:00.000Z',
+    });
+    expect(dt('thisYear')).toMatchObject({
+      start: '2023-12-31T18:30:00.000Z',
+      end: '2024-12-31T18:30:00.000Z',
+    });
   });
 
   it('respects weekStartsOn=0', () => {
@@ -117,30 +167,64 @@ describe('compileDateRange', () => {
   });
 
   it('uses rolling windows for datetime last/next', () => {
-    expect(dt('last', { amount: 2, unit: 'hour' })).toMatchObject({ start: '2024-06-12T07:30:00.000Z', end: '2024-06-12T09:30:00.001Z' });
+    expect(dt('last', { amount: 2, unit: 'hour' })).toMatchObject({
+      start: '2024-06-12T07:30:00.000Z',
+      end: '2024-06-12T09:30:00.001Z',
+    });
     expect(dt('last', { amount: 30, unit: 'minute' }).start).toBe('2024-06-12T09:00:00.000Z');
     expect(dt('last', { amount: 7, unit: 'day' }).start).toBe('2024-06-05T09:30:00.000Z');
     expect(dt('last', { amount: 1, unit: 'month' }).start).toBe('2024-05-12T09:30:00.000Z');
     expect(dt('last', { amount: 1, unit: 'year' }).start).toBe('2023-06-12T09:30:00.000Z');
     expect(dt('last', { amount: 1, unit: 'week' }).start).toBe('2024-06-05T09:30:00.000Z');
-    expect(dt('next', { amount: 1, unit: 'day' })).toMatchObject({ start: '2024-06-12T09:30:00.000Z', end: '2024-06-13T09:30:00.001Z' });
+    expect(dt('next', { amount: 1, unit: 'day' })).toMatchObject({
+      start: '2024-06-12T09:30:00.000Z',
+      end: '2024-06-13T09:30:00.001Z',
+    });
   });
 
   it('includes today in date-field last/next windows', () => {
-    expect(d('last', { amount: 7, unit: 'day' })).toEqual({ start: '2024-06-06', end: '2024-06-13' });
-    expect(d('last', { amount: 1, unit: 'week' })).toEqual({ start: '2024-06-06', end: '2024-06-13' });
-    expect(d('last', { amount: 1, unit: 'month' })).toEqual({ start: '2024-05-13', end: '2024-06-13' });
-    expect(d('last', { amount: 1, unit: 'year' })).toEqual({ start: '2023-06-13', end: '2024-06-13' });
-    expect(d('next', { amount: 3, unit: 'day' })).toEqual({ start: '2024-06-12', end: '2024-06-15' });
-    expect(d('next', { amount: 1, unit: 'week' })).toEqual({ start: '2024-06-12', end: '2024-06-19' });
-    expect(d('next', { amount: 1, unit: 'month' })).toEqual({ start: '2024-06-12', end: '2024-07-12' });
-    expect(d('next', { amount: 1, unit: 'year' })).toEqual({ start: '2024-06-12', end: '2025-06-12' });
+    expect(d('last', { amount: 7, unit: 'day' })).toEqual({
+      start: '2024-06-06',
+      end: '2024-06-13',
+    });
+    expect(d('last', { amount: 1, unit: 'week' })).toEqual({
+      start: '2024-06-06',
+      end: '2024-06-13',
+    });
+    expect(d('last', { amount: 1, unit: 'month' })).toEqual({
+      start: '2024-05-13',
+      end: '2024-06-13',
+    });
+    expect(d('last', { amount: 1, unit: 'year' })).toEqual({
+      start: '2023-06-13',
+      end: '2024-06-13',
+    });
+    expect(d('next', { amount: 3, unit: 'day' })).toEqual({
+      start: '2024-06-12',
+      end: '2024-06-15',
+    });
+    expect(d('next', { amount: 1, unit: 'week' })).toEqual({
+      start: '2024-06-12',
+      end: '2024-06-19',
+    });
+    expect(d('next', { amount: 1, unit: 'month' })).toEqual({
+      start: '2024-06-12',
+      end: '2024-07-12',
+    });
+    expect(d('next', { amount: 1, unit: 'year' })).toEqual({
+      start: '2024-06-12',
+      end: '2025-06-12',
+    });
     expect(d('today')).toEqual({ start: '2024-06-12', end: '2024-06-13' });
   });
 
   it('rejects sub-day units on date fields and missing durations', () => {
-    expect(compileDateRange(cond('birthDate', 'last', { amount: 3, unit: 'hour' }), 'date', ctx)).toBeUndefined();
-    expect(compileDateRange(cond('birthDate', 'next', { amount: 3, unit: 'minute' }), 'date', ctx)).toBeUndefined();
+    expect(
+      compileDateRange(cond('birthDate', 'last', { amount: 3, unit: 'hour' }), 'date', ctx),
+    ).toBeUndefined();
+    expect(
+      compileDateRange(cond('birthDate', 'next', { amount: 3, unit: 'minute' }), 'date', ctx),
+    ).toBeUndefined();
     expect(compileDateRange(cond('birthDate', 'last'), 'date', ctx)).toBeUndefined();
   });
 
@@ -150,23 +234,38 @@ describe('compileDateRange', () => {
     expect(d('after', '2024-01-10')).toEqual({ start: '2024-01-11', end: null });
     expect(d('onOrBefore', '2024-01-10')).toEqual({ start: null, end: '2024-01-11' });
     expect(d('onOrAfter', '2024-01-10')).toEqual({ start: '2024-01-10', end: null });
-    expect(d('between', ['2024-01-01', '2024-01-10'])).toEqual({ start: '2024-01-01', end: '2024-01-11' });
-    expect(compileDateRange(cond('birthDate', 'neq', '2024-01-10'), 'date', ctx)!.negate).toBe(true);
-    expect(compileDateRange(cond('birthDate', 'notBetween', ['2024-01-01', '2024-01-02']), 'date', ctx)!.negate).toBe(true);
+    expect(d('between', ['2024-01-01', '2024-01-10'])).toEqual({
+      start: '2024-01-01',
+      end: '2024-01-11',
+    });
+    expect(compileDateRange(cond('birthDate', 'neq', '2024-01-10'), 'date', ctx)!.negate).toBe(
+      true,
+    );
+    expect(
+      compileDateRange(cond('birthDate', 'notBetween', ['2024-01-01', '2024-01-02']), 'date', ctx)!
+        .negate,
+    ).toBe(true);
   });
 
   it('returns undefined for malformed operands and unrelated operators', () => {
     expect(compileDateRange(cond('birthDate', 'eq', 'soon'), 'date', ctx)).toBeUndefined();
     expect(compileDateRange(cond('birthDate', 'eq', 5), 'date', ctx)).toBeUndefined();
-    expect(compileDateRange(cond('birthDate', 'between', ['2024-01-01']), 'date', ctx)).toBeUndefined();
-    expect(compileDateRange(cond('birthDate', 'between', ['x', '2024-01-01']), 'date', ctx)).toBeUndefined();
+    expect(
+      compileDateRange(cond('birthDate', 'between', ['2024-01-01']), 'date', ctx),
+    ).toBeUndefined();
+    expect(
+      compileDateRange(cond('birthDate', 'between', ['x', '2024-01-01']), 'date', ctx),
+    ).toBeUndefined();
     expect(compileDateRange(cond('birthDate', 'isNull'), 'date', ctx)).toBeUndefined();
     expect(operandInterval('bad', 'datetime', 'UTC')).toBeUndefined();
   });
 
   it('handles DST: "yesterday" in New York on the spring-forward day spans 23 hours', () => {
     // 2024-03-11 12:00 local; yesterday = 2024-03-10, which had 23 hours.
-    const r = compileDateRange(cond('createdAt', 'yesterday'), 'datetime', { now: Date.UTC(2024, 2, 11, 16), timezone: 'America/New_York' })!;
+    const r = compileDateRange(cond('createdAt', 'yesterday'), 'datetime', {
+      now: Date.UTC(2024, 2, 11, 16),
+      timezone: 'America/New_York',
+    })!;
     expect((r.end! - r.start!) / 3_600_000).toBe(23);
     expect(iso(r.start)).toBe('2024-03-10T05:00:00.000Z');
   });
@@ -207,7 +306,10 @@ describe('resolveDates', () => {
       ctx,
     );
     const c = resolved.filter!.children as FilterCondition[];
-    expect(c[0]).toMatchObject({ operator: 'between', value: ['2024-06-12T00:00:00.000Z', '2024-06-12T23:59:59.999Z'] });
+    expect(c[0]).toMatchObject({
+      operator: 'between',
+      value: ['2024-06-12T00:00:00.000Z', '2024-06-12T23:59:59.999Z'],
+    });
     expect(c[1]).toMatchObject({ operator: 'between', value: ['2024-06-06', '2024-06-12'] });
     expect(c[2]).toMatchObject({ operator: 'eq', value: '2024-06-12' });
     expect(c[3]).toMatchObject({ operator: 'eq', value: '2024-01-01' });
@@ -222,8 +324,12 @@ describe('resolveDates', () => {
     const q = { ...query([]), filter: null };
     expect(resolveDates(q, usersSchema, ctx)).toBe(q);
     const bad = query([cond('createdAt', 'eq', 'garbage')]);
-    expect((resolveDates(bad, usersSchema, ctx).filter!.children[0] as FilterCondition).value).toBe('garbage');
-    const nested = query([{ type: 'group', id: 'g2', logic: 'or', children: [cond('createdAt', 'today')] }]);
+    expect((resolveDates(bad, usersSchema, ctx).filter!.children[0] as FilterCondition).value).toBe(
+      'garbage',
+    );
+    const nested = query([
+      { type: 'group', id: 'g2', logic: 'or', children: [cond('createdAt', 'today')] },
+    ]);
     expect(JSON.stringify(resolveDates(nested, usersSchema, ctx))).toContain('between');
   });
 });

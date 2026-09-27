@@ -27,7 +27,12 @@ export function findMentions(text: string): MentionToken[] {
   for (const match of text.matchAll(MENTION)) {
     const start = match.index;
     if (start > 0 && /[\w.]/.test(text[start - 1] ?? '')) continue;
-    out.push({ start, end: start + match[0].length, raw: match[0], text: match[1] ?? match[2] ?? '' });
+    out.push({
+      start,
+      end: start + match[0].length,
+      raw: match[0],
+      text: match[1] ?? match[2] ?? '',
+    });
   }
   return out;
 }
@@ -68,7 +73,11 @@ export function resolveMention(schema: ResolvedSchema, text: string): MentionRes
 
 function isResourceTerm(schema: ResolvedSchema, text: string): boolean {
   const needle = normalizeTerm(text);
-  return needle === normalizeTerm(schema.resource) || needle === normalizeTerm(schema.label) || schema.aliases.some((a) => normalizeTerm(a) === needle);
+  return (
+    needle === normalizeTerm(schema.resource) ||
+    needle === normalizeTerm(schema.label) ||
+    schema.aliases.some((a) => normalizeTerm(a) === needle)
+  );
 }
 
 /**
@@ -77,13 +86,17 @@ function isResourceTerm(schema: ResolvedSchema, text: string): boolean {
  *
  * @public
  */
-export function getActiveMention(text: string, caret: number): { readonly start: number; readonly query: string } | null {
+export function getActiveMention(
+  text: string,
+  caret: number,
+): { readonly start: number; readonly query: string } | null {
   const before = text.slice(0, caret);
   const at = before.lastIndexOf('@');
   if (at === -1) return null;
   if (at > 0 && /[\w.]/.test(before[at - 1] ?? '')) return null;
   const partial = before.slice(at + 1);
-  if (partial.startsWith('"')) return partial.slice(1).includes('"') ? null : { start: at, query: partial.slice(1) };
+  if (partial.startsWith('"'))
+    return partial.slice(1).includes('"') ? null : { start: at, query: partial.slice(1) };
   if (!/^[A-Za-z0-9_.]*$/.test(partial)) return null;
   return { start: at, query: partial };
 }
@@ -118,7 +131,11 @@ export interface SuggestOptions {
  *
  * @public
  */
-export function suggestMentions(schema: ResolvedSchema, query: string, options: SuggestOptions = {}): MentionSuggestion[] {
+export function suggestMentions(
+  schema: ResolvedSchema,
+  query: string,
+  options: SuggestOptions = {},
+): MentionSuggestion[] {
   const limit = options.limit ?? 8;
   let q = query;
   const resourcePrefix = `${schema.resource}.`;
@@ -132,7 +149,12 @@ export function suggestMentions(schema: ResolvedSchema, query: string, options: 
   if (needle === '' || normalizeTerm(schema.resource).startsWith(needle)) {
     if (!q.includes('.') && query === q) {
       ranked.push({
-        suggestion: { kind: 'resource', id: schema.resource, label: schema.label, insertText: `@${schema.resource}` },
+        suggestion: {
+          kind: 'resource',
+          id: schema.resource,
+          label: schema.label,
+          insertText: `@${schema.resource}`,
+        },
         rank: needle === '' ? 0 : 1,
         order: -1,
       });
@@ -140,7 +162,14 @@ export function suggestMentions(schema: ResolvedSchema, query: string, options: 
   }
 
   fields.forEach((field, order) => {
-    const base = { kind: 'field' as const, id: field.id, label: field.label, type: field.type, insertText: `@${field.id}`, ...(field.description ? { description: field.description } : {}) };
+    const base = {
+      kind: 'field' as const,
+      id: field.id,
+      label: field.label,
+      type: field.type,
+      insertText: `@${field.id}`,
+      ...(field.description ? { description: field.description } : {}),
+    };
     if (needle === '') {
       ranked.push({ suggestion: base, rank: 1, order });
       return;
@@ -155,18 +184,28 @@ export function suggestMentions(schema: ResolvedSchema, query: string, options: 
       }
     };
     if (idTerm === needle || labelTerm === needle) consider(0);
-    if (idTerm.startsWith(needle) || labelTerm.startsWith(needle) || idTerm.replace(/ /g, '').startsWith(compact)) consider(1);
+    if (
+      idTerm.startsWith(needle) ||
+      labelTerm.startsWith(needle) ||
+      idTerm.replace(/ /g, '').startsWith(compact)
+    )
+      consider(1);
     aliasTerms.forEach((t, i) => {
       const alias = field.aliases[i];
       if (t === needle) consider(1, alias);
-      else if (t.startsWith(needle) || t.split(' ').some((w) => w.startsWith(needle))) consider(2, alias);
+      else if (t.startsWith(needle) || t.split(' ').some((w) => w.startsWith(needle)))
+        consider(2, alias);
       else if (t.includes(needle)) consider(3, alias);
     });
     if (labelTerm.split(' ').some((w) => w.startsWith(needle))) consider(2);
     if (idTerm.includes(needle) || labelTerm.includes(needle)) consider(3);
     if (isSubsequence(compact, idTerm.replace(/ /g, ''))) consider(4);
     if (rank !== Number.POSITIVE_INFINITY) {
-      ranked.push({ suggestion: alias === undefined ? base : { ...base, matchedAlias: alias }, rank, order });
+      ranked.push({
+        suggestion: alias === undefined ? base : { ...base, matchedAlias: alias },
+        rank,
+        order,
+      });
     }
   });
 

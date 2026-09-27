@@ -12,4 +12,9 @@ export type { PragmaContextValue, PragmaProviderProps, PragmaStatus } from './co
 export { AskBar, useMentionAutocomplete } from './AskBar.js';
 export type { AskBarProps, MentionAutocompleteState } from './AskBar.js';
 export { ClarificationPrompt, Explanation, Feedback, QueryChips } from './components.js';
-export type { ClarificationPromptProps, ExplanationProps, FeedbackProps, QueryChipsProps } from './components.js';
+export type {
+  ClarificationPromptProps,
+  ExplanationProps,
+  FeedbackProps,
+  QueryChipsProps,
+} from './components.js';

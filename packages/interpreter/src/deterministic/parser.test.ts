@@ -1,13 +1,31 @@
-import { createInitialQuery, defineSchema, sequentialIds, type ResolvedSchema, type TableQuery } from '@pragma/core';
+import {
+  createInitialQuery,
+  defineSchema,
+  sequentialIds,
+  type ResolvedSchema,
+  type TableQuery,
+} from '@pragma/core';
 import { describe, expect, it } from 'vitest';
-import { noRecencySchema, render, renderNode, usersSchema, usersSchemaInput } from '../testing/fixtures.js';
+import {
+  noRecencySchema,
+  render,
+  renderNode,
+  usersSchema,
+  usersSchemaInput,
+} from '../testing/fixtures.js';
 import { parseDeterministic } from './parser.js';
 
 const NOW = Date.UTC(2024, 5, 15, 12);
 const initial = createInitialQuery(usersSchema);
 
 function parse(text: string, state: TableQuery = initial, schema: ResolvedSchema = usersSchema) {
-  return parseDeterministic(text, { schema, state, now: NOW, timezone: 'UTC', ids: sequentialIds() });
+  return parseDeterministic(text, {
+    schema,
+    state,
+    now: NOW,
+    timezone: 'UTC',
+    ids: sequentialIds(),
+  });
 }
 
 /** Instructions the parser must fully cover, with the expected mutations. */
@@ -79,8 +97,14 @@ const COVERED: readonly [string, string[]][] = [
   ['birthday on 10th May 1994', ['filter birthDate eq "1994-05-10"']],
   ['joined between Jan 1 and Jan 10', ['filter createdAt between ["2024-01-01","2024-01-10"]']],
   // combinations
-  ['active users with age > 25 and country is India', ['filter status eq "active"', 'filter age gt 25', 'filter country eq "India"']],
-  ['Show @users where @age > 25, sorted by @createdAt desc', ['filter age gt 25', 'sort createdAt desc']],
+  [
+    'active users with age > 25 and country is India',
+    ['filter status eq "active"', 'filter age gt 25', 'filter country eq "India"'],
+  ],
+  [
+    'Show @users where @age > 25, sorted by @createdAt desc',
+    ['filter age gt 25', 'sort createdAt desc'],
+  ],
   // sorting
   ['sort by age', ['sort age asc']],
   ['sort by age descending', ['sort age desc']],
@@ -123,7 +147,10 @@ const COVERED: readonly [string, string[]][] = [
   ['reset everything', ['reset']],
   ['start over', ['reset']],
   ['clear filters and only verified', ['clearFilters', 'filter verified eq true']],
-  ['active users, newest first, 20 per page', ['filter status eq "active"', 'pageSize 20', 'sort createdAt desc']],
+  [
+    'active users, newest first, 20 per page',
+    ['filter status eq "active"', 'pageSize 20', 'sort createdAt desc'],
+  ],
 ];
 
 describe('parseDeterministic: covered phrases', () => {
@@ -181,7 +208,9 @@ describe('parseDeterministic: ambiguity', () => {
     expect(amb).toMatchObject({ kind: 'date_range', messageKey: 'ambiguity.recent' });
     expect(amb!.options.map((o) => o.label)).toEqual(['Last 7 days', 'Last 30 days', 'This month']);
     expect(amb!.options.find((o) => o.isDefault)?.label).toBe('Last 30 days');
-    expect(render(amb!.options[0]!.mutations)).toEqual(['filter createdAt last {"amount":7,"unit":"day"}']);
+    expect(render(amb!.options[0]!.mutations)).toEqual([
+      'filter createdAt last {"amount":7,"unit":"day"}',
+    ]);
   });
 
   it('asks which date "newest" means when there is no recency field', () => {
@@ -200,28 +229,46 @@ describe('parseDeterministic: ambiguity', () => {
   it('asks which field a shared enum value belongs to', () => {
     const shared = defineSchema({
       ...usersSchemaInput,
-      fields: usersSchemaInput.fields.map((f) => (f.id === 'plan' ? { ...f, values: [{ value: 'free' }, { value: 'active' }] } : f)),
+      fields: usersSchemaInput.fields.map((f) =>
+        f.id === 'plan' ? { ...f, values: [{ value: 'free' }, { value: 'active' }] } : f,
+      ),
     });
     const result = parse('active users', initial, shared);
     expect(result.covered).toBe(true);
     const [amb] = result.proposal.ambiguities;
     expect(amb).toMatchObject({ kind: 'field', messageKey: 'ambiguity.valueField' });
-    expect(amb!.options.map((o) => render(o.mutations)[0])).toEqual(['filter status eq "active"', 'filter plan eq "active"']);
+    expect(amb!.options.map((o) => render(o.mutations)[0])).toEqual([
+      'filter status eq "active"',
+      'filter plan eq "active"',
+    ]);
   });
 });
 
 describe('parseDeterministic: state-aware refinement', () => {
   const withStatus: TableQuery = {
     ...initial,
-    filter: { type: 'group', id: 'g', logic: 'and', children: [{ type: 'condition', id: 'c', field: 'status', operator: 'eq', value: 'active' }] },
+    filter: {
+      type: 'group',
+      id: 'g',
+      logic: 'and',
+      children: [{ type: 'condition', id: 'c', field: 'status', operator: 'eq', value: 'active' }],
+    },
   };
   const withAge: TableQuery = {
     ...initial,
-    filter: { type: 'group', id: 'g', logic: 'and', children: [{ type: 'condition', id: 'c', field: 'age', operator: 'gt', value: 25 }] },
+    filter: {
+      type: 'group',
+      id: 'g',
+      logic: 'and',
+      children: [{ type: 'condition', id: 'c', field: 'age', operator: 'gt', value: 25 }],
+    },
   };
 
   it('replaces an existing equality filter on the same field', () => {
-    expect(render(parse('inactive users', withStatus).proposal.mutations)).toEqual(['removeFilter status', 'filter status eq "inactive"']);
+    expect(render(parse('inactive users', withStatus).proposal.mutations)).toEqual([
+      'removeFilter status',
+      'filter status eq "inactive"',
+    ]);
   });
 
   it('narrows range filters instead of replacing them', () => {
@@ -233,7 +280,10 @@ describe('parseDeterministic: state-aware refinement', () => {
   });
 
   it('does not add a removal when filters are cleared first', () => {
-    expect(render(parse('clear filters, pending users', withStatus).proposal.mutations)).toEqual(['clearFilters', 'filter status eq "pending"']);
+    expect(render(parse('clear filters, pending users', withStatus).proposal.mutations)).toEqual([
+      'clearFilters',
+      'filter status eq "pending"',
+    ]);
   });
 });
 
@@ -257,13 +307,23 @@ describe('parseDeterministic: quoted values and compound conditions', () => {
   });
 
   it('does not claim recency words on a schema without date fields', () => {
-    const noDates = defineSchema({ schemaVersion: '1', resource: 'items', fields: [{ id: 'name', label: 'Name', type: 'string' }] });
+    const noDates = defineSchema({
+      schemaVersion: '1',
+      resource: 'items',
+      fields: [{ id: 'name', label: 'Name', type: 'string' }],
+    });
     expect(parse('newest first', createInitialQuery(noDates), noDates).covered).toBe(false);
     expect(parse('recent', createInitialQuery(noDates), noDates).covered).toBe(false);
   });
 
   it('falls back to UTC for the current year with an unknown timezone', () => {
-    const result = parseDeterministic('joined after Jan 10', { schema: usersSchema, state: initial, now: NOW, timezone: 'Bad/Zone', ids: sequentialIds() });
+    const result = parseDeterministic('joined after Jan 10', {
+      schema: usersSchema,
+      state: initial,
+      now: NOW,
+      timezone: 'Bad/Zone',
+      ids: sequentialIds(),
+    });
     expect(render(result.proposal.mutations)).toEqual(['filter createdAt after "2024-01-10"']);
   });
 });
@@ -272,11 +332,30 @@ describe('parseDeterministic: robustness', () => {
   it('produces stable ids and valid nodes for OR groups', () => {
     const result = parse('country is India or US');
     const m = result.proposal.mutations[0]!;
-    expect(m.op === 'addFilter' && renderNode(m.node)).toBe('(country eq "India" or country eq "US")');
+    expect(m.op === 'addFilter' && renderNode(m.node)).toBe(
+      '(country eq "India" or country eq "US")',
+    );
   });
 
   it('never throws on arbitrary input', () => {
-    for (const text of ['', '   ', '!!!', '@', '@@@', '"', '""', '>>>', 'age >', 'between and', '1e999', '∞', 'sort by by by', 'page -1', 'page 0', 'x'.repeat(500)]) {
+    for (const text of [
+      '',
+      '   ',
+      '!!!',
+      '@',
+      '@@@',
+      '"',
+      '""',
+      '>>>',
+      'age >',
+      'between and',
+      '1e999',
+      '∞',
+      'sort by by by',
+      'page -1',
+      'page 0',
+      'x'.repeat(500),
+    ]) {
       expect(() => parse(text)).not.toThrow();
     }
   });

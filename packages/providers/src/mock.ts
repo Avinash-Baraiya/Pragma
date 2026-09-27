@@ -4,7 +4,10 @@ import type { GenerateRequest, GenerateResponse, LanguageModelProvider } from '@
 export interface MockOutput {
   readonly actions: readonly Record<string, unknown>[];
   readonly ambiguities: readonly Record<string, unknown>[];
-  readonly unsupported: { readonly reason: string; readonly suggestedFields: readonly string[] } | null;
+  readonly unsupported: {
+    readonly reason: string;
+    readonly suggestedFields: readonly string[];
+  } | null;
 }
 
 /** @public */
@@ -24,15 +27,42 @@ export interface MockProviderOptions {
   readonly id?: string;
 }
 
-const NULL_ACTION = { filter: null, logic: null, field: null, filterId: null, sort: null, search: null, page: null, pageSize: null };
+const NULL_ACTION = {
+  filter: null,
+  logic: null,
+  field: null,
+  filterId: null,
+  sort: null,
+  search: null,
+  page: null,
+  pageSize: null,
+};
 
 /** Helpers for building mock outputs without writing the full JSON shape. @public */
 export const mock = {
   output(actions: readonly Record<string, unknown>[], extra: Partial<MockOutput> = {}): MockOutput {
     return { actions, ambiguities: [], unsupported: null, ...extra };
   },
-  filter(field: string, operator: string, value: unknown = null, logic: 'and' | 'or' | null = null): Record<string, unknown> {
-    return { ...NULL_ACTION, op: 'addFilter', logic, filter: { field, operator, value, caseSensitive: null, logic: null, not: null, conditions: null } };
+  filter(
+    field: string,
+    operator: string,
+    value: unknown = null,
+    logic: 'and' | 'or' | null = null,
+  ): Record<string, unknown> {
+    return {
+      ...NULL_ACTION,
+      op: 'addFilter',
+      logic,
+      filter: {
+        field,
+        operator,
+        value,
+        caseSensitive: null,
+        logic: null,
+        not: null,
+        conditions: null,
+      },
+    };
   },
   anyOf(conditions: readonly [string, string, unknown][]): Record<string, unknown> {
     return {
@@ -45,7 +75,12 @@ export const mock = {
         caseSensitive: null,
         logic: 'or',
         not: null,
-        conditions: conditions.map(([field, operator, value]) => ({ field, operator, value, caseSensitive: null })),
+        conditions: conditions.map(([field, operator, value]) => ({
+          field,
+          operator,
+          value,
+          caseSensitive: null,
+        })),
       },
     };
   },
@@ -76,7 +111,9 @@ export function instructionOf(request: GenerateRequest): string {
  *
  * @public
  */
-export function mockProvider(options: MockProviderOptions = {}): LanguageModelProvider & { readonly calls: readonly string[] } {
+export function mockProvider(
+  options: MockProviderOptions = {},
+): LanguageModelProvider & { readonly calls: readonly string[] } {
   const calls: string[] = [];
   return {
     id: options.id ?? 'mock',
@@ -84,11 +121,22 @@ export function mockProvider(options: MockProviderOptions = {}): LanguageModelPr
     async generate(request: GenerateRequest): Promise<GenerateResponse> {
       const instruction = instructionOf(request);
       calls.push(instruction);
-      if (options.latencyMs !== undefined && options.latencyMs > 0) await delay(options.latencyMs, request.signal);
+      if (options.latencyMs !== undefined && options.latencyMs > 0)
+        await delay(options.latencyMs, request.signal);
       const rule = options.rules?.find((r) => matches(r.match, instruction));
-      const chosen = rule?.output ?? options.fallback ?? mock.unsupported('The mock model has no answer for this instruction.');
+      const chosen =
+        rule?.output ??
+        options.fallback ??
+        mock.unsupported('The mock model has no answer for this instruction.');
       const output = typeof chosen === 'function' ? chosen(instruction) : chosen;
-      return { json: output, model: 'mock', usage: { inputTokens: Math.ceil(request.system.length / 4), outputTokens: Math.ceil(JSON.stringify(output).length / 4) } };
+      return {
+        json: output,
+        model: 'mock',
+        usage: {
+          inputTokens: Math.ceil(request.system.length / 4),
+          outputTokens: Math.ceil(JSON.stringify(output).length / 4),
+        },
+      };
     },
   };
 }

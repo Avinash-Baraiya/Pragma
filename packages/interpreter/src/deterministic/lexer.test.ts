@@ -19,22 +19,41 @@ describe('tokenize', () => {
   });
 
   it('keeps quoted strings verbatim, including smart quotes', () => {
-    expect(kinds('name is "Rahul Sharma" or “Anna Müller”')).toEqual(['word:name', 'word:is', 'string:Rahul Sharma', 'word:or', 'string:Anna Müller']);
+    expect(kinds('name is "Rahul Sharma" or “Anna Müller”')).toEqual([
+      'word:name',
+      'word:is',
+      'string:Rahul Sharma',
+      'word:or',
+      'string:Anna Müller',
+    ]);
     expect(kinds('@"Created At" today')).toEqual(['mention:Created At', 'word:today']);
   });
 
   it('parses numbers with separators, currency, percent and suffixes', () => {
     const values = (s: string) => tokenize(s).map((t) => t.value ?? t.text);
-    expect(values('1,00,000 ₹500 $1,250.50 20% 25k 1.5M 2cr 3l')).toEqual([100000, 500, 1250.5, 20, 25000, 1500000, 20000000, 300000]);
+    expect(values('1,00,000 ₹500 $1,250.50 20% 25k 1.5M 2cr 3l')).toEqual([
+      100000, 500, 1250.5, 20, 25000, 1500000, 20000000, 300000,
+    ]);
     expect(tokenize('20%')[0]?.percent).toBe(true);
   });
 
   it('recognises ISO dates and date-times', () => {
-    expect(kinds('after 2024-01-10 and before 2024-02-01T10:00:00Z')).toEqual(['word:after', 'date:2024-01-10', 'word:and', 'word:before', 'date:2024-02-01T10:00:00Z']);
+    expect(kinds('after 2024-01-10 and before 2024-02-01T10:00:00Z')).toEqual([
+      'word:after',
+      'date:2024-01-10',
+      'word:and',
+      'word:before',
+      'date:2024-02-01T10:00:00Z',
+    ]);
   });
 
   it('keeps emails and contractions as single words; strips trailing punctuation', () => {
-    expect(kinds("email doesn't contain rahul@example.com.")).toEqual(['word:email', "word:doesn't", 'word:contain', 'word:rahul@example.com']);
+    expect(kinds("email doesn't contain rahul@example.com.")).toEqual([
+      'word:email',
+      "word:doesn't",
+      'word:contain',
+      'word:rahul@example.com',
+    ]);
     expect(kinds('India! (please)')).toEqual(['word:India', 'word:please']);
   });
 
@@ -47,7 +66,8 @@ describe('tokenize', () => {
 
 describe('value parsers', () => {
   it('parses number words and multipliers', () => {
-    const n = (s: string, fraction = false) => parseNumber(tokenize(s), 0, { percentAsFraction: fraction });
+    const n = (s: string, fraction = false) =>
+      parseNumber(tokenize(s), 0, { percentAsFraction: fraction });
     expect(n('twenty five')).toEqual({ value: 25, length: 2 });
     expect(n('ninety')).toEqual({ value: 90, length: 1 });
     expect(n('seven')).toEqual({ value: 7, length: 1 });
@@ -79,9 +99,18 @@ describe('value parsers', () => {
   });
 
   it('parses durations and booleans', () => {
-    expect(parseDuration(tokenize('7 days'), 0)).toEqual({ value: { amount: 7, unit: 'day' }, length: 2 });
-    expect(parseDuration(tokenize('two weeks'), 0)).toEqual({ value: { amount: 2, unit: 'week' }, length: 2 });
-    expect(parseDuration(tokenize('24 hrs'), 0)).toEqual({ value: { amount: 24, unit: 'hour' }, length: 2 });
+    expect(parseDuration(tokenize('7 days'), 0)).toEqual({
+      value: { amount: 7, unit: 'day' },
+      length: 2,
+    });
+    expect(parseDuration(tokenize('two weeks'), 0)).toEqual({
+      value: { amount: 2, unit: 'week' },
+      length: 2,
+    });
+    expect(parseDuration(tokenize('24 hrs'), 0)).toEqual({
+      value: { amount: 24, unit: 'hour' },
+      length: 2,
+    });
     expect(parseDuration(tokenize('7 bananas'), 0)).toBeUndefined();
     expect(parseDuration(tokenize('1.5 days'), 0)).toBeUndefined();
     expect(parseBoolean(tokenize('yes'), 0)).toEqual({ value: true, length: 1 });

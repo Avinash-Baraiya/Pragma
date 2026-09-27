@@ -60,7 +60,8 @@ function parseWordNumber(tokens: readonly Token[], pos: number): Parsed<number> 
   let i = pos;
   let total = 0;
   let matched = false;
-  const at = (k: number): string | undefined => (tokens[k]?.kind === 'word' ? tokens[k].norm : undefined);
+  const at = (k: number): string | undefined =>
+    tokens[k]?.kind === 'word' ? tokens[k].norm : undefined;
 
   if ((at(i) === 'a' || at(i) === 'one') && at(i + 1) === 'hundred') {
     total = 100;
@@ -106,7 +107,11 @@ export interface NumberParseOptions {
  * Parse a numeric value: digits (with group separators and currency symbols),
  * number words, multiplier words ("5 lakh", "2.5 million") and percentages.
  */
-export function parseNumber(tokens: readonly Token[], pos: number, options: NumberParseOptions = {}): Parsed<number> | undefined {
+export function parseNumber(
+  tokens: readonly Token[],
+  pos: number,
+  options: NumberParseOptions = {},
+): Parsed<number> | undefined {
   const token = tokens[pos];
   let base: Parsed<number> | undefined;
   let percent = false;
@@ -131,7 +136,8 @@ export function parseNumber(tokens: readonly Token[], pos: number, options: Numb
       length++;
     }
   }
-  if (percent && options.percentAsFraction === true) value = Math.round((value / 100) * 1e12) / 1e12;
+  if (percent && options.percentAsFraction === true)
+    value = Math.round((value / 100) * 1e12) / 1e12;
   return { value, length };
 }
 
@@ -172,7 +178,12 @@ function dayNumber(token: Token | undefined): number | undefined {
 
 function yearNumber(token: Token | undefined): number | undefined {
   if (token?.kind !== 'number' || token.value === undefined) return undefined;
-  return Number.isInteger(token.value) && token.value >= 1900 && token.value <= 2999 && /^\d{4}$/.test(token.text) ? token.value : undefined;
+  return Number.isInteger(token.value) &&
+    token.value >= 1900 &&
+    token.value <= 2999 &&
+    /^\d{4}$/.test(token.text)
+    ? token.value
+    : undefined;
 }
 
 function pad(n: number): string {
@@ -189,7 +200,11 @@ function validDate(y: number, m: number, d: number): boolean {
  * `currentYear`. Numeric day/month forms such as `10/01/2024` are deliberately
  * not parsed because their order is locale-dependent.
  */
-export function parseDate(tokens: readonly Token[], pos: number, currentYear: number): Parsed<string> | undefined {
+export function parseDate(
+  tokens: readonly Token[],
+  pos: number,
+  currentYear: number,
+): Parsed<string> | undefined {
   const token = tokens[pos];
   if (token?.kind === 'date') return { value: token.text, length: 1 };
 
@@ -202,13 +217,17 @@ export function parseDate(tokens: readonly Token[], pos: number, currentYear: nu
       if (tokens[pos + length]?.kind === 'sep' && tokens[pos + length]?.text === ',') {
         const y = yearNumber(tokens[pos + length + 1]);
         if (y !== undefined) {
-          return validDate(y, month, day) ? { value: `${y}-${pad(month)}-${pad(day)}`, length: length + 2 } : undefined;
+          return validDate(y, month, day)
+            ? { value: `${y}-${pad(month)}-${pad(day)}`, length: length + 2 }
+            : undefined;
         }
       }
       const year = yearNumber(tokens[pos + length]);
       if (year !== undefined) length++;
       const y = year ?? currentYear;
-      return validDate(y, month, day) ? { value: `${y}-${pad(month)}-${pad(day)}`, length } : undefined;
+      return validDate(y, month, day)
+        ? { value: `${y}-${pad(month)}-${pad(day)}`, length }
+        : undefined;
     }
     return undefined;
   }
@@ -219,12 +238,16 @@ export function parseDate(tokens: readonly Token[], pos: number, currentYear: nu
   if (day !== undefined && month2 !== undefined) {
     const year = yearNumber(tokens[pos + 2]);
     const y = year ?? currentYear;
-    return validDate(y, month2, day) ? { value: `${y}-${pad(month2)}-${pad(day)}`, length: year === undefined ? 2 : 3 } : undefined;
+    return validDate(y, month2, day)
+      ? { value: `${y}-${pad(month2)}-${pad(day)}`, length: year === undefined ? 2 : 3 }
+      : undefined;
   }
   return undefined;
 }
 
-const DURATION_UNIT_WORDS: Readonly<Record<string, 'minute' | 'hour' | 'day' | 'week' | 'month' | 'year'>> = {
+const DURATION_UNIT_WORDS: Readonly<
+  Record<string, 'minute' | 'hour' | 'day' | 'week' | 'month' | 'year'>
+> = {
   minute: 'minute',
   minutes: 'minute',
   min: 'minute',
@@ -248,7 +271,12 @@ const DURATION_UNIT_WORDS: Readonly<Record<string, 'minute' | 'hour' | 'day' | '
 };
 
 /** Parse `7 days`, `two weeks`, `24 hours`. */
-export function parseDuration(tokens: readonly Token[], pos: number): Parsed<{ amount: number; unit: 'minute' | 'hour' | 'day' | 'week' | 'month' | 'year' }> | undefined {
+export function parseDuration(
+  tokens: readonly Token[],
+  pos: number,
+):
+  | Parsed<{ amount: number; unit: 'minute' | 'hour' | 'day' | 'week' | 'month' | 'year' }>
+  | undefined {
   const n = parseNumber(tokens, pos);
   if (!n || !Number.isInteger(n.value) || n.value <= 0) return undefined;
   const unitToken = tokens[pos + n.length];

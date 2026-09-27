@@ -22,7 +22,13 @@ export {
   PragmaValidationError,
   toIssue,
 } from './errors/errors.js';
-export type { IssueInit, MessageParam, PragmaIssue, PragmaWarning, WarningInit } from './errors/errors.js';
+export type {
+  IssueInit,
+  MessageParam,
+  PragmaIssue,
+  PragmaWarning,
+  WarningInit,
+} from './errors/errors.js';
 
 // operators
 export {
@@ -50,7 +56,14 @@ export type {
   SchemaDefaults,
   TableSchema,
 } from './schema/types.js';
-export { DEFAULT_MAX_PAGE_SIZE, DEFAULT_MAX_SORTS, DEFAULT_PAGE_SIZE, defineSchema, getField, visibleFields } from './schema/define-schema.js';
+export {
+  DEFAULT_MAX_PAGE_SIZE,
+  DEFAULT_MAX_SORTS,
+  DEFAULT_PAGE_SIZE,
+  defineSchema,
+  getField,
+  visibleFields,
+} from './schema/define-schema.js';
 export { fieldTerms, findFieldByTerm, suggestFields } from './schema/lookup.js';
 export type { FieldSuggestionOptions } from './schema/lookup.js';
 
@@ -124,7 +137,12 @@ export { applyMutations } from './mutations/apply.js';
 export type { ApplyOptions, ApplyResult, PageInfo } from './mutations/apply.js';
 
 // normalization
-export { canonicalizeQuery, hashQuery, normalizeQuery, queriesEqual } from './normalizer/normalize.js';
+export {
+  canonicalizeQuery,
+  hashQuery,
+  normalizeQuery,
+  queriesEqual,
+} from './normalizer/normalize.js';
 export type { NormalizeResult } from './normalizer/normalize.js';
 export { analyzeConflicts } from './normalizer/conflicts.js';
 export type { ConflictOptions } from './normalizer/conflicts.js';
@@ -138,12 +156,27 @@ export { isValidTimeZone } from './dates/calendar.js';
 export { describeFilter, explainQuery, formatValue } from './explain/explain.js';
 
 // execution
-export { compileComparator, compilePredicate, defaultGetValue, executeQuery } from './executor/in-memory.js';
+export {
+  compileComparator,
+  compilePredicate,
+  defaultGetValue,
+  executeQuery,
+} from './executor/in-memory.js';
 export type { ExecuteOptions, ExecuteResult, ValueGetter } from './executor/in-memory.js';
 
 // mentions
-export { findMentions, getActiveMention, resolveMention, suggestMentions } from './mentions/mentions.js';
-export type { MentionResolution, MentionSuggestion, MentionToken, SuggestOptions } from './mentions/mentions.js';
+export {
+  findMentions,
+  getActiveMention,
+  resolveMention,
+  suggestMentions,
+} from './mentions/mentions.js';
+export type {
+  MentionResolution,
+  MentionSuggestion,
+  MentionToken,
+  SuggestOptions,
+} from './mentions/mentions.js';
 
 // utilities
 export { sha256, stableStringify } from './hash/sha256.js';

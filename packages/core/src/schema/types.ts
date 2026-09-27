@@ -8,7 +8,14 @@ export const SCHEMA_VERSION = '1';
 export type FieldType = 'string' | 'number' | 'boolean' | 'date' | 'datetime' | 'enum';
 
 /** @public */
-export const FIELD_TYPES: readonly FieldType[] = ['string', 'number', 'boolean', 'date', 'datetime', 'enum'];
+export const FIELD_TYPES: readonly FieldType[] = [
+  'string',
+  'number',
+  'boolean',
+  'date',
+  'datetime',
+  'enum',
+];
 
 /**
  * Presentation / semantic hint layered on top of a base type. Formats help the
@@ -16,10 +23,19 @@ export const FIELD_TYPES: readonly FieldType[] = ['string', 'number', 'boolean',
  *
  * @public
  */
-export type FieldFormat = 'currency' | 'percent' | 'email' | 'url' | 'phone' | 'duration' | 'rating';
+export type FieldFormat =
+  'currency' | 'percent' | 'email' | 'url' | 'phone' | 'duration' | 'rating';
 
 /** @public */
-export const FIELD_FORMATS: readonly FieldFormat[] = ['currency', 'percent', 'email', 'url', 'phone', 'duration', 'rating'];
+export const FIELD_FORMATS: readonly FieldFormat[] = [
+  'currency',
+  'percent',
+  'email',
+  'url',
+  'phone',
+  'duration',
+  'rating',
+];
 
 /**
  * One allowed value of an `enum` field. Synonyms users might type (e.g. "completed"
