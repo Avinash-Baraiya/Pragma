@@ -40,9 +40,25 @@ const valueSchema = {
   ],
 };
 
+const conditionSchema = {
+  type: 'object',
+  description: 'A single condition: field + operator + value.',
+  properties: {
+    field: { type: 'string' },
+    operator: { type: 'string' },
+    value: valueSchema,
+    caseSensitive: nullable({ type: 'boolean' }),
+  },
+  required: ['field', 'operator', 'value', 'caseSensitive'],
+  additionalProperties: false,
+};
+
+// Deliberately non-recursive (some structured-output implementations reject
+// recursive schemas): a filter is one condition, or one group of conditions.
+// Separate addFilter actions are AND-ed, so (A or B) and (C or D) is two actions.
 const filterSchema = {
   type: 'object',
-  description: 'A condition (field + operator + value) or, when "conditions" is non-empty, a group combining conditions with "logic".',
+  description: 'A condition (field + operator + value), or, when "conditions" is non-empty, a group combining those conditions with "logic".',
   properties: {
     field: nullable({ type: 'string' }),
     operator: nullable({ type: 'string' }),
@@ -50,7 +66,7 @@ const filterSchema = {
     caseSensitive: nullable({ type: 'boolean' }),
     logic: nullable({ type: 'string', enum: ['and', 'or'] }),
     not: nullable({ type: 'boolean' }),
-    conditions: nullable({ type: 'array', items: { $ref: '#/$defs/filter' } }),
+    conditions: nullable({ type: 'array', items: { $ref: '#/$defs/condition' } }),
   },
   required: ['field', 'operator', 'value', 'caseSensitive', 'logic', 'not', 'conditions'],
   additionalProperties: false,
@@ -89,7 +105,7 @@ const actionSchema = {
 /** JSON Schema of the model output. @public */
 export const MODEL_OUTPUT_JSON_SCHEMA: Readonly<Record<string, unknown>> = {
   type: 'object',
-  $defs: { filter: filterSchema, action: actionSchema },
+  $defs: { condition: conditionSchema, filter: filterSchema, action: actionSchema },
   properties: {
     actions: { type: 'array', items: { $ref: '#/$defs/action' } },
     ambiguities: {

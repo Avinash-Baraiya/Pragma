@@ -41,7 +41,7 @@ export function buildPrompt(input: PromptInput): { system: string; user: string 
   "sort by X" → setSort only; "only X"/"also X" → addFilter; "remove the X filter" → removeFilter with field X;
   "clear filters" → clearFilters; "start over"/"reset" → reset; "next page" → nextPage.
 - When the user refines an existing equality filter on the same field (e.g. status active → status inactive), emit removeFilter for that field before addFilter.
-- Combine alternatives on one field with an "or" group or an "in" condition.
+- Combine alternatives on one field with an "in" condition, or an addFilter whose filter is a group (logic "or") of conditions. Groups contain plain conditions only; express (A or B) and (C or D) as two separate addFilter actions.
 - ${
     input.ambiguity === 'ask'
       ? 'If the instruction is ambiguous in a way that materially changes results (e.g. "recent" with no period, a term matching several fields), do NOT guess: return an entry in "ambiguities" with 2-4 concrete options, each with its own actions, marking the most reasonable one isDefault.'

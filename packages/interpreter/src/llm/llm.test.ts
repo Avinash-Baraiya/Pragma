@@ -147,6 +147,38 @@ describe('output conversion', () => {
   it('exposes a strict, closed JSON schema', () => {
     expect(MODEL_OUTPUT_JSON_SCHEMA).toMatchObject({ additionalProperties: false, required: ['actions', 'ambiguities', 'unsupported'] });
   });
+
+  it('keeps the JSON schema portable across structured-output implementations', () => {
+    const defs = (MODEL_OUTPUT_JSON_SCHEMA as { $defs: Record<string, unknown> }).$defs;
+    const refsOf = (node: unknown): string[] => {
+      if (Array.isArray(node)) return node.flatMap(refsOf);
+      if (node === null || typeof node !== 'object') return [];
+      const entries = Object.entries(node as Record<string, unknown>);
+      return entries.flatMap(([k, v]) => (k === '$ref' && typeof v === 'string' ? [v.replace('#/$defs/', '')] : refsOf(v)));
+    };
+    // No recursion: walking $ref edges from any definition never returns to it.
+    const reaches = (from: string, target: string, seen = new Set<string>()): boolean =>
+      refsOf(defs[from]).some((next) => next === target || (!seen.has(next) && (seen.add(next), reaches(next, target, seen))));
+    for (const name of Object.keys(defs)) expect(reaches(name, name), `$defs.${name} is recursive`).toBe(false);
+    // No keywords that common structured-output modes reject.
+    const text = JSON.stringify(MODEL_OUTPUT_JSON_SCHEMA);
+    for (const keyword of ['minimum', 'maximum', 'minLength', 'maxLength', 'multipleOf', 'pattern']) expect(text).not.toContain(`"${keyword}"`);
+    // Every object is closed and lists all its properties as required.
+    const objects: Record<string, unknown>[] = [];
+    const collect = (node: unknown): void => {
+      if (Array.isArray(node)) node.forEach(collect);
+      else if (node !== null && typeof node === 'object') {
+        const o = node as Record<string, unknown>;
+        if (o['type'] === 'object' && o['properties']) objects.push(o);
+        Object.values(o).forEach(collect);
+      }
+    };
+    collect(MODEL_OUTPUT_JSON_SCHEMA);
+    for (const o of objects) {
+      expect(o['additionalProperties']).toBe(false);
+      expect([...(o['required'] as string[])].sort()).toEqual(Object.keys(o['properties'] as object).sort());
+    }
+  });
 });
 
 describe('buildPrompt', () => {
