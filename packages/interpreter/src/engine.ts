@@ -542,14 +542,19 @@ class PragmaEngine implements Engine {
     };
     const warnings: PragmaWarning[] = [];
 
+    // Structural check first: proposals may come from a model or a remote
+    // server, so shapes and bounds (e.g. positive page numbers) are not assumed.
+    const structural = parseMutations(proposal.mutations);
+    if (!structural.success) return this.unsupported(structural.issues, [], meta);
+
     // Unknown enum values become a clarification listing the real values.
-    const validated = validateMutations(proposal.mutations, this.schema, validationOptions);
+    const validated = validateMutations(structural.data, this.schema, validationOptions);
     const valueAmbiguities: Ambiguity[] = [];
     let mutations: Mutation[];
     if (validated.value) {
       mutations = validated.value;
     } else {
-      const enumFix = this.enumValueAmbiguities(proposal.mutations, validated.issues);
+      const enumFix = this.enumValueAmbiguities(structural.data, validated.issues);
       if (!enumFix) return this.unsupported(validated.issues, [], meta);
       mutations = enumFix.kept;
       valueAmbiguities.push(...enumFix.ambiguities);
@@ -559,9 +564,13 @@ class PragmaEngine implements Engine {
     const proposed = proposal.ambiguities
       .map((a) => ({
         ...a,
-        options: a.options.filter(
-          (o) => validateMutations(o.mutations, this.schema, validationOptions).value !== undefined,
-        ),
+        options: a.options.filter((o) => {
+          const parsed = parseMutations(o.mutations);
+          return (
+            parsed.success &&
+            validateMutations(parsed.data, this.schema, validationOptions).value !== undefined
+          );
+        }),
       }))
       .filter((a) => a.options.length > 0);
 
@@ -598,7 +607,10 @@ class PragmaEngine implements Engine {
     const withContext: TableQuery = applied.query.context
       ? applied.query
       : { ...applied.query, context: this.context() };
-    const checked = validateQuery(withContext, this.schema, validationOptions);
+    // Defence in depth: the result must also satisfy the structural protocol schema.
+    const shape = parseTableQuery(withContext);
+    if (!shape.success) return this.unsupported(shape.issues, [], meta);
+    const checked = validateQuery(shape.data, this.schema, validationOptions);
     if (!checked.value) return this.unsupported(checked.issues, [], meta);
     warnings.push(...checked.warnings);
 

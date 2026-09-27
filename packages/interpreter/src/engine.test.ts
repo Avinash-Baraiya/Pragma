@@ -379,8 +379,26 @@ describe('interpret: routing', () => {
 });
 
 describe('interpret: defensive paths', () => {
-  it('turns a malformed interpreter proposal into INTERNAL_ERROR instead of throwing', async () => {
+  it('rejects structurally invalid proposals as a controlled result', async () => {
     const broken = fakeModel({ mutations: null, ambiguities: [] } as unknown as Proposal);
+    const result = await engine({ interpreter: broken }).interpret('show Indian users');
+    expect(result.status === 'unsupported' && result.errors[0]?.code).toBe('VALIDATION_ERROR');
+    const outOfRange = fakeModel({
+      mutations: [
+        { op: 'setPageSize', size: 0 },
+        { op: 'setPage', page: -3 },
+      ],
+      ambiguities: [],
+    } as unknown as Proposal);
+    const bounded = await engine({ interpreter: outOfRange }).interpret('tiny pages');
+    expect(bounded.status === 'unsupported' && bounded.errors.map((e) => e.path)).toEqual([
+      [0, 'size'],
+      [1, 'page'],
+    ]);
+  });
+
+  it('turns unexpected internal failures into INTERNAL_ERROR instead of throwing', async () => {
+    const broken = fakeModel({ mutations: [], ambiguities: null } as unknown as Proposal);
     const result = await engine({ interpreter: broken }).interpret('show Indian users');
     expect(result.status === 'error' && result.errors[0]?.code).toBe('INTERNAL_ERROR');
   });
