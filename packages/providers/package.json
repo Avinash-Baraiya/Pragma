@@ -1,9 +1,26 @@
 {
-  "name": "@pragma/providers",
+  "name": "@avinash-baraiya/pragma-providers",
   "version": "0.0.0",
-  "description": "Pragma model providers: OpenAI-compatible, Anthropic, Vercel AI SDK, mock and remote.",
-  "license": "UNLICENSED",
-  "private": true,
+  "description": "Language model providers for Pragma: OpenAI-compatible, Anthropic, Vercel AI SDK, mock and remote.",
+  "keywords": [
+    "pragma",
+    "llm",
+    "openai",
+    "anthropic",
+    "ai-sdk",
+    "provider"
+  ],
+  "license": "MIT",
+  "author": "Avinash Baraiya",
+  "homepage": "https://github.com/Avinash-Baraiya/Pragma/tree/main/packages/providers#readme",
+  "bugs": {
+    "url": "https://github.com/Avinash-Baraiya/Pragma/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Avinash-Baraiya/Pragma.git",
+    "directory": "packages/providers"
+  },
   "type": "module",
   "sideEffects": false,
   "engines": {
@@ -11,11 +28,31 @@
   },
   "files": [
     "dist",
-    "README.md"
+    "README.md",
+    "LICENSE"
   ],
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "typesVersions": {
+    "*": {
+      "openai-compatible": [
+        "./dist/openai-compatible.d.ts"
+      ],
+      "anthropic": [
+        "./dist/anthropic.d.ts"
+      ],
+      "ai-sdk": [
+        "./dist/ai-sdk.d.ts"
+      ],
+      "mock": [
+        "./dist/mock.d.ts"
+      ],
+      "remote": [
+        "./dist/remote.d.ts"
+      ]
+    }
+  },
   "exports": {
     ".": {
       "@pragma/source": "./src/index.ts",
@@ -85,37 +122,17 @@
     },
     "./package.json": "./package.json"
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "tsup",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "check:package": "publint --strict && attw --pack . --profile node16"
   },
   "dependencies": {
-    "@pragma/core": "workspace:^",
-    "@pragma/interpreter": "workspace:^"
-  },
-  "devDependencies": {
-    "@anthropic-ai/sdk": "^0.128.0",
-    "ai": "^7.0.118"
-  },
-  "typesVersions": {
-    "*": {
-      "openai-compatible": [
-        "./dist/openai-compatible.d.ts"
-      ],
-      "anthropic": [
-        "./dist/anthropic.d.ts"
-      ],
-      "ai-sdk": [
-        "./dist/ai-sdk.d.ts"
-      ],
-      "mock": [
-        "./dist/mock.d.ts"
-      ],
-      "remote": [
-        "./dist/remote.d.ts"
-      ]
-    }
+    "@avinash-baraiya/pragma-core": "workspace:^",
+    "@avinash-baraiya/pragma-interpreter": "workspace:^"
   },
   "peerDependencies": {
     "@anthropic-ai/sdk": ">=0.128.0",
@@ -128,5 +145,9 @@
     "ai": {
       "optional": true
     }
+  },
+  "devDependencies": {
+    "@anthropic-ai/sdk": "^0.128.0",
+    "ai": "^7.0.118"
   }
 }

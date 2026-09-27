@@ -1,4 +1,4 @@
-import { createInitialQuery, defineSchema, type TableQuery } from '@pragma/core';
+import { createInitialQuery, defineSchema, type TableQuery } from '@avinash-baraiya/pragma-core';
 import { act, renderHook } from '@testing-library/react';
 import { useState } from 'react';
 import { describe, expect, it } from 'vitest';

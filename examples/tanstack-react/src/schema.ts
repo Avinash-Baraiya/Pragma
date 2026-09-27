@@ -1,4 +1,4 @@
-import { defineSchema } from '@pragma/core';
+import { defineSchema } from '@avinash-baraiya/pragma-core';
 
 /**
  * The table schema is shared by the browser (autocomplete, validation,

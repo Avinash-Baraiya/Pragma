@@ -1,4 +1,4 @@
-import { defineSchema } from '@pragma/core';
+import { defineSchema } from '@avinash-baraiya/pragma-core';
 
 /** Benchmark schema: realistic field names, aliases, enums, currency, dates and a hidden field. */
 export const customersSchema = defineSchema({

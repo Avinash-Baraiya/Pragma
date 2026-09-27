@@ -1,4 +1,9 @@
-import { createInitialQuery, PragmaModelError, sequentialIds, type TableQuery } from '@pragma/core';
+import {
+  createInitialQuery,
+  PragmaModelError,
+  sequentialIds,
+  type TableQuery,
+} from '@avinash-baraiya/pragma-core';
 import { describe, expect, it, vi } from 'vitest';
 import { createEngine, type ModelInterpretRequest } from '../engine.js';
 import { render, usersSchema } from '../testing/fixtures.js';

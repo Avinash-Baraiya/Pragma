@@ -5,7 +5,7 @@ import {
   type FieldDef,
   type ResolvedSchema,
   type TableSchema,
-} from '@pragma/core';
+} from '@avinash-baraiya/pragma-core';
 import { pragmaFilterFn, pragmaSortFn, type PragmaFnOptions } from './fns.js';
 
 /** Pragma field metadata placed on a column's `meta.pragma`. `id` and `label` default from the column. @public */

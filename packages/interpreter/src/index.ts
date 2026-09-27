@@ -1,5 +1,5 @@
 /**
- * @pragma/interpreter — turns natural-language instructions into validated
+ * @avinash-baraiya/pragma-interpreter — turns natural-language instructions into validated
  * TableQuery results: deterministic parser, model routing, caching and the engine.
  *
  * @packageDocumentation

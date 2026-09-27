@@ -4,7 +4,7 @@ import {
   validateQuery,
   type InterpretResult,
   type TableQuery,
-} from '@pragma/core';
+} from '@avinash-baraiya/pragma-core';
 import fc from 'fast-check';
 import { describe, expect, it } from 'vitest';
 import { createEngine, type ModelInterpreter } from './engine.js';

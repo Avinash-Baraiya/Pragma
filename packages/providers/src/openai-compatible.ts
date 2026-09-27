@@ -1,5 +1,9 @@
-import { isAbortError, PragmaConfigError, PragmaModelError } from '@pragma/core';
-import type { GenerateRequest, GenerateResponse, LanguageModelProvider } from '@pragma/interpreter';
+import { isAbortError, PragmaConfigError, PragmaModelError } from '@avinash-baraiya/pragma-core';
+import type {
+  GenerateRequest,
+  GenerateResponse,
+  LanguageModelProvider,
+} from '@avinash-baraiya/pragma-interpreter';
 import { httpError, networkError } from './http-errors.js';
 
 /** @public */

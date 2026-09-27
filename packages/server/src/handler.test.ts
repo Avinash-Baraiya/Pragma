@@ -1,8 +1,8 @@
 import { createServer, type Server } from 'node:http';
 import type { AddressInfo } from 'node:net';
-import { PragmaModelError, type TableSchema } from '@pragma/core';
-import type { LanguageModelProvider } from '@pragma/interpreter';
-import { mock, mockProvider } from '@pragma/providers/mock';
+import { PragmaModelError, type TableSchema } from '@avinash-baraiya/pragma-core';
+import type { LanguageModelProvider } from '@avinash-baraiya/pragma-interpreter';
+import { mock, mockProvider } from '@avinash-baraiya/pragma-providers/mock';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createPragmaHandler, type PragmaHandlerOptions } from './handler.js';
 import { toNodeHandler } from './node.js';

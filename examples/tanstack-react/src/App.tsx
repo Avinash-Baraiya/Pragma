@@ -1,5 +1,5 @@
-import { createEngine } from '@pragma/interpreter';
-import { remoteInterpreter } from '@pragma/providers/remote';
+import { createEngine } from '@avinash-baraiya/pragma-interpreter';
+import { remoteInterpreter } from '@avinash-baraiya/pragma-providers/remote';
 import {
   AskBar,
   ClarificationPrompt,
@@ -8,8 +8,8 @@ import {
   PragmaProvider,
   QueryChips,
   usePragma,
-} from '@pragma/react';
-import { usePragmaTable } from '@pragma/tanstack/react';
+} from '@avinash-baraiya/pragma-react';
+import { usePragmaTable } from '@avinash-baraiya/pragma-tanstack/react';
 import type { ReactNode } from 'react';
 import { generateCustomers, type Customer } from './data.js';
 import { customersSchema } from './schema.js';

@@ -1,4 +1,4 @@
-import type { Ambiguity, Mutation, PragmaIssue, Suggestion } from '@pragma/core';
+import type { Ambiguity, Mutation, PragmaIssue, Suggestion } from '@avinash-baraiya/pragma-core';
 
 /**
  * What an interpreter (deterministic parser or language model) proposes for an

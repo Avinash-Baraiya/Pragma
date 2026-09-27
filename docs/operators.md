@@ -1,6 +1,6 @@
 # Operators
 
-Every adapter must implement these semantics exactly. The [conformance suite](testing.md#adapter-conformance) checks them against the reference executor (`executeQuery` in `@pragma/core`).
+Every adapter must implement these semantics exactly. The [conformance suite](testing.md#adapter-conformance) checks them against the reference executor (`executeQuery` in `@avinash-baraiya/pragma-core`).
 
 ## By type
 

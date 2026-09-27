@@ -1,4 +1,4 @@
-# @pragma/react
+# @avinash-baraiya/pragma-react
 
 Accessible React UI for Pragma, headless-first.
 
@@ -10,8 +10,8 @@ import {
   ClarificationPrompt,
   Feedback,
   Explanation,
-} from '@pragma/react';
-import '@pragma/react/styles.css'; // optional, themeable, dark-mode aware
+} from '@avinash-baraiya/pragma-react';
+import '@avinash-baraiya/pragma-react/styles.css'; // optional, themeable, dark-mode aware
 
 <PragmaProvider engine={engine}>
   <AskBar />

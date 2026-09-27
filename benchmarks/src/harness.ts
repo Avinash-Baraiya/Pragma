@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
-import type { InterpretResult, TableQuery } from '@pragma/core';
-import type { Engine } from '@pragma/interpreter';
+import type { InterpretResult, TableQuery } from '@avinash-baraiya/pragma-core';
+import type { Engine } from '@avinash-baraiya/pragma-interpreter';
 
 /**
  * How an instruction is expected to be handled:

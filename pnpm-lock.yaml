@@ -74,13 +74,13 @@ importers:
 
   benchmarks:
     dependencies:
-      '@pragma/core':
+      '@avinash-baraiya/pragma-core':
         specifier: workspace:^
         version: link:../packages/core
-      '@pragma/interpreter':
+      '@avinash-baraiya/pragma-interpreter':
         specifier: workspace:^
         version: link:../packages/interpreter
-      '@pragma/providers':
+      '@avinash-baraiya/pragma-providers':
         specifier: workspace:^
         version: link:../packages/providers
     devDependencies:
@@ -96,22 +96,22 @@ importers:
 
   examples/tanstack-react:
     dependencies:
-      '@pragma/core':
+      '@avinash-baraiya/pragma-core':
         specifier: workspace:^
         version: link:../../packages/core
-      '@pragma/interpreter':
+      '@avinash-baraiya/pragma-interpreter':
         specifier: workspace:^
         version: link:../../packages/interpreter
-      '@pragma/providers':
+      '@avinash-baraiya/pragma-providers':
         specifier: workspace:^
         version: link:../../packages/providers
-      '@pragma/react':
+      '@avinash-baraiya/pragma-react':
         specifier: workspace:^
         version: link:../../packages/react
-      '@pragma/server':
+      '@avinash-baraiya/pragma-server':
         specifier: workspace:^
         version: link:../../packages/server
-      '@pragma/tanstack':
+      '@avinash-baraiya/pragma-tanstack':
         specifier: workspace:^
         version: link:../../packages/tanstack
       '@tanstack/react-table':
@@ -142,7 +142,7 @@ importers:
 
   packages/conformance:
     dependencies:
-      '@pragma/core':
+      '@avinash-baraiya/pragma-core':
         specifier: workspace:^
         version: link:../core
 
@@ -157,7 +157,7 @@ importers:
 
   packages/interpreter:
     dependencies:
-      '@pragma/core':
+      '@avinash-baraiya/pragma-core':
         specifier: workspace:^
         version: link:../core
       zod:
@@ -166,10 +166,10 @@ importers:
 
   packages/providers:
     dependencies:
-      '@pragma/core':
+      '@avinash-baraiya/pragma-core':
         specifier: workspace:^
         version: link:../core
-      '@pragma/interpreter':
+      '@avinash-baraiya/pragma-interpreter':
         specifier: workspace:^
         version: link:../interpreter
     devDependencies:
@@ -182,14 +182,14 @@ importers:
 
   packages/react:
     dependencies:
-      '@pragma/core':
+      '@avinash-baraiya/pragma-core':
         specifier: workspace:^
         version: link:../core
-      '@pragma/interpreter':
+      '@avinash-baraiya/pragma-interpreter':
         specifier: workspace:^
         version: link:../interpreter
     devDependencies:
-      '@pragma/providers':
+      '@avinash-baraiya/pragma-providers':
         specifier: workspace:^
         version: link:../providers
       '@testing-library/dom':
@@ -219,27 +219,27 @@ importers:
 
   packages/server:
     dependencies:
-      '@pragma/core':
+      '@avinash-baraiya/pragma-core':
         specifier: workspace:^
         version: link:../core
-      '@pragma/interpreter':
+      '@avinash-baraiya/pragma-interpreter':
         specifier: workspace:^
         version: link:../interpreter
       zod:
         specifier: ^4.6.5
         version: 4.6.5
     devDependencies:
-      '@pragma/providers':
+      '@avinash-baraiya/pragma-providers':
         specifier: workspace:^
         version: link:../providers
 
   packages/tanstack:
     dependencies:
-      '@pragma/core':
+      '@avinash-baraiya/pragma-core':
         specifier: workspace:^
         version: link:../core
     devDependencies:
-      '@pragma/conformance':
+      '@avinash-baraiya/pragma-conformance':
         specifier: workspace:*
         version: link:../conformance
       '@tanstack/react-table':

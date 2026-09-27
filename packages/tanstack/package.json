@@ -1,9 +1,26 @@
 {
-  "name": "@pragma/tanstack",
+  "name": "@avinash-baraiya/pragma-tanstack",
   "version": "0.0.0",
-  "description": "Pragma TanStack Table adapter.",
-  "license": "UNLICENSED",
-  "private": true,
+  "description": "TanStack Table adapter for Pragma natural-language table queries.",
+  "keywords": [
+    "pragma",
+    "tanstack",
+    "tanstack-table",
+    "react-table",
+    "table",
+    "filter"
+  ],
+  "license": "MIT",
+  "author": "Avinash Baraiya",
+  "homepage": "https://github.com/Avinash-Baraiya/Pragma/tree/main/packages/tanstack#readme",
+  "bugs": {
+    "url": "https://github.com/Avinash-Baraiya/Pragma/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Avinash-Baraiya/Pragma.git",
+    "directory": "packages/tanstack"
+  },
   "type": "module",
   "sideEffects": false,
   "engines": {
@@ -11,11 +28,19 @@
   },
   "files": [
     "dist",
-    "README.md"
+    "README.md",
+    "LICENSE"
   ],
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "typesVersions": {
+    "*": {
+      "react": [
+        "./dist/react.d.ts"
+      ]
+    }
+  },
   "exports": {
     ".": {
       "@pragma/source": "./src/index.ts",
@@ -41,30 +66,16 @@
     },
     "./package.json": "./package.json"
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "tsup",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "check:package": "publint --strict && attw --pack . --profile node16"
   },
   "dependencies": {
-    "@pragma/core": "workspace:^"
-  },
-  "devDependencies": {
-    "@pragma/conformance": "workspace:*",
-    "@tanstack/react-table": "^9.2.4",
-    "@tanstack/table-core": "^9.2.4",
-    "@testing-library/react": "^16.3.3",
-    "@types/react": "^19.3.0",
-    "@types/react-dom": "^19.3.0",
-    "react": "^19.3.0",
-    "react-dom": "^19.3.0"
-  },
-  "typesVersions": {
-    "*": {
-      "react": [
-        "./dist/react.d.ts"
-      ]
-    }
+    "@avinash-baraiya/pragma-core": "workspace:^"
   },
   "peerDependencies": {
     "@tanstack/react-table": ">=9.0.0",
@@ -77,5 +88,15 @@
     "react": {
       "optional": true
     }
+  },
+  "devDependencies": {
+    "@avinash-baraiya/pragma-conformance": "workspace:*",
+    "@tanstack/react-table": "^9.2.4",
+    "@tanstack/table-core": "^9.2.4",
+    "@testing-library/react": "^16.3.3",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0"
   }
 }

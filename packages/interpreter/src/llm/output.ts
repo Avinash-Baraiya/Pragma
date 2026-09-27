@@ -9,7 +9,7 @@ import {
   type Operator,
   type ResolvedSchema,
   type Suggestion,
-} from '@pragma/core';
+} from '@avinash-baraiya/pragma-core';
 import { z } from 'zod';
 import type { Proposal } from '../types.js';
 

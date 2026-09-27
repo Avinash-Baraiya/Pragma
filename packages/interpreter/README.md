@@ -1,9 +1,9 @@
-# @pragma/interpreter
+# @avinash-baraiya/pragma-interpreter
 
 `createEngine` turns natural-language instructions into validated `TableQuery` results: a conservative deterministic parser first, a pluggable model interpreter for the rest, then validation, ambiguity handling, normalization and explanation.
 
 ```ts
-import { createEngine, createModelInterpreter } from '@pragma/interpreter';
+import { createEngine, createModelInterpreter } from '@avinash-baraiya/pragma-interpreter';
 
 const engine = createEngine({
   schema,

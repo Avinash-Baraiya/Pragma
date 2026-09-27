@@ -1,9 +1,26 @@
 {
-  "name": "@pragma/server",
+  "name": "@avinash-baraiya/pragma-server",
   "version": "0.0.0",
-  "description": "Pragma server handler: Web-standard Request/Response handler for NL table interpretation.",
-  "license": "UNLICENSED",
-  "private": true,
+  "description": "Web-standard HTTP handler for Pragma natural-language table queries.",
+  "keywords": [
+    "pragma",
+    "server",
+    "http",
+    "llm",
+    "table",
+    "query"
+  ],
+  "license": "MIT",
+  "author": "Avinash Baraiya",
+  "homepage": "https://github.com/Avinash-Baraiya/Pragma/tree/main/packages/server#readme",
+  "bugs": {
+    "url": "https://github.com/Avinash-Baraiya/Pragma/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Avinash-Baraiya/Pragma.git",
+    "directory": "packages/server"
+  },
   "type": "module",
   "sideEffects": false,
   "engines": {
@@ -11,7 +28,8 @@
   },
   "files": [
     "dist",
-    "README.md"
+    "README.md",
+    "LICENSE"
   ],
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -30,17 +48,20 @@
     },
     "./package.json": "./package.json"
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "tsup",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "check:package": "publint --strict && attw --pack . --profile node16"
   },
   "dependencies": {
-    "@pragma/core": "workspace:^",
-    "@pragma/interpreter": "workspace:^",
+    "@avinash-baraiya/pragma-core": "workspace:^",
+    "@avinash-baraiya/pragma-interpreter": "workspace:^",
     "zod": "^4.6.5"
   },
   "devDependencies": {
-    "@pragma/providers": "workspace:^"
+    "@avinash-baraiya/pragma-providers": "workspace:^"
   }
 }

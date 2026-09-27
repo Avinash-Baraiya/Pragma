@@ -1,6 +1,10 @@
-import { defineSchema, sequentialIds, type TableQuery } from '@pragma/core';
-import { createEngine, createModelInterpreter, type Engine } from '@pragma/interpreter';
-import { mock, mockProvider } from '@pragma/providers/mock';
+import { defineSchema, sequentialIds, type TableQuery } from '@avinash-baraiya/pragma-core';
+import {
+  createEngine,
+  createModelInterpreter,
+  type Engine,
+} from '@avinash-baraiya/pragma-interpreter';
+import { mock, mockProvider } from '@avinash-baraiya/pragma-providers/mock';
 import { act, render, renderHook, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import axe from 'axe-core';

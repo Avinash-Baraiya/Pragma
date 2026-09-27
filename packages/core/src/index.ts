@@ -1,5 +1,5 @@
 /**
- * @pragma/core — schema model, TableQuery protocol, operators, validation,
+ * @avinash-baraiya/pragma-core — schema model, TableQuery protocol, operators, validation,
  * normalization, mutations, date semantics and the reference executor.
  *
  * Framework-agnostic: no knowledge of React, table libraries, SQL or model vendors.

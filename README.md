@@ -28,22 +28,22 @@ Natural language is an input modality, not the source of truth. **The model prop
 
 ## Packages
 
-| Package                                       | What it does                                                                                                                                                                |
-| --------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [`@pragma/core`](packages/core)               | Schema model, `TableQuery` protocol, operators, validator, normalizer, date semantics, explanations, reference executor, `@`-mentions. No framework or vendor dependencies. |
-| [`@pragma/interpreter`](packages/interpreter) | `createEngine`: deterministic parser, model routing, clarification flow, cache, and the model-agnostic LLM layer (`LanguageModelProvider`).                                 |
-| [`@pragma/providers`](packages/providers)     | Model integrations: OpenAI-compatible (OpenAI, OpenRouter, Groq, Ollama, vLLM, …), Anthropic, Vercel AI SDK, mock, and the browser `remoteInterpreter`.                     |
-| [`@pragma/server`](packages/server)           | Web-standard HTTP handler (Next.js, Hono, Bun, Deno, Workers) plus a Node/Express adapter. Keeps model credentials server-side.                                             |
-| [`@pragma/react`](packages/react)             | Accessible `AskBar` with local `@` autocomplete, `QueryChips`, `Explanation`, `ClarificationPrompt`, `Feedback`.                                                            |
-| [`@pragma/tanstack`](packages/tanstack)       | TanStack Table adapter (v9), verified row-for-row against the reference executor, plus the `usePragmaTable` hook.                                                           |
+| Package                                                       | What it does                                                                                                                                                                |
+| ------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`@avinash-baraiya/pragma-core`](packages/core)               | Schema model, `TableQuery` protocol, operators, validator, normalizer, date semantics, explanations, reference executor, `@`-mentions. No framework or vendor dependencies. |
+| [`@avinash-baraiya/pragma-interpreter`](packages/interpreter) | `createEngine`: deterministic parser, model routing, clarification flow, cache, and the model-agnostic LLM layer (`LanguageModelProvider`).                                 |
+| [`@avinash-baraiya/pragma-providers`](packages/providers)     | Model integrations: OpenAI-compatible (OpenAI, OpenRouter, Groq, Ollama, vLLM, …), Anthropic, Vercel AI SDK, mock, and the browser `remoteInterpreter`.                     |
+| [`@avinash-baraiya/pragma-server`](packages/server)           | Web-standard HTTP handler (Next.js, Hono, Bun, Deno, Workers) plus a Node/Express adapter. Keeps model credentials server-side.                                             |
+| [`@avinash-baraiya/pragma-react`](packages/react)             | Accessible `AskBar` with local `@` autocomplete, `QueryChips`, `Explanation`, `ClarificationPrompt`, `Feedback`.                                                            |
+| [`@avinash-baraiya/pragma-tanstack`](packages/tanstack)       | TanStack Table adapter (v9), verified row-for-row against the reference executor, plus the `usePragmaTable` hook.                                                           |
 
 ## Quick start
 
 **Server** (holds the model key):
 
 ```ts
-import { createPragmaHandler } from '@pragma/server';
-import { openAICompatible } from '@pragma/providers/openai-compatible';
+import { createPragmaHandler } from '@avinash-baraiya/pragma-server';
+import { openAICompatible } from '@avinash-baraiya/pragma-providers/openai-compatible';
 import { customersSchema } from './schema';
 
 export const POST = createPragmaHandler({
@@ -60,8 +60,8 @@ export const POST = createPragmaHandler({
 **Browser:**
 
 ```tsx
-import { createEngine } from '@pragma/interpreter';
-import { remoteInterpreter } from '@pragma/providers/remote';
+import { createEngine } from '@avinash-baraiya/pragma-interpreter';
+import { remoteInterpreter } from '@avinash-baraiya/pragma-providers/remote';
 import {
   AskBar,
   ClarificationPrompt,
@@ -69,9 +69,9 @@ import {
   PragmaProvider,
   QueryChips,
   usePragma,
-} from '@pragma/react';
-import { usePragmaTable } from '@pragma/tanstack/react';
-import '@pragma/react/styles.css';
+} from '@avinash-baraiya/pragma-react';
+import { usePragmaTable } from '@avinash-baraiya/pragma-tanstack/react';
+import '@avinash-baraiya/pragma-react/styles.css';
 
 const engine = createEngine({
   schema: customersSchema,

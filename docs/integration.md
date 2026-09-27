@@ -8,8 +8,8 @@ Put the schema in a module both browser and server import. See [schema](schema.m
 
 ```ts
 // Next.js: app/api/pragma/route.ts
-import { createPragmaHandler } from '@pragma/server';
-import { anthropic } from '@pragma/providers/anthropic';
+import { createPragmaHandler } from '@avinash-baraiya/pragma-server';
+import { anthropic } from '@avinash-baraiya/pragma-providers/anthropic';
 
 export const POST = createPragmaHandler({
   schemas: { customers: customersSchema },
@@ -28,8 +28,8 @@ The handler needs no model at all if you only want deterministic parsing on the 
 ## 3. Create the browser engine
 
 ```ts
-import { createEngine } from '@pragma/interpreter';
-import { remoteInterpreter } from '@pragma/providers/remote';
+import { createEngine } from '@avinash-baraiya/pragma-interpreter';
+import { remoteInterpreter } from '@avinash-baraiya/pragma-providers/remote';
 
 export const engine = createEngine({
   schema: customersSchema,
@@ -49,7 +49,7 @@ Instructions the deterministic parser fully understands never leave the browser.
 For datasets that fit in memory (thousands of rows):
 
 ```tsx
-import { usePragmaTable } from '@pragma/tanstack/react';
+import { usePragmaTable } from '@avinash-baraiya/pragma-tanstack/react';
 
 const { table } = usePragmaTable({
   schema,
@@ -60,7 +60,7 @@ const { table } = usePragmaTable({
 });
 ```
 
-Rows are filtered, sorted and paginated by the reference executor, and TanStack renders the page (controlled mode). Without TanStack, call `executeQuery(rows, query, { schema })` from `@pragma/core`.
+Rows are filtered, sorted and paginated by the reference executor, and TanStack renders the page (controlled mode). Without TanStack, call `executeQuery(rows, query, { schema })` from `@avinash-baraiya/pragma-core`.
 
 If you prefer TanStack's own row models, use `withPragmaColumns(columns, schema)`, `pragmaGlobalFilterFn(schema)` and `toTanStackState(query)`. Results match the reference executor exactly (see [testing](testing.md)), except that per-query `nulls: 'first'` needs controlled mode.
 
@@ -90,7 +90,7 @@ On the server:
 1. `parseTableQuery(body)` and `validateQuery(query, schema)`, because payloads are untrusted.
 2. `resolveDates(query, schema, { now: Date.now(), timezone: query.context?.timezone ?? 'UTC' })` for absolute date ranges.
 3. Translate `filter`, `search`, `sort` and `pagination` into your query builder (ORM, SQL, Elasticsearch, …).
-4. Implement the [operator semantics](operators.md), and prove it by running the conformance cases (`@pragma/conformance`) through your adapter.
+4. Implement the [operator semantics](operators.md), and prove it by running the conformance cases (`@avinash-baraiya/pragma-conformance`) through your adapter.
 
 For cursor pagination, return `{ nextCursor, prevCursor }` and pass it as `pageInfo` so "next page" works.
 
@@ -106,7 +106,7 @@ For cursor pagination, return `{ nextCursor, prevCursor }` and pass it as `pageI
 </PragmaProvider>
 ```
 
-Components are headless-first (semantic HTML with `data-pragma-*` hooks). Import `@pragma/react/styles.css` for themeable defaults; custom properties such as `--pragma-accent` control the look, and dark mode is supported. For fully custom UIs, use `usePragma()` and `useMentionAutocomplete()`.
+Components are headless-first (semantic HTML with `data-pragma-*` hooks). Import `@avinash-baraiya/pragma-react/styles.css` for themeable defaults; custom properties such as `--pragma-accent` control the look, and dark mode is supported. For fully custom UIs, use `usePragma()` and `useMentionAutocomplete()`.
 
 ## Controlled query
 

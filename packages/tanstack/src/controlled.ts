@@ -4,7 +4,7 @@ import {
   type ResolvedSchema,
   type TableQuery,
   type ValueGetter,
-} from '@pragma/core';
+} from '@avinash-baraiya/pragma-core';
 import { toTanStackState, type TanStackColumnSort, type TanStackPagination } from './state.js';
 
 /** @public */

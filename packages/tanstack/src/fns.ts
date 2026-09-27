@@ -3,7 +3,7 @@ import {
   compilePredicate,
   type FilterGroup,
   type ResolvedSchema,
-} from '@pragma/core';
+} from '@avinash-baraiya/pragma-core';
 import type { PragmaColumnFilterValue, PragmaGlobalFilterValue } from './state.js';
 
 /** The part of a TanStack row these functions need (v8 and v9 compatible). @public */

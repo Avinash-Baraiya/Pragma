@@ -1,9 +1,26 @@
 {
-  "name": "@pragma/interpreter",
+  "name": "@avinash-baraiya/pragma-interpreter",
   "version": "0.0.0",
-  "description": "Pragma interpreter: deterministic parser, LLM interpreter, router and createEngine.",
-  "license": "UNLICENSED",
-  "private": true,
+  "description": "Natural-language table instruction interpreter: deterministic parser, LLM routing and validation.",
+  "keywords": [
+    "pragma",
+    "natural-language",
+    "nlp",
+    "llm",
+    "table",
+    "query"
+  ],
+  "license": "MIT",
+  "author": "Avinash Baraiya",
+  "homepage": "https://github.com/Avinash-Baraiya/Pragma/tree/main/packages/interpreter#readme",
+  "bugs": {
+    "url": "https://github.com/Avinash-Baraiya/Pragma/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Avinash-Baraiya/Pragma.git",
+    "directory": "packages/interpreter"
+  },
   "type": "module",
   "sideEffects": false,
   "engines": {
@@ -11,7 +28,8 @@
   },
   "files": [
     "dist",
-    "README.md"
+    "README.md",
+    "LICENSE"
   ],
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -30,13 +48,16 @@
     },
     "./package.json": "./package.json"
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "tsup",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "check:package": "publint --strict && attw --pack . --profile node16"
   },
   "dependencies": {
-    "@pragma/core": "workspace:^",
+    "@avinash-baraiya/pragma-core": "workspace:^",
     "zod": "^4.6.5"
   }
 }

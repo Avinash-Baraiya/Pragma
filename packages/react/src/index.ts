@@ -1,8 +1,8 @@
 /**
- * @pragma/react — React components and hooks for Pragma: an accessible ask bar
+ * @avinash-baraiya/pragma-react — React components and hooks for Pragma: an accessible ask bar
  * with local `@` autocomplete, removable query chips, explanations,
  * clarification prompts and feedback. Headless-first; optional styles at
- * `@pragma/react/styles.css`.
+ * `@avinash-baraiya/pragma-react/styles.css`.
  *
  * @packageDocumentation
  */

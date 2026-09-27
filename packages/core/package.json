@@ -1,9 +1,26 @@
 {
-  "name": "@pragma/core",
+  "name": "@avinash-baraiya/pragma-core",
   "version": "0.0.0",
-  "description": "Pragma core: schema model, TableQuery protocol, operators, validator, normalizer, mutations, dates, reference executor.",
-  "license": "UNLICENSED",
-  "private": true,
+  "description": "Schema model, TableQuery protocol, validation and reference execution for natural-language table queries.",
+  "keywords": [
+    "pragma",
+    "table",
+    "query",
+    "filter",
+    "schema",
+    "validation"
+  ],
+  "license": "MIT",
+  "author": "Avinash Baraiya",
+  "homepage": "https://github.com/Avinash-Baraiya/Pragma/tree/main/packages/core#readme",
+  "bugs": {
+    "url": "https://github.com/Avinash-Baraiya/Pragma/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Avinash-Baraiya/Pragma.git",
+    "directory": "packages/core"
+  },
   "type": "module",
   "sideEffects": false,
   "engines": {
@@ -11,7 +28,8 @@
   },
   "files": [
     "dist",
-    "README.md"
+    "README.md",
+    "LICENSE"
   ],
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -29,6 +47,9 @@
       }
     },
     "./package.json": "./package.json"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "scripts": {
     "build": "tsup",

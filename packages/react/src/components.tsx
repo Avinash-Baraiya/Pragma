@@ -1,4 +1,4 @@
-import type { Ambiguity, ExplanationItem } from '@pragma/core';
+import type { Ambiguity, ExplanationItem } from '@avinash-baraiya/pragma-core';
 import { useId, useState, type ReactNode } from 'react';
 import { usePragma } from './context.js';
 

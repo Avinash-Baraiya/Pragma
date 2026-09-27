@@ -1,4 +1,9 @@
-import { createInitialQuery, defineSchema, type FilterGroup, type TableQuery } from '@pragma/core';
+import {
+  createInitialQuery,
+  defineSchema,
+  type FilterGroup,
+  type TableQuery,
+} from '@avinash-baraiya/pragma-core';
 import { describe, expect, it } from 'vitest';
 import { schemaFromColumns, withPragmaColumns } from './columns.js';
 import { pragmaFilterFn, pragmaGlobalFilterFn, pragmaSortFn, type ValueRow } from './fns.js';

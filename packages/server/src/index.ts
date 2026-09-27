@@ -1,5 +1,5 @@
 /**
- * @pragma/server — HTTP endpoint that interprets instructions server-side, so
+ * @avinash-baraiya/pragma-server — HTTP endpoint that interprets instructions server-side, so
  * model credentials never reach the browser.
  *
  * @packageDocumentation

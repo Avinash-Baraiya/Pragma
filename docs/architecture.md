@@ -33,15 +33,15 @@ instruction ─▶ preprocess (trim, length limit, @-mention resolution)
 ## Packages and dependencies
 
 ```text
-@pragma/core            (zod, @date-fns/tz)
+@avinash-baraiya/pragma-core            (zod, @date-fns/tz)
    ▲        ▲
-   │        └── @pragma/tanstack  (+ optional react, @tanstack/react-table for /react)
+   │        └── @avinash-baraiya/pragma-tanstack  (+ optional react, @tanstack/react-table for /react)
    │
-@pragma/interpreter     (core, zod)
+@avinash-baraiya/pragma-interpreter     (core, zod)
    ▲        ▲         ▲
-   │        │         └── @pragma/react     (peer: react)
-   │        └── @pragma/server              (Web Request/Response; Node adapter)
-   └── @pragma/providers                    (optional peers: @anthropic-ai/sdk, ai)
+   │        │         └── @avinash-baraiya/pragma-react     (peer: react)
+   │        └── @avinash-baraiya/pragma-server              (Web Request/Response; Node adapter)
+   └── @avinash-baraiya/pragma-providers                    (optional peers: @anthropic-ai/sdk, ai)
 ```
 
 - **core** knows nothing about React, TanStack, SQL or any model vendor.
@@ -50,13 +50,13 @@ instruction ─▶ preprocess (trim, length limit, @-mention resolution)
 
 ## Where code runs
 
-| Step                                           | Browser                                | Server                       |
-| ---------------------------------------------- | -------------------------------------- | ---------------------------- |
-| `@` autocomplete, chips, clarification choices | ✓ (no network)                         |                              |
-| Deterministic parsing, validation, explanation | ✓                                      | ✓                            |
-| Model calls (API keys)                         |                                        | ✓ via `@pragma/server`       |
-| Final validation of the model's proposal       | ✓ (again)                              | ✓                            |
-| Query execution                                | client mode: `executeQuery` / TanStack | server mode: your data layer |
+| Step                                           | Browser                                | Server                                 |
+| ---------------------------------------------- | -------------------------------------- | -------------------------------------- |
+| `@` autocomplete, chips, clarification choices | ✓ (no network)                         |                                        |
+| Deterministic parsing, validation, explanation | ✓                                      | ✓                                      |
+| Model calls (API keys)                         |                                        | ✓ via `@avinash-baraiya/pragma-server` |
+| Final validation of the model's proposal       | ✓ (again)                              | ✓                                      |
+| Query execution                                | client mode: `executeQuery` / TanStack | server mode: your data layer           |
 
 ## Observability
 

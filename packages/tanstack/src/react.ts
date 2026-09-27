@@ -1,4 +1,4 @@
-import type { ResolvedSchema, TableQuery, ValueGetter } from '@pragma/core';
+import type { ResolvedSchema, TableQuery, ValueGetter } from '@avinash-baraiya/pragma-core';
 import {
   rowPaginationFeature,
   rowSortingFeature,

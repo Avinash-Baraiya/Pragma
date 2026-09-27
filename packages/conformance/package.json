@@ -1,8 +1,8 @@
 {
-  "name": "@pragma/conformance",
+  "name": "@avinash-baraiya/pragma-conformance",
   "version": "0.0.0",
   "private": true,
-  "license": "UNLICENSED",
+  "license": "MIT",
   "type": "module",
   "description": "Adapter conformance suite and shared fixtures (internal).",
   "exports": {
@@ -15,6 +15,6 @@
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
-    "@pragma/core": "workspace:^"
+    "@avinash-baraiya/pragma-core": "workspace:^"
   }
 }

@@ -4,8 +4,12 @@
   "commit": false,
   "fixed": [],
   "linked": [],
-  "access": "restricted",
+  "access": "public",
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
-  "ignore": ["@pragma/conformance", "@pragma/benchmarks", "tanstack-react-example"]
+  "ignore": [
+    "@avinash-baraiya/pragma-conformance",
+    "@avinash-baraiya/pragma-benchmarks",
+    "tanstack-react-example"
+  ]
 }

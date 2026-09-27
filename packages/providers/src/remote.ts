@@ -6,13 +6,13 @@ import {
   type ErrorCode,
   type InterpretResult,
   type PragmaIssue,
-} from '@pragma/core';
+} from '@avinash-baraiya/pragma-core';
 import type {
   MaybePromise,
   ModelInterpretation,
   ModelInterpreter,
   ModelInterpretRequest,
-} from '@pragma/interpreter';
+} from '@avinash-baraiya/pragma-interpreter';
 
 /** Body posted to a Pragma server handler. @public */
 export interface RemoteInterpretRequestBody {
@@ -40,7 +40,7 @@ const RETRYABLE_STATUS = new Set([408, 425, 429, 500, 502, 503, 504]);
 
 /**
  * Browser-side interpreter that delegates model interpretation to a Pragma
- * server (`@pragma/server`), keeping model API keys on the server.
+ * server (`@avinash-baraiya/pragma-server`), keeping model API keys on the server.
  *
  * The server returns a full interpretation; it is converted back into a proposal
  * so the local engine re-validates and applies it (defence in depth).

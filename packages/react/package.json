@@ -1,9 +1,26 @@
 {
-  "name": "@pragma/react",
+  "name": "@avinash-baraiya/pragma-react",
   "version": "0.0.0",
-  "description": "Pragma React components: AskBar, @-mention autocomplete, query chips, clarification prompt.",
-  "license": "UNLICENSED",
-  "private": true,
+  "description": "Accessible React components for natural-language table queries: ask bar with @ autocomplete, chips, clarification.",
+  "keywords": [
+    "pragma",
+    "react",
+    "table",
+    "search",
+    "autocomplete",
+    "a11y"
+  ],
+  "license": "MIT",
+  "author": "Avinash Baraiya",
+  "homepage": "https://github.com/Avinash-Baraiya/Pragma/tree/main/packages/react#readme",
+  "bugs": {
+    "url": "https://github.com/Avinash-Baraiya/Pragma/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Avinash-Baraiya/Pragma.git",
+    "directory": "packages/react"
+  },
   "type": "module",
   "sideEffects": [
     "*.css"
@@ -13,7 +30,8 @@
   },
   "files": [
     "dist",
-    "README.md"
+    "README.md",
+    "LICENSE"
   ],
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -33,17 +51,23 @@
     "./styles.css": "./dist/styles.css",
     "./package.json": "./package.json"
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "tsup && cp src/styles.css dist/styles.css",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "check:package": "publint --strict && attw --pack . --profile node16 --exclude-entrypoints ./styles.css"
   },
   "dependencies": {
-    "@pragma/core": "workspace:^",
-    "@pragma/interpreter": "workspace:^"
+    "@avinash-baraiya/pragma-core": "workspace:^",
+    "@avinash-baraiya/pragma-interpreter": "workspace:^"
+  },
+  "peerDependencies": {
+    "react": ">=18.0.0"
   },
   "devDependencies": {
-    "@pragma/providers": "workspace:^",
+    "@avinash-baraiya/pragma-providers": "workspace:^",
     "@testing-library/dom": "^10.4.2",
     "@testing-library/react": "^16.3.3",
     "@testing-library/user-event": "^14.6.7",
@@ -52,8 +76,5 @@
     "axe-core": "^4.13.0",
     "react": "^19.3.0",
     "react-dom": "^19.3.0"
-  },
-  "peerDependencies": {
-    "react": ">=18.0.0"
   }
 }

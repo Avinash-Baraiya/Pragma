@@ -1,7 +1,7 @@
-import type { LanguageModelProvider } from '@pragma/interpreter';
-import { mock, mockProvider } from '@pragma/providers/mock';
-import { openAICompatible } from '@pragma/providers/openai-compatible';
-import { createPragmaHandler, type PragmaHandler } from '@pragma/server';
+import type { LanguageModelProvider } from '@avinash-baraiya/pragma-interpreter';
+import { mock, mockProvider } from '@avinash-baraiya/pragma-providers/mock';
+import { openAICompatible } from '@avinash-baraiya/pragma-providers/openai-compatible';
+import { createPragmaHandler, type PragmaHandler } from '@avinash-baraiya/pragma-server';
 import { customersSchema } from '../src/schema.js';
 
 /**
@@ -39,7 +39,7 @@ async function selectProvider(
       });
     case 'anthropic': {
       // Loaded lazily so the demo runs without the optional SDK installed.
-      const { anthropic } = await import('@pragma/providers/anthropic');
+      const { anthropic } = await import('@avinash-baraiya/pragma-providers/anthropic');
       return anthropic({
         model: env['ANTHROPIC_MODEL'] ?? 'claude-opus-5',
         ...(env['ANTHROPIC_API_KEY'] ? { apiKey: env['ANTHROPIC_API_KEY'] } : {}),

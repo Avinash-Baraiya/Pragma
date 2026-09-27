@@ -1,4 +1,4 @@
-import { createEngine } from '@pragma/interpreter';
+import { createEngine } from '@avinash-baraiya/pragma-interpreter';
 import { describe, expect, it } from 'vitest';
 import { evaluate, loadCases } from './harness.js';
 import { customersSchema } from './schema.js';

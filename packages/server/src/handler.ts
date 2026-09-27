@@ -12,7 +12,7 @@ import {
   type PragmaIssue,
   type ResolvedSchema,
   type TableSchema,
-} from '@pragma/core';
+} from '@avinash-baraiya/pragma-core';
 import {
   createEngine,
   createModelInterpreter,
@@ -23,7 +23,7 @@ import {
   type MaybePromise,
   type ModelInterpreter,
   type Proposal,
-} from '@pragma/interpreter';
+} from '@avinash-baraiya/pragma-interpreter';
 import { z } from 'zod';
 import { CircuitBreaker, type CircuitBreakerOptions } from './circuit-breaker.js';
 
@@ -490,7 +490,7 @@ export function problem(
   issues?: readonly PragmaIssue[],
 ): Response {
   const body = {
-    type: `https://pragma.dev/problems/${code.toLowerCase().replace(/_/g, '-')}`,
+    type: `https://github.com/Avinash-Baraiya/Pragma/blob/main/docs/errors.md#${code.toLowerCase().replace(/_/g, '-')}`,
     title: TITLES[status] ?? 'Error',
     status,
     code,

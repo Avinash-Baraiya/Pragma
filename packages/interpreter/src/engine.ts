@@ -46,7 +46,7 @@ import {
   type TableSchema,
   type TokenUsage,
   type UnsupportedResult,
-} from '@pragma/core';
+} from '@avinash-baraiya/pragma-core';
 import { MemoryCache, type CacheStore } from './cache.js';
 import { parseDeterministic } from './deterministic/parser.js';
 import type { Proposal } from './types.js';

@@ -4,7 +4,7 @@ import {
   sequentialIds,
   type ResolvedSchema,
   type TableQuery,
-} from '@pragma/core';
+} from '@avinash-baraiya/pragma-core';
 import { describe, expect, it } from 'vitest';
 import {
   noRecencySchema,

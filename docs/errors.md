@@ -78,11 +78,11 @@ Pragma reports impossible queries; it never silently "fixes" them.
 
 ## Server responses
 
-`@pragma/server` answers completed interpretations (`ok`, `needs_clarification`, `unsupported`) with **200** and the `InterpretResult`. Every other outcome is an RFC 9457 `application/problem+json` body:
+`@avinash-baraiya/pragma-server` answers completed interpretations (`ok`, `needs_clarification`, `unsupported`) with **200** and the `InterpretResult`. Every other outcome is an RFC 9457 `application/problem+json` body:
 
 ```json
 {
-  "type": "https://pragma.dev/problems/rate-limited",
+  "type": "https://github.com/Avinash-Baraiya/Pragma/blob/main/docs/errors.md#rate-limited",
   "title": "Too Many Requests",
   "status": 429,
   "code": "RATE_LIMITED",

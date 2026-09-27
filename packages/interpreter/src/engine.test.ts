@@ -6,7 +6,7 @@ import {
   type InterpretResult,
   type OkResult,
   type TableQuery,
-} from '@pragma/core';
+} from '@avinash-baraiya/pragma-core';
 import { describe, expect, it, vi } from 'vitest';
 import type { CacheStore } from './cache.js';
 import {

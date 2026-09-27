@@ -1,4 +1,9 @@
-import { defineSchema, type FilterNode, type Mutation, type TableSchema } from '@pragma/core';
+import {
+  defineSchema,
+  type FilterNode,
+  type Mutation,
+  type TableSchema,
+} from '@avinash-baraiya/pragma-core';
 
 /** Shared interpreter test schema. Not part of the public API. */
 export const usersSchemaInput: TableSchema = {

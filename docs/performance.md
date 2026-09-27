@@ -4,14 +4,14 @@
 
 Measured with `size-limit` (minified and brotli-compressed, dependencies included) and enforced in CI:
 
-| Bundle                                                | Size    | Budget |
-| ----------------------------------------------------- | ------- | ------ |
-| `@pragma/core`                                        | 39.7 kB | 44 kB  |
-| `@pragma/interpreter` (engine + deterministic parser) | 47.8 kB | 53 kB  |
-| `@pragma/providers/remote`                            | 25.5 kB | 28 kB  |
-| `@pragma/react` (excluding React)                     | 3.1 kB  | 4 kB   |
-| `@pragma/tanstack`                                    | 31.5 kB | 35 kB  |
-| Full browser app (engine + remote + react + tanstack) | 60.8 kB | 67 kB  |
+| Bundle                                                                | Size    | Budget |
+| --------------------------------------------------------------------- | ------- | ------ |
+| `@avinash-baraiya/pragma-core`                                        | 39.7 kB | 44 kB  |
+| `@avinash-baraiya/pragma-interpreter` (engine + deterministic parser) | 47.8 kB | 53 kB  |
+| `@avinash-baraiya/pragma-providers/remote`                            | 25.5 kB | 28 kB  |
+| `@avinash-baraiya/pragma-react` (excluding React)                     | 3.1 kB  | 4 kB   |
+| `@avinash-baraiya/pragma-tanstack`                                    | 31.5 kB | 35 kB  |
+| Full browser app (engine + remote + react + tanstack)                 | 60.8 kB | 67 kB  |
 
 Most of core is Zod. Migrating the runtime schemas to `zod/mini` is tracked as a size optimization.
 

@@ -24,13 +24,13 @@ interface LanguageModelProvider {
 
 ## Built-in providers
 
-| Import                                                                                     | Covers                                                                                                     | Notes                                                                                                                                                                         |
-| ------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `openAICompatible({ baseURL, model, apiKey? })` from `@pragma/providers/openai-compatible` | OpenAI, Azure-compatible gateways, OpenRouter, Groq, Together, Fireworks, Ollama, vLLM, LM Studio, LiteLLM | Uses `fetch`. `structuredOutput: 'json_schema'` (strict, default), `'json_object'` or `'none'`. `maxTokensParam` and `sendTemperature` handle model quirks.                   |
-| `anthropic({ model, apiKey? \| client? })` from `@pragma/providers/anthropic`              | Claude                                                                                                     | Official SDK (optional peer `@anthropic-ai/sdk`), native structured outputs, no sampling parameters (current models reject them), SDK retries disabled. `effort` is optional. |
-| `aiSdk(model)` from `@pragma/providers/ai-sdk`                                             | Any Vercel AI SDK model: Gemini, Mistral, Bedrock, Azure, Cohere, …                                        | Optional peer `ai` (v7).                                                                                                                                                      |
-| `mockProvider({ rules })` from `@pragma/providers/mock`                                    | Tests, demos, CI                                                                                           | Deterministic, offline.                                                                                                                                                       |
-| `customProvider(id, fn)` from `@pragma/interpreter`                                        | Anything else                                                                                              | Wrap your own gateway in a few lines.                                                                                                                                         |
+| Import                                                                                                     | Covers                                                                                                     | Notes                                                                                                                                                                         |
+| ---------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `openAICompatible({ baseURL, model, apiKey? })` from `@avinash-baraiya/pragma-providers/openai-compatible` | OpenAI, Azure-compatible gateways, OpenRouter, Groq, Together, Fireworks, Ollama, vLLM, LM Studio, LiteLLM | Uses `fetch`. `structuredOutput: 'json_schema'` (strict, default), `'json_object'` or `'none'`. `maxTokensParam` and `sendTemperature` handle model quirks.                   |
+| `anthropic({ model, apiKey? \| client? })` from `@avinash-baraiya/pragma-providers/anthropic`              | Claude                                                                                                     | Official SDK (optional peer `@anthropic-ai/sdk`), native structured outputs, no sampling parameters (current models reject them), SDK retries disabled. `effort` is optional. |
+| `aiSdk(model)` from `@avinash-baraiya/pragma-providers/ai-sdk`                                             | Any Vercel AI SDK model: Gemini, Mistral, Bedrock, Azure, Cohere, …                                        | Optional peer `ai` (v7).                                                                                                                                                      |
+| `mockProvider({ rules })` from `@avinash-baraiya/pragma-providers/mock`                                    | Tests, demos, CI                                                                                           | Deterministic, offline.                                                                                                                                                       |
+| `customProvider(id, fn)` from `@avinash-baraiya/pragma-interpreter`                                        | Anything else                                                                                              | Wrap your own gateway in a few lines.                                                                                                                                         |
 
 Model choice is configuration: `model` is always required, and nothing is hard-coded.
 
@@ -39,7 +39,7 @@ Providers must reject with `PragmaModelError`, with accurate `retryable`, `statu
 ## The interpreter
 
 ```ts
-import { createModelInterpreter } from '@pragma/interpreter';
+import { createModelInterpreter } from '@avinash-baraiya/pragma-interpreter';
 
 const interpreter = createModelInterpreter({
   provider: [primary, fallback], // an ordered fallback chain
@@ -54,7 +54,7 @@ const interpreter = createModelInterpreter({
 - **Repair:** malformed output gets one retry that feeds the parse errors back to the model; after that, `MODEL_OUTPUT_INVALID`.
 - **Retries:** only for retryable failures (network errors, 429, 5xx, timeouts). They use exponential backoff with full jitter, honour `Retry-After`, and are bounded by the engine deadline (`timeoutMs`, default 15 s).
 - **Fallback:** after its retries are exhausted, the next provider in the chain is tried. `meta.provider` records which one answered.
-- **Degradation:** in `@pragma/server`, a circuit breaker serves deterministic-only results (header `x-pragma-degraded: model-unavailable`) while the model keeps failing, and lets one trial request through after `resetAfterMs`.
+- **Degradation:** in `@avinash-baraiya/pragma-server`, a circuit breaker serves deterministic-only results (header `x-pragma-degraded: model-unavailable`) while the model keeps failing, and lets one trial request through after `resetAfterMs`.
 
 ## Cost and latency
 

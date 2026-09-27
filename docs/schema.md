@@ -3,7 +3,7 @@
 The schema describes one logical table. It drives autocomplete, the deterministic parser, the model prompt, validation and execution. Only this metadata is ever sent to a model, never rows.
 
 ```ts
-import { defineSchema } from '@pragma/core';
+import { defineSchema } from '@avinash-baraiya/pragma-core';
 
 export const customersSchema = defineSchema({
   schemaVersion: '1',
@@ -86,7 +86,7 @@ export const customersSchema = defineSchema({
 
 ## Deriving a schema from table columns
 
-`@pragma/tanstack` can build a schema from TanStack column definitions that carry `meta.pragma`:
+`@avinash-baraiya/pragma-tanstack` can build a schema from TanStack column definitions that carry `meta.pragma`:
 
 ```ts
 const columns = [

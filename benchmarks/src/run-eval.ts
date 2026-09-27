@@ -14,7 +14,7 @@ import {
   createEngine,
   createModelInterpreter,
   type LanguageModelProvider,
-} from '@pragma/interpreter';
+} from '@avinash-baraiya/pragma-interpreter';
 import { evaluate, loadCases, renderReport, summarize, type CaseOutcome } from './harness.js';
 import { customersSchema } from './schema.js';
 
@@ -29,7 +29,8 @@ async function providerFor(name: string): Promise<LanguageModelProvider | undefi
     case 'deterministic':
       return undefined;
     case 'openai-compatible': {
-      const { openAICompatible } = await import('@pragma/providers/openai-compatible');
+      const { openAICompatible } =
+        await import('@avinash-baraiya/pragma-providers/openai-compatible');
       if (!env['OPENAI_BASE_URL'] || !env['OPENAI_MODEL'])
         throw new Error('Set OPENAI_BASE_URL and OPENAI_MODEL.');
       return openAICompatible({
@@ -39,7 +40,7 @@ async function providerFor(name: string): Promise<LanguageModelProvider | undefi
       });
     }
     case 'anthropic': {
-      const { anthropic } = await import('@pragma/providers/anthropic');
+      const { anthropic } = await import('@avinash-baraiya/pragma-providers/anthropic');
       return anthropic({
         model: env['ANTHROPIC_MODEL'] ?? 'claude-opus-5',
         ...(env['ANTHROPIC_API_KEY'] ? { apiKey: env['ANTHROPIC_API_KEY'] } : {}),

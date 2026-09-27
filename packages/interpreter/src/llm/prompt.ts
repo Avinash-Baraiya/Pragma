@@ -3,7 +3,7 @@ import {
   type ResolvedField,
   type ResolvedSchema,
   type TableQuery,
-} from '@pragma/core';
+} from '@avinash-baraiya/pragma-core';
 import type { AmbiguityPolicy } from '../engine.js';
 
 /** @internal */

@@ -5,7 +5,7 @@ import {
   PragmaConfigError,
   PragmaModelError,
   type TokenUsage,
-} from '@pragma/core';
+} from '@avinash-baraiya/pragma-core';
 import type { ModelInterpretation, ModelInterpreter, ModelInterpretRequest } from '../engine.js';
 import {
   extractJson,

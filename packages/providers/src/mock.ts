@@ -1,4 +1,8 @@
-import type { GenerateRequest, GenerateResponse, LanguageModelProvider } from '@pragma/interpreter';
+import type {
+  GenerateRequest,
+  GenerateResponse,
+  LanguageModelProvider,
+} from '@avinash-baraiya/pragma-interpreter';
 
 /** Model-output JSON (the flat format documented by MODEL_OUTPUT_JSON_SCHEMA). @public */
 export interface MockOutput {

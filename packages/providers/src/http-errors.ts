@@ -1,4 +1,4 @@
-import { PragmaModelError } from '@pragma/core';
+import { PragmaModelError } from '@avinash-baraiya/pragma-core';
 
 /**
  * Parse a `Retry-After` (seconds or HTTP date) or `retry-after-ms` header into

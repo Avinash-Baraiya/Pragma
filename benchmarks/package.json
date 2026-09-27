@@ -1,8 +1,8 @@
 {
-  "name": "@pragma/benchmarks",
+  "name": "@avinash-baraiya/pragma-benchmarks",
   "version": "0.0.0",
   "private": true,
-  "license": "UNLICENSED",
+  "license": "MIT",
   "type": "module",
   "description": "Evaluation dataset and runner for Pragma interpreters (internal).",
   "scripts": {
@@ -10,9 +10,9 @@
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
-    "@pragma/core": "workspace:^",
-    "@pragma/interpreter": "workspace:^",
-    "@pragma/providers": "workspace:^"
+    "@avinash-baraiya/pragma-core": "workspace:^",
+    "@avinash-baraiya/pragma-interpreter": "workspace:^",
+    "@avinash-baraiya/pragma-providers": "workspace:^"
   },
   "devDependencies": {
     "@anthropic-ai/sdk": "^0.128.0",

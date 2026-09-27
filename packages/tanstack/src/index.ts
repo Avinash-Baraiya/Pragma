@@ -1,6 +1,6 @@
 /**
- * @pragma/tanstack — TanStack Table adapter. Framework-agnostic; the React hook
- * lives at `@pragma/tanstack/react`.
+ * @avinash-baraiya/pragma-tanstack — TanStack Table adapter. Framework-agnostic; the React hook
+ * lives at `@avinash-baraiya/pragma-tanstack/react`.
  *
  * @packageDocumentation
  */

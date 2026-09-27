@@ -1,6 +1,10 @@
 import Anthropic from '@anthropic-ai/sdk';
-import { PragmaConfigError, PragmaModelError } from '@pragma/core';
-import type { GenerateRequest, GenerateResponse, LanguageModelProvider } from '@pragma/interpreter';
+import { PragmaConfigError, PragmaModelError } from '@avinash-baraiya/pragma-core';
+import type {
+  GenerateRequest,
+  GenerateResponse,
+  LanguageModelProvider,
+} from '@avinash-baraiya/pragma-interpreter';
 import { httpError, networkError } from './http-errors.js';
 
 /** @public */

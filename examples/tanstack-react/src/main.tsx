@@ -1,4 +1,4 @@
-import '@pragma/react/styles.css';
+import '@avinash-baraiya/pragma-react/styles.css';
 import './app.css';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';

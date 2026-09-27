@@ -15,7 +15,7 @@ import {
   type ScalarValue,
   type SortSpec,
   type TableQuery,
-} from '@pragma/core';
+} from '@avinash-baraiya/pragma-core';
 import type { Proposal } from '../types.js';
 import { tokenize, type Token } from './lexer.js';
 import { parseBoolean, parseDate, parseDuration, parseNumber, type Parsed } from './values.js';

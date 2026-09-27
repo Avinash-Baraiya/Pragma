@@ -4,14 +4,14 @@ import {
   isPragmaError,
   sequentialIds,
   type InterpretResult,
-} from '@pragma/core';
+} from '@avinash-baraiya/pragma-core';
 import {
   createEngine,
   createModelInterpreter,
   MODEL_OUTPUT_JSON_SCHEMA,
   type GenerateRequest,
   type ModelInterpretRequest,
-} from '@pragma/interpreter';
+} from '@avinash-baraiya/pragma-interpreter';
 import { describe, expect, it, vi } from 'vitest';
 import { instructionOf, mock, mockProvider } from './mock.js';
 import { remoteInterpreter } from './remote.js';

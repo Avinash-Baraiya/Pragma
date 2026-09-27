@@ -10,7 +10,7 @@ import {
   type SearchSpec,
   type SortSpec,
   type TableQuery,
-} from '@pragma/core';
+} from '@avinash-baraiya/pragma-core';
 
 /*
  * State shapes shared by TanStack Table v8 and v9. Declared structurally so the

@@ -8,8 +8,8 @@ import type {
   PragmaWarning,
   Suggestion,
   TableQuery,
-} from '@pragma/core';
-import type { Engine } from '@pragma/interpreter';
+} from '@avinash-baraiya/pragma-core';
+import type { Engine } from '@avinash-baraiya/pragma-interpreter';
 import {
   createContext,
   useCallback,

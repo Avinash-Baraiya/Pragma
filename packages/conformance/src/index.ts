@@ -15,7 +15,7 @@ import {
   type SearchSpec,
   type SortSpec,
   type TableQuery,
-} from '@pragma/core';
+} from '@avinash-baraiya/pragma-core';
 
 /* --------------------------------- schema --------------------------------- */
 

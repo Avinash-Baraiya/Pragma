@@ -16,7 +16,7 @@ Type `@` to reference a column.
 | ----------------------------------------------------------- | ---------------------------------------------------------------- |
 | Shared schema (browser + server)                            | `src/schema.ts`                                                  |
 | Engine with deterministic parser + remote model interpreter | `src/App.tsx`                                                    |
-| Ask bar, chips, clarification, feedback, explanation        | `@pragma/react` components in `src/App.tsx`                      |
+| Ask bar, chips, clarification, feedback, explanation        | `@avinash-baraiya/pragma-react` components in `src/App.tsx`      |
 | TanStack Table v9 in controlled mode                        | `usePragmaTable` in `src/App.tsx`                                |
 | Server handler holding model credentials                    | `server/pragma.ts`, mounted at `/api/pragma` by `vite.config.ts` |
 
@@ -38,5 +38,5 @@ API keys are read by the server only and never sent to the browser.
 ## Production
 
 The Vite middleware is for local development. In production, mount
-`createPragmaHandler` from `@pragma/server` in your own backend (Next.js route
+`createPragmaHandler` from `@avinash-baraiya/pragma-server` in your own backend (Next.js route
 handler, Hono, Express via `toNodeHandler`, ...) behind your authentication.

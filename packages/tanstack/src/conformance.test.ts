@@ -6,7 +6,7 @@ import {
   referenceIds,
   referenceTotal,
   type Person,
-} from '@pragma/conformance';
+} from '@avinash-baraiya/pragma-conformance';
 import {
   columnFilteringFeature,
   constructTable,

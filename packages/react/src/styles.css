@@ -1,6 +1,6 @@
 /*
- * Optional default styles for @pragma/react. Import once:
- *   import '@pragma/react/styles.css';
+ * Optional default styles for @avinash-baraiya/pragma-react. Import once:
+ *   import '@avinash-baraiya/pragma-react/styles.css';
  * Every component also works unstyled; theme via the custom properties below.
  */
 :root {

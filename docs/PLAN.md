@@ -22,7 +22,7 @@ All eight phases are implemented and verified in CI: contracts, core engine, det
 - Migrate runtime schemas to `zod/mini` and tighten bundle budgets.
 - Adopt API Extractor for public API reports.
 - Run `pnpm eval` against production models and publish the results.
-- Additional adapters (AG Grid, MUI, SQL builders) certified with `@pragma/conformance`.
+- Additional adapters (AG Grid, MUI, SQL builders) certified with `@avinash-baraiya/pragma-conformance`.
 - V2 scope (joins, aggregation, saved views) as additive protocol versions.
 
 ## Context
@@ -39,7 +39,7 @@ Greenfield build. Development requires Node ≥ 22.12 (LTS) and pnpm 10.
 | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Scope       | Full MVP: core + deterministic parser + LLM interpreter + server handler + React AskBar/@-autocomplete/chips + TanStack adapter + demo + eval suite                                                                                                                                              |
 | LLM         | **Fully generic.** Core defines a `LanguageModelProvider` interface; any model plugs in via one function. Reference adapters: **OpenAI-compatible HTTP** (OpenAI/OpenRouter/Groq/Ollama/vLLM/LM Studio), **Anthropic Messages API**, **Vercel AI SDK bridge**, and a **mock** provider for tests |
-| LLM runtime | **Server-side proxy.** Browser → developer endpoint (`@pragma/server`) → model. Keys never reach the browser                                                                                                                                                                                     |
+| LLM runtime | **Server-side proxy.** Browser → developer endpoint (`@avinash-baraiya/pragma-server`) → model. Keys never reach the browser                                                                                                                                                                     |
 | Ambiguity   | Default `ask` → `needs_clarification`; configurable `bestGuess` (apply the default and emit a warning)                                                                                                                                                                                           |
 | Name        | `@pragma/*` scope. **Check npm scope availability before publishing**; fallback `@pragmajs/*`. Rename is a find-replace, so it doesn't block work                                                                                                                                                |
 | Tooling     | pnpm workspaces + TypeScript strict + tsup (ESM+CJS+d.ts) + Vitest + Changesets + Zod (`zod/mini` in core for bundle size) + ESLint flat + Prettier                                                                                                                                              |
@@ -141,7 +141,7 @@ interface SortSpec {
 - Condition/group `id`s are stable (used for chip removal and "remove the country filter").
 - `flattenFilter(query)` helper: returns `FilterCondition[]` when the tree is a pure AND, otherwise `null`. Adapters use it for the easy path.
 - Relative dates **stay relative in the protocol** (cacheable, semantic): `{operator:'last', value:{amount:7, unit:'day'}}`. `resolveDates(query, {now, timezone})` converts them to absolute `between` ranges at execution time.
-- The JSON Schema for the protocol is exported (`@pragma/core/protocol.schema.json`) so non-JS backends can validate payloads.
+- The JSON Schema for the protocol is exported (`@avinash-baraiya/pragma-core/protocol.schema.json`) so non-JS backends can validate payloads.
 
 ### 1.3 Operators (type → legal operators)
 
@@ -270,9 +270,9 @@ Reference adapters:
 - `anthropic({apiKey, model})`: Messages API with a single forced tool whose `input_schema` is our JSON Schema. Written against raw `fetch`, no SDK dependency. Model IDs are configuration, never hard-coded defaults beyond documentation examples.
 - `aiSdk(model)`: wraps any Vercel AI SDK `LanguageModel` via `generateObject`. `ai` is an optional peer dependency.
 - `mockProvider(fixtures | fn)`: for tests and the offline demo.
-- `remoteProvider({url, headers})`: the browser-side client that talks to `@pragma/server`.
+- `remoteProvider({url, headers})`: the browser-side client that talks to `@avinash-baraiya/pragma-server`.
 
-### 2.2 Server handler (`@pragma/server`)
+### 2.2 Server handler (`@avinash-baraiya/pragma-server`)
 
 - `createPragmaHandler({ provider, schemas: Record<resource, TableSchema>, allowClientSchema?: false, authorize?, rateLimit?, cache?, onEvent? })` returns a Web-standard `(Request) => Promise<Response>`. That works in Next.js route handlers, Hono, Bun, Deno and Cloudflare; `toNodeHandler()` covers Express/Node `http`.
 - **Schemas are registered server-side by resource name** by default. The client sends only `{resource, instruction, currentState}`, so a malicious client cannot inject hidden fields into the prompt.
@@ -287,14 +287,14 @@ Reference adapters:
 QueryAgent/  (repo root; product name "pragma")
 ├─ package.json, pnpm-workspace.yaml, tsconfig.base.json, vitest.workspace.ts, eslint.config.js, .changeset/, .github/workflows/ci.yml
 ├─ packages/
-│  ├─ core/          @pragma/core         schema/ protocol/ operators/ validator/ normalizer/ mutations/ dates/ explain/ errors/ hash/ mentions/ executor/(in-memory reference executor)
-│  ├─ interpreter/   @pragma/interpreter  deterministic/ (lexer, grammar, value-parsers) llm/ (prompt, output-schema, repair) router/ engine.ts (createEngine) cache/
-│  ├─ providers/     @pragma/providers    subpath exports: /openai-compatible /anthropic /ai-sdk /mock /remote
-│  ├─ server/        @pragma/server       handler.ts node.ts
-│  ├─ tanstack/      @pragma/tanstack     toTanStackState, fromTanStackState, filterFns (all operators), schemaFromColumns, usePragmaTable
-│  ├─ react/         @pragma/react        PragmaProvider, usePragma, AskBar, MentionAutocomplete, QueryChips, Explanation, ClarificationPrompt, styles.css (unstyled/headless-first)
+│  ├─ core/          @avinash-baraiya/pragma-core         schema/ protocol/ operators/ validator/ normalizer/ mutations/ dates/ explain/ errors/ hash/ mentions/ executor/(in-memory reference executor)
+│  ├─ interpreter/   @avinash-baraiya/pragma-interpreter  deterministic/ (lexer, grammar, value-parsers) llm/ (prompt, output-schema, repair) router/ engine.ts (createEngine) cache/
+│  ├─ providers/     @avinash-baraiya/pragma-providers    subpath exports: /openai-compatible /anthropic /ai-sdk /mock /remote
+│  ├─ server/        @avinash-baraiya/pragma-server       handler.ts node.ts
+│  ├─ tanstack/      @avinash-baraiya/pragma-tanstack     toTanStackState, fromTanStackState, filterFns (all operators), schemaFromColumns, usePragmaTable
+│  ├─ react/         @avinash-baraiya/pragma-react        PragmaProvider, usePragma, AskBar, MentionAutocomplete, QueryChips, Explanation, ClarificationPrompt, styles.css (unstyled/headless-first)
 │  └─ conformance/   (private) adapter conformance suite + shared fixtures (schemas: users, orders, products; seeded datasets)
-├─ examples/tanstack-react/  Vite + React + TanStack Table, 500 seeded users, Vite dev middleware mounting @pragma/server; PROVIDER env = mock|openai-compatible|anthropic|ai-sdk
+├─ examples/tanstack-react/  Vite + React + TanStack Table, 500 seeded users, Vite dev middleware mounting @avinash-baraiya/pragma-server; PROVIDER env = mock|openai-compatible|anthropic|ai-sdk
 ├─ benchmarks/  eval dataset (JSONL) + runner + reports
 └─ docs/  architecture, protocol, schema, operators, ambiguity, security, adapters, client-mode, server-mode, llm, performance, testing, versioning
 ```
@@ -342,7 +342,7 @@ const table = usePragmaTable({ data, columns, schema }); // wires TableQuery →
 
 **Phase 4: LLM layer.**
 
-- Prompt builder, output JSON Schema, repair loop, 5 providers, `@pragma/server` handler + node adapter.
+- Prompt builder, output JSON Schema, repair loop, 5 providers, `@avinash-baraiya/pragma-server` handler + node adapter.
 - Gate: mock-provider tests for every result status, invalid JSON, a hallucinated field/operator, timeout, and repair success/failure. Provider adapters are tested against recorded HTTP fixtures (no network in CI). One opt-in live smoke test (`PRAGMA_LIVE=1`).
 
 **Phase 5: TanStack adapter + conformance suite.**
@@ -443,7 +443,7 @@ Each row becomes a test (unit or eval).
 ## 7. Verification (end-to-end)
 
 1. `pnpm install && pnpm lint && pnpm typecheck && pnpm test && pnpm build`: all green; coverage ≥95% on core.
-2. `pnpm --filter @pragma/conformance test`: the TanStack adapter matches the reference executor on every fixture.
+2. `pnpm --filter @avinash-baraiya/pragma-conformance test`: the TanStack adapter matches the reference executor on every fixture.
 3. `pnpm --filter tanstack-react dev` with `PROVIDER=mock`: in a browser, type `@` (autocomplete appears instantly), run "active Indian users older than 25, newest first, 20 per page". Check the chips, the explanation and the filtered table. Remove a chip; "recent users" shows the clarification UI; "filter by salary" shows the unknown-field message.
 4. With a real key (`PROVIDER=openai-compatible` or `anthropic`): repeat the scenario set; `pnpm eval --provider=<p>` produces a report with accuracy/latency/cost. Target an MVP exact-match of ≥90% on non-ambiguous cases and ≥85% ambiguity recall.
 5. Adversarial + fuzz suites: zero invalid payloads, zero references to hidden/unknown fields.
@@ -458,7 +458,7 @@ Treat Pragma as a company's internal standard library that many product teams wi
 - **`interpret()` never throws for runtime problems.** Every user, model, network or validation failure comes back as a typed `InterpretResult` (`ok | needs_clarification | unsupported | error`). Only **programmer/configuration errors** throw, and they throw synchronously at construction (`createEngine`, `defineSchema`, `createPragmaHandler`) as `PragmaConfigError`, with actionable messages.
 - **Error class hierarchy:** `PragmaError` (base: `code`, `message`, `messageKey`, `params`, `retryable`, `cause`, `details`, `path?`). Subclasses: `PragmaConfigError`, `PragmaValidationError`, `PragmaModelError`, `PragmaTransportError`, `PragmaTimeoutError`. There is a `isPragmaError()` type guard, `cause` is chained (ES2022), and `toJSON()` is safe to serialize (no stack traces or secrets on the wire).
 - **Stable error codes** (section 1.5) are part of the public API: documented in `docs/errors.md` and never renamed within a major version. `messageKey` + `params` let consumers localize messages without parsing English text.
-- **HTTP mapping in `@pragma/server`:**
+- **HTTP mapping in `@avinash-baraiya/pragma-server`:**
   - A well-formed interpretation returns `200` + `InterpretResult`, even for `unsupported` or `needs_clarification`.
   - Transport/infrastructure failures use **RFC 9457 `application/problem+json`**: `400` bad request/limits, `401/403` authorize hook, `413` body too large, `415` non-JSON, `422` invalid schema/state payload, `429` rate limit (+`Retry-After`), `502` model upstream error, `504` model timeout, `500` unexpected.
   - The body always carries `requestId` and `code`.

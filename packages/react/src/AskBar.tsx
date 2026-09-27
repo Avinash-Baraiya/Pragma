@@ -1,4 +1,4 @@
-import type { MentionSuggestion } from '@pragma/core';
+import type { MentionSuggestion } from '@avinash-baraiya/pragma-core';
 import {
   useCallback,
   useId,

@@ -1,28 +1,28 @@
 [
   {
-    "name": "@pragma/core",
+    "name": "@avinash-baraiya/pragma-core",
     "path": "packages/core/dist/index.js",
     "limit": "44 kB"
   },
   {
-    "name": "@pragma/interpreter (engine + deterministic parser)",
+    "name": "@avinash-baraiya/pragma-interpreter (engine + deterministic parser)",
     "path": "packages/interpreter/dist/index.js",
     "import": "{ createEngine }",
     "limit": "53 kB"
   },
   {
-    "name": "@pragma/providers/remote",
+    "name": "@avinash-baraiya/pragma-providers/remote",
     "path": "packages/providers/dist/remote.js",
     "limit": "28 kB"
   },
   {
-    "name": "@pragma/react",
+    "name": "@avinash-baraiya/pragma-react",
     "path": "packages/react/dist/index.js",
     "ignore": ["react", "react-dom"],
     "limit": "4 kB"
   },
   {
-    "name": "@pragma/tanstack",
+    "name": "@avinash-baraiya/pragma-tanstack",
     "path": "packages/tanstack/dist/index.js",
     "limit": "35 kB"
   },

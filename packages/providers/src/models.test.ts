@@ -1,6 +1,9 @@
 import Anthropic from '@anthropic-ai/sdk';
-import { PragmaModelError } from '@pragma/core';
-import { MODEL_OUTPUT_JSON_SCHEMA, type GenerateRequest } from '@pragma/interpreter';
+import { PragmaModelError } from '@avinash-baraiya/pragma-core';
+import {
+  MODEL_OUTPUT_JSON_SCHEMA,
+  type GenerateRequest,
+} from '@avinash-baraiya/pragma-interpreter';
 import { MockLanguageModelV4 } from 'ai/test';
 import { describe, expect, it, vi } from 'vitest';
 import { aiSdk } from './ai-sdk.js';

@@ -26,8 +26,8 @@ function pragmaApi(): Plugin {
       '/server/pragma.ts',
     )) as typeof import('./server/pragma.js');
     const { toNodeHandler } = (await server.ssrLoadModule(
-      '@pragma/server',
-    )) as typeof import('@pragma/server');
+      '@avinash-baraiya/pragma-server',
+    )) as typeof import('@avinash-baraiya/pragma-server');
     const { handler, provider } = await createDemoHandler(env);
     server.config.logger.info(`  Pragma API ready at /api/pragma (model provider: ${provider})`);
     return toNodeHandler(handler) as NodeMiddleware;

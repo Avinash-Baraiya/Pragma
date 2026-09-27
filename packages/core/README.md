@@ -1,4 +1,4 @@
-# @pragma/core
+# @avinash-baraiya/pragma-core
 
 Schema model, the `TableQuery` protocol, operators, validation, normalization, timezone-aware date semantics, deterministic explanations, `@`-mention autocomplete and the reference executor. No framework or model-vendor dependencies.
 
@@ -9,7 +9,7 @@ import {
   validateQuery,
   executeQuery,
   resolveDates,
-} from '@pragma/core';
+} from '@avinash-baraiya/pragma-core';
 ```
 
 - `defineSchema(schema)`: validate a schema once, at startup

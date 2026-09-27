@@ -1,4 +1,4 @@
-import type { TokenUsage } from '@pragma/core';
+import type { TokenUsage } from '@avinash-baraiya/pragma-core';
 
 /** @public */
 export interface ChatMessage {
