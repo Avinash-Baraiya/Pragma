@@ -1,0 +1,40 @@
+[
+  {
+    "name": "@pragma/core",
+    "path": "packages/core/dist/index.js",
+    "limit": "44 kB"
+  },
+  {
+    "name": "@pragma/interpreter (engine + deterministic parser)",
+    "path": "packages/interpreter/dist/index.js",
+    "import": "{ createEngine }",
+    "limit": "53 kB"
+  },
+  {
+    "name": "@pragma/providers/remote",
+    "path": "packages/providers/dist/remote.js",
+    "limit": "28 kB"
+  },
+  {
+    "name": "@pragma/react",
+    "path": "packages/react/dist/index.js",
+    "ignore": ["react", "react-dom"],
+    "limit": "4 kB"
+  },
+  {
+    "name": "@pragma/tanstack",
+    "path": "packages/tanstack/dist/index.js",
+    "limit": "35 kB"
+  },
+  {
+    "name": "Browser app total (engine + remote + react + tanstack)",
+    "path": [
+      "packages/interpreter/dist/index.js",
+      "packages/providers/dist/remote.js",
+      "packages/react/dist/index.js",
+      "packages/tanstack/dist/index.js"
+    ],
+    "ignore": ["react", "react-dom"],
+    "limit": "67 kB"
+  }
+]
