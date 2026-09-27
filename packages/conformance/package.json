@@ -1,0 +1,20 @@
+{
+  "name": "@pragma/conformance",
+  "version": "0.0.0",
+  "private": true,
+  "license": "UNLICENSED",
+  "type": "module",
+  "description": "Adapter conformance suite and shared fixtures (internal).",
+  "exports": {
+    ".": {
+      "@pragma/source": "./src/index.ts",
+      "default": "./src/index.ts"
+    }
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@pragma/core": "workspace:^"
+  }
+}

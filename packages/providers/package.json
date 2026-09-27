@@ -1,0 +1,42 @@
+{
+  "name": "@pragma/providers",
+  "version": "0.0.0",
+  "description": "Pragma model providers: OpenAI-compatible, Anthropic, Vercel AI SDK, mock and remote.",
+  "license": "UNLICENSED",
+  "private": true,
+  "type": "module",
+  "sideEffects": false,
+  "engines": {
+    "node": ">=22.12"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "@pragma/source": "./src/index.ts",
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    },
+    "./package.json": "./package.json"
+  },
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "check:package": "publint --strict && attw --pack . --profile node16"
+  },
+  "dependencies": {
+    "@pragma/core": "workspace:^",
+    "@pragma/interpreter": "workspace:^"
+  }
+}
