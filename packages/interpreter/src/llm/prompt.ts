@@ -23,6 +23,11 @@ export interface PromptInput {
  * The instruction is fenced and explicitly marked as untrusted data; whatever it
  * says, the engine validates the output against the schema afterwards.
  *
+ * The system prompt depends only on the schema and the ambiguity policy, so it
+ * is byte-identical across requests and can be served from the provider's
+ * prompt cache. Everything that varies (today's date, the current state, the
+ * instruction) is in the user message.
+ *
  * @internal
  */
 export function buildPrompt(input: PromptInput): { system: string; user: string } {
@@ -43,10 +48,10 @@ export function buildPrompt(input: PromptInput): { system: string; user: string 
   numbers as JSON numbers; dates as "YYYY-MM-DD"; datetimes as ISO-8601; enum fields use the exact enum value (not the label).
 - Operators with no value (isNull, isNotNull, isEmpty, isNotEmpty, today, yesterday, thisWeek, lastWeek, thisMonth, lastMonth, thisYear) take value null.
 - "between"/"notBetween" take [from, to]. "in"/"notIn" take a list. "last"/"next" take {"amount": n, "unit": "minute"|"hour"|"day"|"week"|"month"|"year"}.
-- Prefer relative operators for relative dates ("last 7 days" → last {7, day}; "this month" → thisMonth). Today is ${today} (${input.timezone}).
+- Prefer relative operators for relative dates ("last 7 days" → last {7, day}; "this month" → thisMonth). Today's date and timezone are given with the instruction.
 - Missing values ("no phone", "without email") use isNull, not an empty string.
 - Global text search ("search rahul", a bare name) uses setSearch. Conditions on a specific field use addFilter.
-- Actions modify the CURRENT table state (below). Keep what the user did not ask to change:
+- Actions modify the CURRENT table state (given with the instruction). Keep what the user did not ask to change:
   "sort by X" → setSort only; "only X"/"also X" → addFilter; "remove the X filter" → removeFilter with field X;
   "clear filters" → clearFilters; "start over"/"reset" → reset; "next page" → nextPage.
 - When the user refines an existing equality filter on the same field (e.g. status active → status inactive), emit removeFilter for that field before addFilter.
@@ -68,15 +73,20 @@ pagination: ${schema.capabilities.pagination.join(', ')} (max page size ${schema
 # Fields
 ${[...schema.fieldsById.values()].map(describeField).join('\n')}
 
-# Current state
-${describeState(state, schema)}
-
 # Examples
 Instruction: active users older than 25, newest first
 {"actions":[{"op":"addFilter","filter":{"field":"status","operator":"eq","value":"active","caseSensitive":null,"logic":null,"not":null,"conditions":null},"logic":null,"field":null,"filterId":null,"sort":null,"search":null,"page":null,"pageSize":null},{"op":"addFilter","filter":{"field":"age","operator":"gt","value":25,"caseSensitive":null,"logic":null,"not":null,"conditions":null},"logic":null,"field":null,"filterId":null,"sort":null,"search":null,"page":null,"pageSize":null},{"op":"setSort","filter":null,"logic":null,"field":null,"filterId":null,"sort":[{"field":"createdAt","direction":"desc"}],"search":null,"page":null,"pageSize":null}],"ambiguities":[],"unsupported":null}
 (The example uses illustrative field ids; always use the ids listed above.)`;
 
-  const user = `<instruction>\n${input.instruction.replace(/<\/?instruction>/gi, '')}\n</instruction>`;
+  const user = `# Context
+Today: ${today} (${input.timezone})
+
+# Current state
+${describeState(state, schema)}
+
+<instruction>
+${input.instruction.replace(/<\/?instruction>/gi, '')}
+</instruction>`;
   return { system, user };
 }
 

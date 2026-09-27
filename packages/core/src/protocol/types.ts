@@ -236,6 +236,8 @@ export type ParserKind = 'deterministic' | 'llm' | 'cache' | 'local';
 export interface TokenUsage {
   readonly inputTokens: number;
   readonly outputTokens: number;
+  /** Input tokens served from the provider's prompt cache, when reported. */
+  readonly cachedInputTokens?: number;
 }
 
 /** Operational metadata attached to every result. Contains no user data. @public */

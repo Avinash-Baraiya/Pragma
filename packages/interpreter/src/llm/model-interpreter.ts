@@ -36,7 +36,7 @@ export interface ModelInterpreterOptions {
   readonly maxRepairs?: number;
   /** Default 0. */
   readonly temperature?: number;
-  /** Default 2000. */
+  /** Default 1024 (the output format is compact; lower budgets reduce latency). */
   readonly maxOutputTokens?: number;
   /** Test hooks. */
   readonly sleep?: (ms: number, signal: AbortSignal) => Promise<void>;
@@ -75,7 +75,7 @@ export function createModelInterpreter(options: ModelInterpreterOptions): ModelI
   const maxDelay = options.retry?.maxDelayMs ?? 4000;
   const maxRepairs = options.maxRepairs ?? 1;
   const temperature = options.temperature ?? 0;
-  const maxOutputTokens = options.maxOutputTokens ?? 2000;
+  const maxOutputTokens = options.maxOutputTokens ?? 1024;
   const sleep = options.sleep ?? abortableSleep;
   const random = options.random ?? Math.random;
 
@@ -84,7 +84,7 @@ export function createModelInterpreter(options: ModelInterpreterOptions): ModelI
     async interpret(request: ModelInterpretRequest): Promise<ModelInterpretation> {
       const prompt = buildPrompt(request);
       let retries = 0;
-      const usage = { inputTokens: 0, outputTokens: 0 };
+      const usage = { inputTokens: 0, outputTokens: 0, cachedInputTokens: 0 };
       let lastError: unknown;
 
       for (const [index, provider] of providers.entries()) {
@@ -98,7 +98,10 @@ export function createModelInterpreter(options: ModelInterpreterOptions): ModelI
               proposal: toProposal(output, request.schema, request.ids),
               provider: provider.id,
               ...(model === undefined ? {} : { model }),
-              usage: { ...usage },
+              usage:
+                usage.cachedInputTokens > 0
+                  ? { ...usage }
+                  : { inputTokens: usage.inputTokens, outputTokens: usage.outputTokens },
               retries,
             };
           } catch (error) {
@@ -124,7 +127,7 @@ export function createModelInterpreter(options: ModelInterpreterOptions): ModelI
     provider: LanguageModelProvider,
     prompt: { system: string; user: string },
     signal: AbortSignal,
-    usage: { inputTokens: number; outputTokens: number },
+    usage: { inputTokens: number; outputTokens: number; cachedInputTokens: number },
   ): Promise<{ output: ModelOutput; model: string | undefined }> {
     const messages: ChatMessage[] = [{ role: 'user', content: prompt.user }];
     for (let repair = 0; ; repair++) {
@@ -216,12 +219,13 @@ function isRetryable(error: unknown): boolean {
 }
 
 function addUsage(
-  total: { inputTokens: number; outputTokens: number },
+  total: { inputTokens: number; outputTokens: number; cachedInputTokens: number },
   usage: TokenUsage | undefined,
 ): void {
   if (!usage) return;
   total.inputTokens += usage.inputTokens;
   total.outputTokens += usage.outputTokens;
+  total.cachedInputTokens += usage.cachedInputTokens ?? 0;
 }
 
 function abortableSleep(ms: number, signal: AbortSignal): Promise<void> {
