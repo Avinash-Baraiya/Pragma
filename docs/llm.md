@@ -58,10 +58,25 @@ const interpreter = createModelInterpreter({
 
 ## Cost and latency
 
-- The deterministic parser answers explicit instructions with no model call. Check the "answered without a model" metric in `pnpm eval`.
-- Interpretations are cached per instruction, schema, current state and day (default in-memory LRU; plug in Redis through `CacheStore`).
-- Clarification choices, chip removal, sorting and paging from the table UI are applied locally.
-- `meta.usage` reports tokens per request; the evaluation report totals them.
+The fastest model call is the one that never happens:
+
+- The deterministic parser answers explicit instructions locally in about a millisecond. Check the "answered without a model" metric in `pnpm eval`.
+- Interpretations are cached per instruction, schema, current state and day (default in-memory LRU; plug a shared store such as Redis into `CacheStore` when running several server instances).
+- Clarification choices, chip removal, and table sorting and paging are applied locally.
+
+When a model _is_ called:
+
+- **Prompt caching.** The system prompt (rules, schema and examples) depends only on the schema and the ambiguity policy, so it is byte-identical on every request. Only the date, current state and instruction (about 50 tokens) vary. For a 15-field schema the static part is about 1,600 tokens, roughly 97% of the input.
+  - The Anthropic provider marks it with `cache_control`.
+  - OpenAI and many OpenAI-compatible servers cache identical prefixes automatically (OpenAI from 1,024 tokens).
+  - Anthropic's minimum cacheable length depends on the model, so small schemas may fall below it (harmless: the request is simply not cached).
+  - Cached tokens are reported as `meta.usage.cachedInputTokens` and totalled by `pnpm eval`.
+- **Small output.** The output format is compact; `maxOutputTokens` defaults to 1024.
+- **Pick a fast model.** This task (mapping a sentence onto a known schema) does not need the largest model.
+  - Start with a small, fast tier, e.g. `claude-haiku-4-5` with the Anthropic provider, or a small hosted model behind an OpenAI-compatible endpoint (Groq and OpenRouter serve several).
+  - Measure accuracy and p95 latency with `pnpm eval`, and move up a tier only if accuracy requires it.
+  - With Claude models that support `effort`, `effort: 'low'` also reduces latency.
+- **Bounded worst case.** A timeout (`timeoutMs`, default 15 s), retries within that deadline, a fallback provider chain and the server's circuit breaker keep slow or failing models from blocking users.
 
 ## Measuring a model
 

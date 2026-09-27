@@ -21,7 +21,7 @@ Model SDKs are never in the browser bundle: providers are imported from subpaths
 
 - `@` autocomplete, chip removal, clarification choices and table sorting and paging are synchronous and local (no network).
 - The full local pipeline (deterministic parsing, validation, normalization, conflict analysis and explanation) measured about 0.9 ms at the median, 3.8 ms at p95 and 6.4 ms at p99 on the 106-case evaluation dataset (`pnpm eval`, Apple Silicon, Node 25). The evaluation reports the same percentiles for each model.
-- Model calls dominate when they happen. Pragma avoids them where it can (deterministic parser, interpretation cache) and bounds them where it can't (timeouts, retries within the deadline, circuit breaker).
+- Model calls dominate when they happen. Pragma avoids them where it can (deterministic parser, interpretation cache) and makes them cheaper where it can't: a cache-friendly prompt (about 97% of input tokens reusable from the provider's prompt cache for a 15-field schema) and a compact output budget. Timeouts, retries within the deadline and a circuit breaker bound the worst case. See [models](llm.md#cost-and-latency) for choosing a fast model.
 
 ## Execution
 
