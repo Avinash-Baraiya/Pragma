@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { FilterCondition, TableQuery } from '../protocol/types.js';
+import type { FilterCondition, FilterNode, TableQuery } from '../protocol/types.js';
 import { usersSchema } from '../testing/fixtures.js';
 import {
   addMonths,
@@ -181,7 +181,7 @@ describe('compileDateRange', () => {
 
 describe('resolveDates', () => {
   const ctx: DateContext = { now: Date.UTC(2024, 5, 12, 9, 30), timezone: 'UTC' };
-  const query = (conditions: FilterCondition[]): TableQuery => ({
+  const query = (conditions: FilterNode[]): TableQuery => ({
     version: '1.0',
     resource: 'users',
     search: null,
