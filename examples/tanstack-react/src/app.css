@@ -1,0 +1,135 @@
+:root {
+  color-scheme: light dark;
+  font-family:
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    Roboto,
+    sans-serif;
+  color: var(--pragma-fg);
+  background: var(--pragma-bg);
+}
+
+body {
+  margin: 0;
+}
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 24px 16px 48px;
+}
+
+.page__header h1 {
+  margin: 0;
+  font-size: 1.6rem;
+}
+
+.page__subtitle {
+  margin: 4px 0 0;
+  color: var(--pragma-muted);
+}
+
+.page__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 16px;
+  align-items: start;
+}
+
+@media (max-width: 1000px) {
+  .page__grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.page__aside {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.examples {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.examples__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  color: var(--pragma-fg);
+  background: transparent;
+  border: 1px solid var(--pragma-border);
+  border-radius: 999px;
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.examples__hint {
+  color: var(--pragma-muted);
+  font-size: 0.75rem;
+}
+
+.table-card {
+  border: 1px solid var(--pragma-border);
+  border-radius: var(--pragma-radius);
+  overflow: hidden;
+}
+
+.table-scroll {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+th,
+td {
+  padding: 8px 10px;
+  text-align: left;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--pragma-border);
+}
+
+.th-button {
+  padding: 0;
+  color: inherit;
+  background: none;
+  border: 0;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.empty {
+  padding: 32px;
+  color: var(--pragma-muted);
+  text-align: center;
+}
+
+.pager {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 8px 10px;
+}
+
+.inspector pre {
+  max-height: 420px;
+  overflow: auto;
+  padding: 10px;
+  font-size: 0.75rem;
+  background: var(--pragma-chip-bg);
+  border-radius: var(--pragma-radius);
+}

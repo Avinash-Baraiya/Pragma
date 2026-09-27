@@ -1,0 +1,9 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "customConditions": ["@pragma/source"],
+    "types": ["node", "vite/client"]
+  },
+  "include": ["src", "server", "vite.config.ts"]
+}
