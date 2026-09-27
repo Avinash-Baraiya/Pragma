@@ -9,3 +9,5 @@ coverage/
 temp/
 reports/
 .vite/
+tools/local-registry/storage/
+tools/local-registry/htpasswd

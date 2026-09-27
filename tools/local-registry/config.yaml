@@ -1,0 +1,22 @@
+# Local npm registry for testing Pragma packages in other apps before publishing.
+# Start: pnpm registry:start   ·   Publish: pnpm registry:publish
+storage: ./storage
+auth:
+  htpasswd:
+    file: ./htpasswd
+    max_users: 100
+uplinks:
+  npmjs:
+    url: https://registry.npmjs.org/
+packages:
+  '@avinash-baraiya/*':
+    access: $all
+    publish: $authenticated
+    unpublish: $authenticated
+  '**':
+    access: $all
+    proxy: npmjs
+server:
+  keepAliveTimeout: 60
+listen: 127.0.0.1:4873
+log: { type: stdout, format: pretty, level: warn }

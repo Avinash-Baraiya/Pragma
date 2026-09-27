@@ -20,7 +20,9 @@
     "check:packages": "pnpm -r --filter \"./packages/*\" run check:package",
     "size": "size-limit",
     "changeset": "changeset",
-    "eval": "pnpm --filter @avinash-baraiya/pragma-benchmarks run eval"
+    "eval": "pnpm --filter @avinash-baraiya/pragma-benchmarks run eval",
+    "registry:start": "npx --yes verdaccio@6 --config tools/local-registry/config.yaml",
+    "registry:publish": "node tools/local-registry/publish.mjs"
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.18.5",
