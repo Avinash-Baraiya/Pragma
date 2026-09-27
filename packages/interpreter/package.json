@@ -36,6 +36,7 @@
     "check:package": "publint --strict && attw --pack . --profile node16"
   },
   "dependencies": {
-    "@pragma/core": "workspace:^"
+    "@pragma/core": "workspace:^",
+    "zod": "^4.6.5"
   }
 }
