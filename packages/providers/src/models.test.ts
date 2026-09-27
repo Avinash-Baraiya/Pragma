@@ -108,6 +108,29 @@ describe('openAICompatible', () => {
     expect(provider.id).toBe('openai-compatible:gpt-x');
   });
 
+  it('reports automatically cached prompt tokens', async () => {
+    const provider = openAICompatible({
+      baseURL: 'https://x.test/v1',
+      model: 'm',
+      fetch: () =>
+        Promise.resolve(
+          jsonResponse({
+            choices: [{ message: { content: '{}' } }],
+            usage: {
+              prompt_tokens: 1500,
+              completion_tokens: 20,
+              prompt_tokens_details: { cached_tokens: 1280 },
+            },
+          }),
+        ),
+    });
+    expect((await provider.generate(request())).usage).toEqual({
+      inputTokens: 1500,
+      outputTokens: 20,
+      cachedInputTokens: 1280,
+    });
+  });
+
   it('supports JSON mode, prompt-only mode and alternate token/temperature settings', async () => {
     const bodies: Record<string, unknown>[] = [];
     const fetch = vi.fn((_u: string | URL | Request, init?: RequestInit) => {
@@ -243,12 +266,29 @@ describe('anthropic (official SDK with stubbed transport)', () => {
     expect(bodies[0]).toMatchObject({
       model: 'claude-opus-5',
       max_tokens: 2000,
-      system: 'SYSTEM PROMPT',
+      system: [{ type: 'text', text: 'SYSTEM PROMPT', cache_control: { type: 'ephemeral' } }],
       output_config: { format: { type: 'json_schema' }, effort: 'low' },
     });
     expect(bodies[0]).not.toHaveProperty('temperature');
     expect(bodies[0]).not.toHaveProperty('tool_choice');
     expect(fetch).toHaveBeenCalledTimes(1);
+  });
+
+  it('reports prompt-cache reads as cached input tokens', async () => {
+    const { sdk } = client(() =>
+      jsonResponse(
+        message({
+          usage: {
+            input_tokens: 40,
+            output_tokens: 80,
+            cache_read_input_tokens: 1200,
+            cache_creation_input_tokens: 0,
+          },
+        }),
+      ),
+    );
+    const res = await anthropic({ model: 'claude-opus-5', client: sdk }).generate(request());
+    expect(res.usage).toEqual({ inputTokens: 1240, outputTokens: 80, cachedInputTokens: 1200 });
   });
 
   it('maps refusals, truncation and API errors', async () => {

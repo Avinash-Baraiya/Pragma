@@ -59,6 +59,9 @@ export function aiSdk(
           usage: {
             inputTokens: result.usage.inputTokens ?? 0,
             outputTokens: result.usage.outputTokens ?? 0,
+            ...(result.usage.inputTokenDetails.cacheReadTokens
+              ? { cachedInputTokens: result.usage.inputTokenDetails.cacheReadTokens }
+              : {}),
           },
         };
       } catch (error) {

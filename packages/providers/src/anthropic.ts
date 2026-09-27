@@ -57,7 +57,9 @@ export function anthropic(options: AnthropicProviderOptions): LanguageModelProvi
           {
             model: options.model,
             max_tokens: request.maxOutputTokens,
-            system: request.system,
+            // The system prompt depends only on the schema, so it is marked for
+            // prompt caching: repeat requests skip re-processing it.
+            system: [{ type: 'text', text: request.system, cache_control: { type: 'ephemeral' } }],
             messages: request.messages.map((m) => ({ role: m.role, content: m.content })),
             output_config: {
               format: { type: 'json_schema', schema: request.jsonSchema },
@@ -90,8 +92,15 @@ export function anthropic(options: AnthropicProviderOptions): LanguageModelProvi
         text,
         model: message.model,
         usage: {
-          inputTokens: message.usage.input_tokens,
+          // Anthropic reports cached reads separately from uncached input.
+          inputTokens:
+            message.usage.input_tokens +
+            (message.usage.cache_read_input_tokens ?? 0) +
+            (message.usage.cache_creation_input_tokens ?? 0),
           outputTokens: message.usage.output_tokens,
+          ...(message.usage.cache_read_input_tokens
+            ? { cachedInputTokens: message.usage.cache_read_input_tokens }
+            : {}),
         },
       };
     },

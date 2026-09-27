@@ -39,7 +39,11 @@ interface ChatCompletionResponse {
     readonly message?: { readonly content?: string | null; readonly refusal?: string | null };
     readonly finish_reason?: string | null;
   }[];
-  readonly usage?: { readonly prompt_tokens?: number; readonly completion_tokens?: number };
+  readonly usage?: {
+    readonly prompt_tokens?: number;
+    readonly completion_tokens?: number;
+    readonly prompt_tokens_details?: { readonly cached_tokens?: number };
+  };
 }
 
 /**
@@ -141,6 +145,9 @@ export function openAICompatible(options: OpenAICompatibleOptions): LanguageMode
               usage: {
                 inputTokens: data.usage.prompt_tokens ?? 0,
                 outputTokens: data.usage.completion_tokens ?? 0,
+                ...(data.usage.prompt_tokens_details?.cached_tokens
+                  ? { cachedInputTokens: data.usage.prompt_tokens_details.cached_tokens }
+                  : {}),
               },
             }
           : {}),
