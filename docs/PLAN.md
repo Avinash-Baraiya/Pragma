@@ -1,5 +1,30 @@
 # Pragma — Natural-Language Table Query Layer (MVP Plan)
 
+## Status (MVP delivered)
+
+All eight phases are implemented and verified in CI: contracts, core engine, deterministic parser and engine, LLM layer with providers and server, TanStack adapter with conformance suite, React package, example app, and quality/docs (robustness fuzzing, evaluation dataset and gate, documentation, ADRs).
+
+### Deviations from this plan
+
+| Planned                                             | Delivered                                                                                                                    | Why                                                                                                                 |
+| --------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| Node 20/22/24                                       | Node ≥ 22.12 (CI: 22, 24)                                                                                                    | Node 20 reached end-of-life in April 2026, and current tooling requires 22+.                                        |
+| TanStack Table v8                                   | TanStack Table v9                                                                                                            | v9 is current. The state mapping is structural and also fits v8; the column helpers use v9 option names (`sortFn`). |
+| `zod/mini` in core, core ≤ 20 kB gz                 | Full `zod`; core 39.7 kB brotli; budgets enforced at measured size + ~10%                                                    | Faster, safer delivery. Migrating to `zod/mini` is a tracked size optimization.                                     |
+| Anthropic adapter on raw `fetch` with a forced tool | Official SDK (optional peer) with native structured outputs, no sampling parameters                                          | Forced tool use and sampling parameters are rejected by current Claude models; the SDK gives typed errors.          |
+| Recursive model-output schema                       | Bounded, non-recursive schema (a filter is a condition or a group of conditions)                                             | Some structured-output implementations reject recursive schemas; AND-ed actions cover the supported depth.          |
+| API Extractor reports in CI                         | Not yet adopted                                                                                                              | Public API is guarded by strict typing, publint and are-the-types-wrong. API Extractor remains a follow-up.         |
+| ~200-case evaluation dataset                        | 106 labelled cases (grow with real usage)                                                                                    | The dataset gates the parser in CI; cases are added with every fix.                                                 |
+| TanStack native-mode null ordering                  | Exact via `withPragmaColumns` (null → undefined + `sortUndefined: 'last'`); per-query `nulls: 'first'` needs controlled mode | TanStack reads undefined placement statically from column definitions.                                              |
+
+### Follow-ups
+
+- Migrate runtime schemas to `zod/mini` and tighten bundle budgets.
+- Adopt API Extractor for public API reports.
+- Run `pnpm eval` against production models and publish the results.
+- Additional adapters (AG Grid, MUI, SQL builders) certified with `@pragma/conformance`.
+- V2 scope (joins, aggregation, saved views) as additive protocol versions.
+
 ## Context
 
 Every table library (TanStack, AG Grid, MUI, custom, server APIs) has its own state model for search/filter/sort/pagination, so developers hand-translate user intent into each one. **Pragma** takes a _typed table schema_ + a _natural-language instruction_ (+ optional current state) and returns a **validated, library-agnostic `TableQuery` payload**. Adapters turn it into TanStack state, API params, etc.
