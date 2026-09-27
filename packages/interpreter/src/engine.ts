@@ -445,8 +445,11 @@ class PragmaEngine implements Engine {
    */
   private finalize(proposal: Proposal, state: TableQuery, meta: ResultMeta, pageInfo: PageInfo | undefined): InterpretResult {
     if (proposal.unsupported) {
+      const relayed = proposal.unsupported.errors;
       return this.unsupported(
-        [createIssue('UNSUPPORTED_OPERATION', { message: proposal.unsupported.reason, messageKey: proposal.unsupported.messageKey })],
+        relayed && relayed.length > 0
+          ? relayed
+          : [createIssue('UNSUPPORTED_OPERATION', { message: proposal.unsupported.reason, messageKey: proposal.unsupported.messageKey })],
         proposal.unsupported.suggestions,
         meta,
       );

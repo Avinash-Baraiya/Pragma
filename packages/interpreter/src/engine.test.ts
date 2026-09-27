@@ -200,6 +200,14 @@ describe('interpret: routing', () => {
     }
   });
 
+  it('relays precise unsupported issues when the interpreter provides them', async () => {
+    const issue = { code: 'UNKNOWN_FIELD' as const, message: 'Unknown field "wage".', messageKey: 'field.unknown', retryable: false };
+    const result = await engine({
+      interpreter: fakeModel({ mutations: [], ambiguities: [], unsupported: { reason: issue.message, messageKey: issue.messageKey, suggestions: [], errors: [issue] } }),
+    }).interpret('by wage');
+    expect(result.status === 'unsupported' && result.errors).toEqual([issue]);
+  });
+
   it('maps model failures to typed errors', async () => {
     const failing = fakeModel({ mutations: [], ambiguities: [] }, {
       interpret: () => Promise.reject(new PragmaModelError('RATE_LIMITED', 'slow down', { status: 429 })),

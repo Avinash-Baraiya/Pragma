@@ -1,4 +1,4 @@
-import type { Ambiguity, Mutation, Suggestion } from '@pragma/core';
+import type { Ambiguity, Mutation, PragmaIssue, Suggestion } from '@pragma/core';
 
 /**
  * What an interpreter (deterministic parser or language model) proposes for an
@@ -15,5 +15,7 @@ export interface Proposal {
     readonly reason: string;
     readonly messageKey: string;
     readonly suggestions: readonly Suggestion[];
+    /** Precise issues when known (e.g. relayed from a server); otherwise `reason` becomes an UNSUPPORTED_OPERATION issue. */
+    readonly errors?: readonly PragmaIssue[];
   };
 }
