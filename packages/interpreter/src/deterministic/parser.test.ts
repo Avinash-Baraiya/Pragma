@@ -355,6 +355,14 @@ describe('parseDeterministic: resource names and value boundaries (regressions)'
     expect(render(run('users count > 10').proposal.mutations)).toEqual(['filter seats gt 10']);
   });
 
+  it('does not start unquoted values with a preposition', () => {
+    expect(run('email is from gmail').covered).toBe(false);
+    expect(run('country is near India').covered).toBe(false);
+    expect(render(run('country is "from gmail"').proposal.mutations)).toEqual([
+      'filter country eq "from gmail"',
+    ]);
+  });
+
   it('never swallows a recency phrase or field name as a list value', () => {
     expect(render(run('country in India, US, newest first').proposal.mutations)).toEqual([
       'filter country in ["India","US"]',

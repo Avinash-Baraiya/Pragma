@@ -52,6 +52,17 @@ const FILLER = new Set(
   ).split(' '),
 );
 
+/**
+ * Words an unquoted text value never starts with: "email is from gmail" or
+ * "city is near Pune" carry meaning the grammar does not model, so such
+ * instructions go to the model instead of becoming `email = "from gmail"`.
+ */
+const VALUE_START_BLOCKLIST = new Set(
+  'from of in at on with by near around about like than to for into within without under over above below between after before since until'.split(
+    ' ',
+  ),
+);
+
 /** Words that end an unquoted text value. */
 const BOUNDARY = new Set(
   'and or but sort sorted order ordered then page per show with where who whose that having search limit rows results'.split(
@@ -1204,6 +1215,7 @@ class Parser {
         if (t.kind !== 'word' && t.kind !== 'number' && t.kind !== 'date') return undefined;
         // A value never starts at a separator, keyword, field name, the table name or a recency phrase.
         if (this.isBoundaryAfterValue(at)) return undefined;
+        if (t.kind === 'word' && VALUE_START_BLOCKLIST.has(t.norm)) return undefined;
         let end = at + 1;
         while (end < this.tokens.length && !this.isBoundaryAfterValue(end)) end++;
         return { value: this.input.slice(t.start, this.tokens[end - 1]!.end), length: end - at };
