@@ -328,6 +328,45 @@ describe('parseDeterministic: quoted values and compound conditions', () => {
   });
 });
 
+describe('parseDeterministic: resource names and value boundaries (regressions)', () => {
+  const customers = defineSchema({
+    schemaVersion: '1',
+    resource: 'customers',
+    aliases: ['users'],
+    fields: [
+      { id: 'name', label: 'Name', type: 'string', aliases: ['customer'] },
+      { id: 'country', label: 'Country', type: 'string' },
+      { id: 'seats', label: 'Seats', type: 'number', aliases: ['users count'] },
+      { id: 'createdAt', label: 'Signed Up', type: 'datetime' },
+    ],
+    defaults: { recencyField: 'createdAt' },
+  });
+  const run = (text: string) => parse(text, createInitialQuery(customers), customers);
+
+  it('does not read the table name as a field alias', () => {
+    const result = run('customers in India, newest first');
+    expect(render(result.proposal.mutations)).not.toContain(
+      'filter name in ["India","newest first"]',
+    );
+    expect(result.covered).toBe(false);
+  });
+
+  it('still matches multi-word field terms that start with the table name', () => {
+    expect(render(run('users count > 10').proposal.mutations)).toEqual(['filter seats gt 10']);
+  });
+
+  it('never swallows a recency phrase or field name as a list value', () => {
+    expect(render(run('country in India, US, newest first').proposal.mutations)).toEqual([
+      'filter country in ["India","US"]',
+      'sort createdAt desc',
+    ]);
+    expect(render(run('country is India, newest first').proposal.mutations)).toEqual([
+      'filter country eq "India"',
+      'sort createdAt desc',
+    ]);
+  });
+});
+
 describe('parseDeterministic: robustness', () => {
   it('produces stable ids and valid nodes for OR groups', () => {
     const result = parse('country is India or US');

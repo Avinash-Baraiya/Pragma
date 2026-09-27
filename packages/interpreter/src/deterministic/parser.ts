@@ -458,7 +458,13 @@ class Parser {
       const r = resolveMention(this.ctx.schema, t.text);
       return r.kind === 'field' ? { field: r.field, length: 1 } : undefined;
     }
+    // The table's own name ("customers") refers to the resource, never to a
+    // one-word field alias such as "customer" (plural tolerance would match it).
+    const isResourceWord =
+      t?.kind === 'word' &&
+      (this.resourceTerms.has(t.norm) || this.resourceTerms.has(singular(t.norm)));
     for (const term of this.fieldTerms) {
+      if (isResourceWord && term.words.length === 1) continue;
       if (this.matchTerm(at, term.words)) return { field: term.field, length: term.words.length };
     }
     return undefined;
@@ -1196,7 +1202,8 @@ class Parser {
         if (t.kind === 'string') return { value: t.text, length: 1 };
         if (options.requireQuotedText === true) return undefined;
         if (t.kind !== 'word' && t.kind !== 'number' && t.kind !== 'date') return undefined;
-        if (t.kind === 'word' && (BOUNDARY.has(t.norm) || FILLER.has(t.norm))) return undefined;
+        // A value never starts at a separator, keyword, field name, the table name or a recency phrase.
+        if (this.isBoundaryAfterValue(at)) return undefined;
         let end = at + 1;
         while (end < this.tokens.length && !this.isBoundaryAfterValue(end)) end++;
         return { value: this.input.slice(t.start, this.tokens[end - 1]!.end), length: end - at };
