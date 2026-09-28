@@ -23,9 +23,15 @@ Publishing uses [npm trusted publishing](https://docs.npmjs.com/trusted-publishe
 
 ### One-time setup
 
-1. **Allow the workflow to open pull requests:** repository **Settings → Actions → General → Workflow permissions**, tick **"Allow GitHub Actions to create and approve pull requests"**.
-2. **Trusted publishing** (after the first release, because npm only offers it for existing packages): for each of the seven packages on npmjs.com, open **Settings → Trusted publishing → GitHub Actions** and enter owner `Avinash-Baraiya`, repository `Pragma`, workflow `release.yml`. Then, under **Publishing access**, choose **"Require two-factor authentication and disallow tokens"**.
-3. **Switch the workflow on:** repository **Settings → Secrets and variables → Actions → Variables**, add `RELEASE_AUTOMATION` with the value `true`. Until then the Release workflow is skipped.
+1. **Allow the workflow to open pull requests:** repository **Settings → Actions → General → Workflow permissions**, tick **"Allow GitHub Actions to create and approve pull requests"**. (Done for this repository.)
+2. **Trusted publishing** (npm only offers it for packages that already exist): run `bash tools/release/trust.sh` and approve each package in the browser. It links all seven packages to `release.yml` in this repository. Check with `npm trust list @avinash-baraiya/pragma`.
+3. **Switch the workflow on:** add the repository variable `RELEASE_AUTOMATION` = `true` (**Settings → Secrets and variables → Actions → Variables**, or `gh variable set RELEASE_AUTOMATION --body true`). Until then the Release workflow is skipped.
+
+### What a release looks like afterwards
+
+1. Add a changeset in your pull request (`pnpm changeset`) and merge it.
+2. The workflow opens **"chore: version packages"** with the new versions and changelogs.
+3. Merge it. The workflow tests, publishes to npm with provenance, tags, and creates the GitHub releases. No token, no terminal.
 
 ## First release (from your machine)
 
