@@ -11,3 +11,5 @@ reports/
 .vite/
 tools/local-registry/storage/
 tools/local-registry/htpasswd
+website/.vitepress/cache/
+website/.vitepress/dist/

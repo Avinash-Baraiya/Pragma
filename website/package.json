@@ -1,0 +1,32 @@
+{
+  "name": "@avinash-baraiya/pragma-website",
+  "version": "0.0.0",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "description": "Documentation website for Pragma (VitePress).",
+  "scripts": {
+    "dev": "vitepress dev",
+    "build": "vitepress build",
+    "preview": "vitepress preview",
+    "screenshots": "node scripts/screenshots.mjs",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@avinash-baraiya/pragma-core": "workspace:^",
+    "@avinash-baraiya/pragma-interpreter": "workspace:^",
+    "@avinash-baraiya/pragma-providers": "workspace:^",
+    "@avinash-baraiya/pragma-react": "workspace:^",
+    "@avinash-baraiya/pragma-tanstack": "workspace:^"
+  },
+  "devDependencies": {
+    "@tanstack/react-table": "^9.2.4",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "playwright": "^1.63.0",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "vitepress": "^1.6.4",
+    "vue": "^3.5.43"
+  }
+}

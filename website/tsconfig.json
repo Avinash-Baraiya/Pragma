@@ -1,0 +1,10 @@
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "customConditions": ["@pragma/source"],
+    "types": ["node", "vitepress/client"]
+  },
+  "include": [".vitepress/**/*.ts", ".vitepress/**/*.tsx"]
+}

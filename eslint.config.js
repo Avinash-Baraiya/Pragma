@@ -11,6 +11,8 @@ export default tseslint.config(
       '**/node_modules/**',
       '**/*.config.{ts,js}',
       'examples/*/vite.config.ts',
+      'website/.vitepress/cache/**',
+      'website/.vitepress/dist/**',
     ],
   },
   js.configs.recommended,
@@ -59,7 +61,13 @@ export default tseslint.config(
     languageOptions: {
       ...tseslint.configs.disableTypeChecked.languageOptions,
       parserOptions: { projectService: false, program: null },
-      globals: { process: 'readonly', console: 'readonly', Buffer: 'readonly', fetch: 'readonly' },
+      globals: {
+        process: 'readonly',
+        console: 'readonly',
+        Buffer: 'readonly',
+        fetch: 'readonly',
+        setTimeout: 'readonly',
+      },
     },
     // Command-line tools report progress on the console.
     rules: { ...tseslint.configs.disableTypeChecked.rules, 'no-console': 'off' },

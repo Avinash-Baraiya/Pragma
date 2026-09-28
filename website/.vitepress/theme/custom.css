@@ -1,0 +1,227 @@
+:root {
+  --vp-c-brand-1: #2f5bd3;
+  --vp-c-brand-2: #4a70dc;
+  --vp-c-brand-3: #2f5bd3;
+  --vp-c-brand-soft: rgb(47 91 211 / 14%);
+  --vp-home-hero-name-color: transparent;
+  --vp-home-hero-name-background: linear-gradient(120deg, #2f5bd3 20%, #8b5cf6);
+  --vp-home-hero-image-background-image: linear-gradient(-45deg, #2f5bd3 50%, #8b5cf6 50%);
+  --vp-home-hero-image-filter: blur(56px);
+}
+
+.dark {
+  --vp-c-brand-1: #7a9cf0;
+  --vp-c-brand-2: #92aff4;
+  --vp-c-brand-3: #4a70dc;
+}
+
+/* Pragma's component tokens follow the site theme (light/dark toggle), not only the OS setting. */
+.pg {
+  --pragma-bg: var(--vp-c-bg);
+  --pragma-fg: var(--vp-c-text-1);
+  --pragma-muted: var(--vp-c-text-2);
+  --pragma-border: var(--vp-c-divider);
+  --pragma-accent: var(--vp-c-brand-1);
+  --pragma-accent-fg: var(--vp-c-white);
+  --pragma-chip-bg: var(--vp-c-bg-soft);
+  --pragma-warning: var(--vp-c-warning-1);
+  --pragma-warning-bg: var(--vp-c-warning-soft);
+  --pragma-error: var(--vp-c-danger-1);
+  --pragma-error-bg: var(--vp-c-danger-soft);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 16px;
+  color: var(--pragma-fg);
+}
+
+.dark .pg {
+  --pragma-accent-fg: #0d1117;
+}
+
+/* Undo VitePress prose styles inside the live demo. */
+.vp-doc .pg table {
+  display: table;
+  margin: 0;
+  width: 100%;
+  font-size: 0.85rem;
+}
+.vp-doc .pg tr:nth-child(2n) {
+  background: transparent;
+}
+.vp-doc .pg th,
+.vp-doc .pg td {
+  padding: 6px 10px;
+  border: 0;
+  border-bottom: 1px solid var(--vp-c-divider);
+  white-space: nowrap;
+}
+.vp-doc .pg ul {
+  margin: 0;
+  padding-left: 0;
+}
+.vp-doc .pg li + li {
+  margin-top: 0;
+}
+.vp-doc .pg p {
+  margin: 0;
+  line-height: 1.5;
+}
+.vp-doc .pg button {
+  font: inherit;
+}
+
+.pg__hint {
+  color: var(--vp-c-text-2);
+  font-size: 0.9rem;
+}
+
+.pg__examples {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.pg__example {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  color: var(--vp-c-text-1);
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 999px;
+  font-size: 0.8rem !important;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+.pg__example:hover:not(:disabled) {
+  border-color: var(--vp-c-brand-1);
+}
+.pg__example-hint {
+  color: var(--vp-c-text-3);
+  font-size: 0.72rem;
+}
+
+.pg__table {
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.pg__scroll {
+  max-height: 440px;
+  overflow: auto;
+}
+.pg__th {
+  font-weight: 600;
+  cursor: pointer;
+}
+.pg__empty {
+  padding: 28px !important;
+  color: var(--vp-c-text-2);
+  text-align: center;
+}
+.pg__pager {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 8px 10px;
+  font-size: 0.85rem;
+}
+.pg__pager button {
+  padding: 2px 10px;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 6px;
+}
+.pg__pager button:disabled {
+  opacity: 0.45;
+}
+
+.pg__aside {
+  display: grid;
+  gap: 12px;
+}
+.pg__inspector summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+.vp-doc .pg__inspector pre {
+  max-height: 360px;
+  margin-top: 8px;
+  padding: 10px;
+  overflow: auto;
+  font-size: 0.75rem;
+  line-height: 1.45;
+  background: var(--vp-c-bg-soft);
+  border-radius: 8px;
+}
+
+.pg-host__loading,
+.pg-host__error {
+  color: var(--vp-c-text-2);
+}
+
+/* Landing page */
+.home-section {
+  max-width: 1152px;
+  margin: 0 auto;
+  padding: 48px 24px 0;
+}
+.home-section h2 {
+  margin: 0 0 16px;
+  font-size: 1.6rem;
+  font-weight: 700;
+  border: 0;
+  padding: 0;
+}
+.home-shot {
+  display: block;
+  width: 100%;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 12px;
+  box-shadow: 0 12px 32px rgb(0 0 0 / 10%);
+}
+.vp-doc img[src*='/screenshots/'] {
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 12px;
+  box-shadow: 0 6px 24px rgb(0 0 0 / 6%);
+}
+
+/* VitePress heading and list styles would otherwise override the component defaults. */
+.vp-doc .pg h2 {
+  margin: 0 0 4px;
+  padding: 0;
+  border: 0;
+  color: var(--pragma-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.vp-doc .pg .pragma-explanation__list {
+  padding-left: 18px;
+  list-style: disc;
+}
+.vp-doc .pg legend {
+  font-weight: 600;
+}
+
+/* Screenshot stage (scripts/screenshots.mjs): one focused card per feature. */
+.shot-stage {
+  min-height: 100vh;
+  padding: 40px 24px;
+  background: var(--vp-c-bg);
+}
+.shot-stage .pg--stage {
+  max-width: 820px;
+  margin: 0 auto;
+  padding: 0;
+  font-size: 15px;
+}
+.pg--stage .pg__aside {
+  grid-template-columns: 1fr;
+}
+.vp-doc .pg--stage .pg__inspector pre {
+  max-height: 240px;
+}
