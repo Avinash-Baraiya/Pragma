@@ -1,29 +1,38 @@
 # Adding an AI model
 
-Explicit instructions work without a model. To understand free phrasing (“Indian customers”, “big spenders”, “people who haven't logged in for a while”), connect a language model. **You bring the model and the API key; Pragma never ships one.**
+<p class="lead">Explicit instructions work without a model. Connect one to understand free phrasing like “Indian customers”, “big spenders” or “people who haven't logged in for a while”. You bring the model and the key; Pragma never ships one.</p>
 
-## How it fits together
+<div class="flow" role="img" aria-label="The browser answers what it can locally and sends the rest to your server, which calls your model and validates the answer.">
+  <div class="flow__col">
+    <span class="flow__tag">Browser</span>
+    <strong>Ask bar + engine</strong>
+    <p>Explicit instructions are answered here, in about 1 ms. No network.</p>
+  </div>
+  <div class="flow__arrow"><span>only what it can't parse</span></div>
+  <div class="flow__col flow__col--brand">
+    <span class="flow__tag">Your server</span>
+    <strong>Pragma server handler</strong>
+    <p>Holds the API key, calls the model, validates the answer against the schema.</p>
+  </div>
+  <div class="flow__arrow"><span>schema metadata + instruction</span></div>
+  <div class="flow__col">
+    <span class="flow__tag">Model provider</span>
+    <strong>OpenAI · Claude · Gemini · Ollama · …</strong>
+    <p>Never sees row data or hidden fields.</p>
+  </div>
+</div>
 
-```text
-Browser                         Your server                      Model provider
-────────────────────────        ───────────────────────────      ──────────────
-AskBar → engine
-  ├─ deterministic parser ✔ (local, no network)
-  └─ not fully understood ──▶  createPragmaHandler  ──────────▶  OpenAI / Claude /
-                                 (holds the API key,                Gemini / Ollama / …
-                                  validates the answer)
-     re-validates locally ◀──   InterpretResult     ◀──────────
-```
+::: info What leaves your infrastructure
+Only schema metadata (field names, types, aliases, enum values) and the user's instruction. Row data never does. The answer is validated on your server and again in the browser before anything is applied.
+:::
 
-- The **API key lives only on your server**. The browser talks to your endpoint, never to the model provider.
-- Only **schema metadata** (field names, types, aliases, enum values) and the instruction are sent to the model. **Row data never is.** Hidden fields are never included.
-- The model's answer is validated on the server, and again in the browser, before anything is applied.
+<div class="steps">
 
-## 1. Install
+### Install
 
 The server handler and providers are already part of `@avinash-baraiya/pragma`, so there's nothing extra to install. The Anthropic and AI SDK providers need their SDK (shown below); the others use `fetch`.
 
-## 2. Choose a provider
+### Choose a provider
 
 Every provider takes a `model` (nothing is hard-coded) and reads your key from wherever you pass it.
 
@@ -84,7 +93,7 @@ const provider = customProvider('my-gateway', async (request) => {
 
 Pass an array to get a fallback chain: `provider: [primary, cheaperFallback]`.
 
-## 3. Mount the handler
+### Mount the server handler
 
 ::: code-group
 
@@ -121,7 +130,7 @@ app.post('/api/pragma', (c) => handler(c.req.raw));
 
 The handler enforces body and instruction size limits, returns [RFC 9457](https://www.rfc-editor.org/rfc/rfc9457) problem responses for transport errors, and includes a circuit breaker: while the model keeps failing, users still get deterministic answers.
 
-## 4. Point the browser at it
+### Point the browser at it
 
 ```ts
 import { createEngine } from '@avinash-baraiya/pragma';
@@ -139,9 +148,16 @@ export const engine = createEngine({
 
 Nothing else changes: the same `AskBar`, chips and table now handle free phrasing too.
 
+</div>
+
 ## Latency and cost
 
-- Most instructions never reach the model. In the evaluation set, **76% were answered locally** (median 0.46 ms).
+<div class="cards cards--stats">
+  <div><strong>76%</strong><span>of instructions in the evaluation set never reached a model</span></div>
+  <div><strong>0.46 ms</strong><span>median local answer time</span></div>
+  <div><strong>~97%</strong><span>of prompt tokens reusable by provider prompt caching</span></div>
+</div>
+
 - Answers are cached per instruction, schema, current state and day.
 - The system prompt is identical on every request, so providers with prompt caching reuse about 97% of input tokens.
 - Pick a small, fast model first and measure it with `pnpm eval` in the repository. Set `timeoutMs` (default 15 s) and a fallback provider so a slow model never blocks users.

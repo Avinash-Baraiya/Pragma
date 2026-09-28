@@ -1,6 +1,6 @@
 # What is Pragma?
 
-Pragma is a natural-language query layer for data tables. You describe your table once as a typed schema. Your users type what they want to see. Pragma returns a **validated, library-agnostic `TableQuery`**: search, filters, sort and pagination that any table library, API or database adapter can execute.
+<p class="lead">Pragma is a natural-language query layer for data tables. Describe your table once; your users type what they want to see; Pragma returns a validated, library-agnostic <code>TableQuery</code> (search, filters, sort and pagination) that any table, API or database can run.</p>
 
 ![Pragma answering an instruction: filter chips, an explanation and the filtered table](/screenshots/results.png)
 
@@ -10,26 +10,37 @@ Every table library has its own state model for search, filtering, sorting and p
 
 ## The approach
 
-**Natural language is an input, not the source of truth.** The source of truth is a typed query that has been checked against your schema.
+**Natural language is an input, not the source of truth.** The source of truth is a typed query checked against your schema.
 
-- **The model proposes; the engine decides.** Interpreters (a deterministic parser, or a language model) only propose changes. The engine validates every field, operator and value against the schema before applying anything.
-- **Local first.** A deterministic parser handles explicit instructions (“status is trial or churned”, “@revenue over 10 lakh”, “sort by name then age desc”) in the browser in about a millisecond. It claims an instruction only when it understands every word. Anything else goes to a model through your server.
-- **Safe by construction.** Hidden fields are indistinguishable from fields that do not exist. Model output can never widen the schema. Row data is never sent to a model, only schema metadata.
-- **Stateful.** “Now sort by revenue” keeps your filters. “Remove the country filter” removes only that. Every change is a mutation applied to the current query.
-- **Honest.** Ambiguous requests (“recent customers”) come back as a clarification question with ready-made options. Impossible combinations come back as warnings. Explanations are generated from the validated query, so they always describe what will actually run.
+<div class="cards">
+  <div><strong>The model proposes; the engine decides</strong><span>Parsers and models only propose changes. Every field, operator and value is validated before anything is applied.</span></div>
+  <div><strong>Local first</strong><span>Explicit instructions are answered in the browser in about a millisecond. A model is called only for what the parser can't fully understand.</span></div>
+  <div><strong>Safe by construction</strong><span>Hidden fields behave like fields that don't exist. Model output can never widen the schema. Row data never reaches a model.</span></div>
+  <div><strong>Stateful</strong><span>“Now sort by revenue” keeps your filters. “Remove the country filter” removes only that one.</span></div>
+  <div><strong>Asks, never guesses</strong><span>Ambiguous requests return a question with ready-made options. Impossible combinations return warnings.</span></div>
+  <div><strong>Always explained</strong><span>Chips and explanations are generated from the validated query, so they always match what runs.</span></div>
+</div>
 
 ## Packages
 
-| Package                               | What it does                                                                                                                                                                |
-| ------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `@avinash-baraiya/pragma-core`        | Schema model, `TableQuery` protocol, operators, validator, normalizer, date semantics, explanations, reference executor, `@` mentions. No framework or vendor dependencies. |
-| `@avinash-baraiya/pragma-interpreter` | `createEngine`: deterministic parser, model routing, clarifications, cache, and the model-agnostic LLM layer.                                                               |
-| `@avinash-baraiya/pragma-providers`   | Model integrations: OpenAI-compatible, Anthropic, Gemini, Vercel AI SDK, mock, and the browser `remoteInterpreter`.                                                         |
-| `@avinash-baraiya/pragma-server`      | Web-standard HTTP handler (Next.js, Hono, Bun, Deno, Workers) and a Node/Express adapter. Keeps model keys on the server.                                                   |
-| `@avinash-baraiya/pragma-react`       | Accessible `AskBar` with local `@` autocomplete, `QueryChips`, `Explanation`, `ClarificationPrompt`, `Feedback`.                                                            |
-| `@avinash-baraiya/pragma-tanstack`    | TanStack Table (v9) adapter and the `usePragmaTable` hook.                                                                                                                  |
+Most apps install one package and import by subpath:
 
-Most apps install just **`@avinash-baraiya/pragma`**, which includes all of the above behind subpath imports (`@avinash-baraiya/pragma/react`, `/tanstack/react`, `/server`, `/providers/…`). The individual packages are there for minimal installs.
+```bash
+npm install @avinash-baraiya/pragma
+```
+
+| Import path                      | What you get                                                                                              |
+| -------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| `@avinash-baraiya/pragma`        | `defineSchema`, `createEngine`, the `TableQuery` protocol, validation, dates                              |
+| `…/react`                        | Accessible `AskBar` with `@` autocomplete, `QueryChips`, `Explanation`, `ClarificationPrompt`, `Feedback` |
+| `…/tanstack`, `…/tanstack/react` | TanStack Table v9 adapter and the `usePragmaTable` hook                                                   |
+| `…/server`                       | Web-standard HTTP handler plus a Node/Express adapter; keeps model keys on the server                     |
+| `…/providers/<name>`             | `openai-compatible`, `anthropic`, `gemini`, `ai-sdk`, `mock`, `remote`                                    |
+| `…/styles.css`                   | Optional default styles                                                                                   |
+
+::: details Prefer minimal installs?
+The same code is published as individual packages: `@avinash-baraiya/pragma-core`, `-interpreter`, `-providers`, `-server`, `-react` and `-tanstack`. Core has no framework or vendor dependencies.
+:::
 
 ## Where things run
 
@@ -40,4 +51,7 @@ Most apps install just **`@avinash-baraiya/pragma`**, which includes all of the 
 | Everything else                                                              | Your server, then the model you configured | One request to your endpoint, one to the model |
 | Filtering, sorting and paging the rows                                       | Browser (TanStack) or your backend         | Your choice                                    |
 
-Next: [Getting started](./getting-started).
+<div class="cards">
+  <a href="./getting-started"><strong>Get started →</strong><span>Add an ask bar to a React table in about ten minutes.</span></a>
+  <a href="./playground"><strong>Try the playground →</strong><span>The real engine on 500 sample customers.</span></a>
+</div>
