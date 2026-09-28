@@ -1,6 +1,6 @@
 {
   "name": "@avinash-baraiya/pragma-react",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Accessible React components for natural-language table queries: ask bar with @ autocomplete, chips, clarification.",
   "keywords": [
     "pragma",

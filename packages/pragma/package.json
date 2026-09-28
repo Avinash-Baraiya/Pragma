@@ -1,6 +1,6 @@
 {
   "name": "@avinash-baraiya/pragma",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Natural-language queries for data tables: one install for the Pragma engine, React components, TanStack adapter, server handler and model providers.",
   "keywords": [
     "pragma",

@@ -1,6 +1,6 @@
 {
   "name": "@avinash-baraiya/pragma-server",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Web-standard HTTP handler for Pragma natural-language table queries.",
   "keywords": [
     "pragma",
