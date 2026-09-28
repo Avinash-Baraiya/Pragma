@@ -6,7 +6,10 @@ export default defineConfig({
   dts: true,
   sourcemap: true,
   clean: true,
-  treeshake: true,
+  // Rollup tree-shaking would strip the 'use client' banner; esbuild still drops dead code.
+  treeshake: false,
   target: 'es2022',
   external: ['react', 'react/jsx-runtime'],
+  // Client components: lets React Server Component frameworks (Next.js App Router) import them.
+  banner: { js: "'use client';" },
 });
