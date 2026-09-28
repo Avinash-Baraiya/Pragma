@@ -1,6 +1,6 @@
 {
   "name": "@avinash-baraiya/pragma-providers",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Language model providers for Pragma: OpenAI-compatible, Anthropic, Vercel AI SDK, mock and remote.",
   "keywords": [
     "pragma",

@@ -1,5 +1,11 @@
 # @avinash-baraiya/pragma-core
 
+## 0.1.1
+
+### Patch Changes
+
+- 458a3b8: Link package pages to the documentation site at https://pragma-docs.vercel.app and improve npm search keywords.
+
 ## 0.1.0
 
 ### Minor Changes

@@ -1,6 +1,6 @@
 {
   "name": "@avinash-baraiya/pragma-interpreter",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Natural-language table instruction interpreter: deterministic parser, LLM routing and validation.",
   "keywords": [
     "pragma",

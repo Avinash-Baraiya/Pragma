@@ -1,6 +1,6 @@
 {
   "name": "@avinash-baraiya/pragma-tanstack",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "TanStack Table adapter for Pragma natural-language table queries.",
   "keywords": [
     "pragma",
