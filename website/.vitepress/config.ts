@@ -40,6 +40,11 @@ export default defineConfig({
   head: [
     ['link', { rel: 'icon', type: 'image/svg+xml', href: `${base}favicon.svg` }],
     ['meta', { name: 'theme-color', content: '#4f46e5' }],
+    // Google Search Console ownership (the HTML file in public/ verifies it too).
+    [
+      'meta',
+      { name: 'google-site-verification', content: '_7zW3bWdhj9Gf-yFCHK-vInCHF52WNHRaO1fGAvg1Kc' },
+    ],
     [
       'meta',
       {
