@@ -28,6 +28,7 @@ interface LanguageModelProvider {
 | ---------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `openAICompatible({ baseURL, model, apiKey? })` from `@avinash-baraiya/pragma-providers/openai-compatible` | OpenAI, Azure-compatible gateways, OpenRouter, Groq, Together, Fireworks, Ollama, vLLM, LM Studio, LiteLLM | Uses `fetch`. `structuredOutput: 'json_schema'` (strict, default), `'json_object'` or `'none'`. `maxTokensParam` and `sendTemperature` handle model quirks.                   |
 | `anthropic({ model, apiKey? \| client? })` from `@avinash-baraiya/pragma-providers/anthropic`              | Claude                                                                                                     | Official SDK (optional peer `@anthropic-ai/sdk`), native structured outputs, no sampling parameters (current models reject them), SDK retries disabled. `effort` is optional. |
+| `gemini({ model, apiKey })` from `@avinash-baraiya/pragma-providers/gemini`                                | Google Gemini via the Interactions API                                                                     | Uses `fetch`, no SDK. Native JSON-schema output and a system instruction. Newer Gemini keys can only generate through this API.                                               |
 | `aiSdk(model)` from `@avinash-baraiya/pragma-providers/ai-sdk`                                             | Any Vercel AI SDK model: Gemini, Mistral, Bedrock, Azure, Cohere, …                                        | Optional peer `ai` (v7).                                                                                                                                                      |
 | `mockProvider({ rules })` from `@avinash-baraiya/pragma-providers/mock`                                    | Tests, demos, CI                                                                                           | Deterministic, offline.                                                                                                                                                       |
 | `customProvider(id, fn)` from `@avinash-baraiya/pragma-interpreter`                                        | Anything else                                                                                              | Wrap your own gateway in a few lines.                                                                                                                                         |
@@ -77,6 +78,19 @@ When a model _is_ called:
   - Measure accuracy and p95 latency with `pnpm eval`, and move up a tier only if accuracy requires it.
   - With Claude models that support `effort`, `effort: 'low'` also reduces latency.
 - **Bounded worst case.** A timeout (`timeoutMs`, default 15 s), retries within that deadline, a fallback provider chain and the server's circuit breaker keep slow or failing models from blocking users.
+
+## Measured results
+
+`pnpm eval --provider=gemini` with `gemini-3.5-flash-lite` (September 2026, 106 cases, concurrency 2):
+
+| Metric                                       | Result                                                                                               |
+| -------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| Exact match (all categories)                 | 106 / 106; a rerun of the 29 model-dependent cases matched 28 (one judgement call on "big spenders") |
+| Unsupported and adversarial requests refused | 100% in both runs                                                                                    |
+| Answered without a model                     | 76% (median 0.46 ms)                                                                                 |
+| Model calls                                  | about 5 s median; occasional provider-side stalls of 45–60 s                                         |
+
+With this model's latency floor, set `timeoutMs` to about 8–10 s and configure a fallback provider so users never wait on a stalled call. Gemini reported no cached prompt tokens through the Interactions API, so prompt caching does not reduce latency there yet.
 
 ## Measuring a model
 
