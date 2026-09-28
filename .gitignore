@@ -13,3 +13,6 @@ tools/local-registry/storage/
 tools/local-registry/htpasswd
 website/.vitepress/cache/
 website/.vitepress/dist/
+.vercel/
+.vercel
+.env*
