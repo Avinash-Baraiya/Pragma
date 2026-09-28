@@ -164,6 +164,39 @@ importers:
         specifier: ^4.6.5
         version: 4.6.5
 
+  packages/pragma:
+    dependencies:
+      '@anthropic-ai/sdk':
+        specifier: '>=0.128.0'
+        version: 0.128.0(zod@4.6.5)
+      '@avinash-baraiya/pragma-core':
+        specifier: workspace:^
+        version: link:../core
+      '@avinash-baraiya/pragma-interpreter':
+        specifier: workspace:^
+        version: link:../interpreter
+      '@avinash-baraiya/pragma-providers':
+        specifier: workspace:^
+        version: link:../providers
+      '@avinash-baraiya/pragma-react':
+        specifier: workspace:^
+        version: link:../react
+      '@avinash-baraiya/pragma-server':
+        specifier: workspace:^
+        version: link:../server
+      '@avinash-baraiya/pragma-tanstack':
+        specifier: workspace:^
+        version: link:../tanstack
+      '@tanstack/react-table':
+        specifier: '>=9.0.0'
+        version: 9.2.4(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      ai:
+        specifier: '>=7.0.0'
+        version: 7.0.118(zod@4.6.5)
+      react:
+        specifier: '>=18.0.0'
+        version: 19.3.0
+
   packages/providers:
     dependencies:
       '@avinash-baraiya/pragma-core':

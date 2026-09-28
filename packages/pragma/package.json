@@ -1,0 +1,236 @@
+{
+  "name": "@avinash-baraiya/pragma",
+  "version": "0.0.0",
+  "description": "Natural-language queries for data tables: one install for the Pragma engine, React components, TanStack adapter, server handler and model providers.",
+  "keywords": [
+    "pragma",
+    "natural-language",
+    "table",
+    "query",
+    "filter",
+    "llm",
+    "react",
+    "tanstack"
+  ],
+  "license": "MIT",
+  "author": "Avinash Baraiya",
+  "homepage": "https://avinash-baraiya.github.io/Pragma/",
+  "bugs": {
+    "url": "https://github.com/Avinash-Baraiya/Pragma/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Avinash-Baraiya/Pragma.git",
+    "directory": "packages/pragma"
+  },
+  "type": "module",
+  "sideEffects": [
+    "*.css"
+  ],
+  "engines": {
+    "node": ">=22.12"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "typesVersions": {
+    "*": {
+      "react": [
+        "./dist/react.d.ts"
+      ],
+      "tanstack": [
+        "./dist/tanstack.d.ts"
+      ],
+      "tanstack/react": [
+        "./dist/tanstack-react.d.ts"
+      ],
+      "server": [
+        "./dist/server.d.ts"
+      ],
+      "providers/openai-compatible": [
+        "./dist/providers/openai-compatible.d.ts"
+      ],
+      "providers/anthropic": [
+        "./dist/providers/anthropic.d.ts"
+      ],
+      "providers/gemini": [
+        "./dist/providers/gemini.d.ts"
+      ],
+      "providers/ai-sdk": [
+        "./dist/providers/ai-sdk.d.ts"
+      ],
+      "providers/mock": [
+        "./dist/providers/mock.d.ts"
+      ],
+      "providers/remote": [
+        "./dist/providers/remote.d.ts"
+      ]
+    }
+  },
+  "exports": {
+    ".": {
+      "@pragma/source": "./src/index.ts",
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    },
+    "./react": {
+      "@pragma/source": "./src/react.ts",
+      "import": {
+        "types": "./dist/react.d.ts",
+        "default": "./dist/react.js"
+      },
+      "require": {
+        "types": "./dist/react.d.cts",
+        "default": "./dist/react.cjs"
+      }
+    },
+    "./tanstack": {
+      "@pragma/source": "./src/tanstack.ts",
+      "import": {
+        "types": "./dist/tanstack.d.ts",
+        "default": "./dist/tanstack.js"
+      },
+      "require": {
+        "types": "./dist/tanstack.d.cts",
+        "default": "./dist/tanstack.cjs"
+      }
+    },
+    "./tanstack/react": {
+      "@pragma/source": "./src/tanstack-react.ts",
+      "import": {
+        "types": "./dist/tanstack-react.d.ts",
+        "default": "./dist/tanstack-react.js"
+      },
+      "require": {
+        "types": "./dist/tanstack-react.d.cts",
+        "default": "./dist/tanstack-react.cjs"
+      }
+    },
+    "./server": {
+      "@pragma/source": "./src/server.ts",
+      "import": {
+        "types": "./dist/server.d.ts",
+        "default": "./dist/server.js"
+      },
+      "require": {
+        "types": "./dist/server.d.cts",
+        "default": "./dist/server.cjs"
+      }
+    },
+    "./providers/openai-compatible": {
+      "@pragma/source": "./src/providers/openai-compatible.ts",
+      "import": {
+        "types": "./dist/providers/openai-compatible.d.ts",
+        "default": "./dist/providers/openai-compatible.js"
+      },
+      "require": {
+        "types": "./dist/providers/openai-compatible.d.cts",
+        "default": "./dist/providers/openai-compatible.cjs"
+      }
+    },
+    "./providers/anthropic": {
+      "@pragma/source": "./src/providers/anthropic.ts",
+      "import": {
+        "types": "./dist/providers/anthropic.d.ts",
+        "default": "./dist/providers/anthropic.js"
+      },
+      "require": {
+        "types": "./dist/providers/anthropic.d.cts",
+        "default": "./dist/providers/anthropic.cjs"
+      }
+    },
+    "./providers/gemini": {
+      "@pragma/source": "./src/providers/gemini.ts",
+      "import": {
+        "types": "./dist/providers/gemini.d.ts",
+        "default": "./dist/providers/gemini.js"
+      },
+      "require": {
+        "types": "./dist/providers/gemini.d.cts",
+        "default": "./dist/providers/gemini.cjs"
+      }
+    },
+    "./providers/ai-sdk": {
+      "@pragma/source": "./src/providers/ai-sdk.ts",
+      "import": {
+        "types": "./dist/providers/ai-sdk.d.ts",
+        "default": "./dist/providers/ai-sdk.js"
+      },
+      "require": {
+        "types": "./dist/providers/ai-sdk.d.cts",
+        "default": "./dist/providers/ai-sdk.cjs"
+      }
+    },
+    "./providers/mock": {
+      "@pragma/source": "./src/providers/mock.ts",
+      "import": {
+        "types": "./dist/providers/mock.d.ts",
+        "default": "./dist/providers/mock.js"
+      },
+      "require": {
+        "types": "./dist/providers/mock.d.cts",
+        "default": "./dist/providers/mock.cjs"
+      }
+    },
+    "./providers/remote": {
+      "@pragma/source": "./src/providers/remote.ts",
+      "import": {
+        "types": "./dist/providers/remote.d.ts",
+        "default": "./dist/providers/remote.js"
+      },
+      "require": {
+        "types": "./dist/providers/remote.d.cts",
+        "default": "./dist/providers/remote.cjs"
+      }
+    },
+    "./styles.css": "./dist/styles.css",
+    "./package.json": "./package.json"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsup && cp ../react/src/styles.css dist/styles.css",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "check:package": "publint --strict && attw --pack . --profile node16 --exclude-entrypoints ./styles.css"
+  },
+  "dependencies": {
+    "@avinash-baraiya/pragma-core": "workspace:^",
+    "@avinash-baraiya/pragma-interpreter": "workspace:^",
+    "@avinash-baraiya/pragma-providers": "workspace:^",
+    "@avinash-baraiya/pragma-react": "workspace:^",
+    "@avinash-baraiya/pragma-server": "workspace:^",
+    "@avinash-baraiya/pragma-tanstack": "workspace:^"
+  },
+  "peerDependencies": {
+    "@anthropic-ai/sdk": ">=0.128.0",
+    "@tanstack/react-table": ">=9.0.0",
+    "ai": ">=7.0.0",
+    "react": ">=18.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@anthropic-ai/sdk": {
+      "optional": true
+    },
+    "@tanstack/react-table": {
+      "optional": true
+    },
+    "ai": {
+      "optional": true
+    },
+    "react": {
+      "optional": true
+    }
+  }
+}

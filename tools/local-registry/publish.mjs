@@ -6,7 +6,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 const REGISTRY = process.env.PRAGMA_REGISTRY ?? 'http://127.0.0.1:4873';
-const PACKAGES = ['core', 'interpreter', 'providers', 'server', 'react', 'tanstack'];
+const PACKAGES = ['core', 'interpreter', 'providers', 'server', 'react', 'tanstack', 'pragma'];
 const version = `0.1.0-local.${Date.now()}`;
 const run = (cmd, options = {}) =>
   execSync(cmd, { stdio: 'inherit', cwd: options.cwd, env: { ...process.env, ...options.env } });
