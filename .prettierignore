@@ -4,3 +4,4 @@ pnpm-lock.yaml
 *.api.md
 website/.vitepress/cache
 website/.vitepress/dist
+website/public/google*.html
