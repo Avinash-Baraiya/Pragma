@@ -1,0 +1,10 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "installCommand": "pnpm install --frozen-lockfile",
+  "buildCommand": "pnpm --filter @avinash-baraiya/pragma-website build",
+  "outputDirectory": "website/.vitepress/dist",
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "git": { "deploymentEnabled": { "main": true } }
+}
