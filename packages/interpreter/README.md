@@ -17,4 +17,4 @@ const result = await engine.interpret('active customers older than 25, newest fi
 
 `interpret()` never rejects for runtime problems. It resolves to `ok`, `needs_clarification`, `unsupported` or `error`.
 
-Docs: [architecture](https://avinash-baraiya.github.io/Pragma/reference/architecture) · [models](https://avinash-baraiya.github.io/Pragma/reference/llm) · [ambiguity](https://avinash-baraiya.github.io/Pragma/reference/ambiguity)
+Docs: [architecture](https://pragma-docs.vercel.app/reference/architecture) · [models](https://pragma-docs.vercel.app/reference/llm) · [ambiguity](https://pragma-docs.vercel.app/reference/ambiguity)

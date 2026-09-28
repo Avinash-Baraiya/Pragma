@@ -20,4 +20,4 @@ React, TanStack Table, `@anthropic-ai/sdk` and `ai` are optional peer dependenci
 
 Prefer minimal installs? The same code is published as individual packages: `@avinash-baraiya/pragma-core`, `-interpreter`, `-providers`, `-server`, `-react` and `-tanstack`.
 
-Docs, setup guide and live playground: https://avinash-baraiya.github.io/Pragma/
+Docs, setup guide and live playground: https://pragma-docs.vercel.app/

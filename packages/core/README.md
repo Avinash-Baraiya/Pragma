@@ -19,4 +19,4 @@ import {
 - `resolveDates(query, schema, { now, timezone })`: absolute ranges for backends
 - `suggestMentions`, `resolveMention`: local `@` autocomplete
 
-Docs: [protocol](https://avinash-baraiya.github.io/Pragma/reference/protocol) · [schema](https://avinash-baraiya.github.io/Pragma/reference/schema) · [operators](https://avinash-baraiya.github.io/Pragma/reference/operators) · [errors](https://avinash-baraiya.github.io/Pragma/reference/errors)
+Docs: [protocol](https://pragma-docs.vercel.app/reference/protocol) · [schema](https://pragma-docs.vercel.app/reference/schema) · [operators](https://pragma-docs.vercel.app/reference/operators) · [errors](https://pragma-docs.vercel.app/reference/errors)

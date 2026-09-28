@@ -11,4 +11,4 @@ Model integrations. Import each one from its subpath so unused SDKs are never bu
 | `@avinash-baraiya/pragma-providers/mock`              | Tests and demos                                                      |
 | `@avinash-baraiya/pragma-providers/remote`            | Browser client for `@avinash-baraiya/pragma-server`                  |
 
-Docs: [models](https://avinash-baraiya.github.io/Pragma/reference/llm)
+Docs: [models](https://pragma-docs.vercel.app/reference/llm)

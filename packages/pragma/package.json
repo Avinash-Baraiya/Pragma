@@ -10,11 +10,23 @@
     "filter",
     "llm",
     "react",
-    "tanstack"
+    "tanstack",
+    "natural-language-query",
+    "nl-to-query",
+    "query-builder",
+    "data-table",
+    "table-filter",
+    "ai",
+    "tanstack-table",
+    "react-table",
+    "search",
+    "sort",
+    "pagination",
+    "typescript"
   ],
   "license": "MIT",
   "author": "Avinash Baraiya",
-  "homepage": "https://avinash-baraiya.github.io/Pragma/",
+  "homepage": "https://pragma-docs.vercel.app/",
   "bugs": {
     "url": "https://github.com/Avinash-Baraiya/Pragma/issues"
   },

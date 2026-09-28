@@ -8,11 +8,16 @@
     "query",
     "filter",
     "schema",
-    "validation"
+    "validation",
+    "natural-language-query",
+    "query-builder",
+    "table-filter",
+    "data-table",
+    "typescript"
   ],
   "license": "MIT",
   "author": "Avinash Baraiya",
-  "homepage": "https://avinash-baraiya.github.io/Pragma/",
+  "homepage": "https://pragma-docs.vercel.app/",
   "bugs": {
     "url": "https://github.com/Avinash-Baraiya/Pragma/issues"
   },

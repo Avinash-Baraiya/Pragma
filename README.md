@@ -1,8 +1,10 @@
 # Pragma
 
+[![npm](https://img.shields.io/npm/v/@avinash-baraiya/pragma?color=4f46e5&label=npm)](https://www.npmjs.com/package/@avinash-baraiya/pragma) [![CI](https://github.com/Avinash-Baraiya/Pragma/actions/workflows/ci.yml/badge.svg)](https://github.com/Avinash-Baraiya/Pragma/actions/workflows/ci.yml) [![bundle size](https://img.shields.io/badge/browser%20bundle-61%20kB-4f46e5)](https://pragma-docs.vercel.app/reference/performance) [![license](https://img.shields.io/npm/l/@avinash-baraiya/pragma?color=4f46e5)](LICENSE)
+
 **Natural-language queries for data tables — as a validated, library-agnostic `TableQuery`.**
 
-**[Website & docs](https://avinash-baraiya.github.io/Pragma/)** · **[Live playground](https://avinash-baraiya.github.io/Pragma/guide/playground)** · **[Getting started](https://avinash-baraiya.github.io/Pragma/guide/getting-started)**
+**[Website & docs](https://pragma-docs.vercel.app/)** · **[Live playground](https://pragma-docs.vercel.app/guide/playground)** · **[Getting started](https://pragma-docs.vercel.app/guide/getting-started)**
 
 ![An instruction typed into the Pragma ask bar, the resulting filter chips, and the filtered table](website/public/screenshots/results.png)
 
@@ -157,6 +159,6 @@ pnpm --filter @avinash-baraiya/pragma-website dev           # local preview
 pnpm --filter @avinash-baraiya/pragma-website screenshots   # refresh screenshots (Playwright)
 ```
 
-It deploys to GitHub Pages from `main` via `.github/workflows/docs.yml`.
+It is hosted on Vercel at https://pragma-docs.vercel.app (mirrored to GitHub Pages by `.github/workflows/docs.yml`).
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) and [SECURITY.md](SECURITY.md).
