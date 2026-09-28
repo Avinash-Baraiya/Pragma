@@ -14,6 +14,9 @@ const REPO_FILE_LINK = /^(?:\.\.\/)+((?:SECURITY|CONTRIBUTING|LICENSE|README)(?:
  */
 const base = process.env['PRAGMA_BASE'] ?? (process.env['VERCEL'] ? '/' : '/Pragma/');
 
+/** The canonical home of the docs; mirrors (Vercel) point search engines here. */
+const CANONICAL = 'https://pragma-docs.vercel.app/';
+
 export default defineConfig({
   title: 'Pragma',
   description:
@@ -24,9 +27,45 @@ export default defineConfig({
   // The screenshot stage only exists while `pnpm screenshots` runs.
   srcExclude: process.env['PRAGMA_SCREENSHOTS'] ? [] : ['screenshot-stage.md'],
   lastUpdated: true,
+  sitemap: { hostname: CANONICAL },
+  // Every page names its canonical URL, so copies on other hosts never compete in search.
+  transformPageData(pageData) {
+    const path = pageData.relativePath.replace(/(^|\/)index\.md$/, '$1').replace(/\.md$/, '');
+    pageData.frontmatter['head'] ??= [];
+    (pageData.frontmatter['head'] as unknown[]).push(
+      ['link', { rel: 'canonical', href: `${CANONICAL}${path}` }],
+      ['meta', { property: 'og:url', content: `${CANONICAL}${path}` }],
+    );
+  },
   head: [
     ['link', { rel: 'icon', type: 'image/svg+xml', href: `${base}favicon.svg` }],
     ['meta', { name: 'theme-color', content: '#4f46e5' }],
+    [
+      'meta',
+      {
+        name: 'keywords',
+        content:
+          'pragma, natural language query, natural language to filter, nl2query, table filter, data table, TanStack Table, React table search, LLM query builder, AI table filter, TypeScript',
+      },
+    ],
+    ['meta', { property: 'og:type', content: 'website' }],
+    ['meta', { property: 'og:site_name', content: 'Pragma' }],
+    ['meta', { name: 'twitter:card', content: 'summary_large_image' }],
+    [
+      'script',
+      { type: 'application/ld+json' },
+      JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'SoftwareSourceCode',
+        name: 'Pragma',
+        description:
+          'Natural-language queries for data tables: a validated, library-agnostic TableQuery for search, filters, sort and pagination.',
+        codeRepository: REPO,
+        programmingLanguage: 'TypeScript',
+        license: 'https://opensource.org/licenses/MIT',
+        url: CANONICAL,
+      }),
+    ],
     ['meta', { property: 'og:title', content: 'Pragma — natural-language table queries' }],
     [
       'meta',

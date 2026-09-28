@@ -1,7 +1,8 @@
 ---
 layout: home
 title: Pragma
-titleTemplate: Natural-language queries for data tables
+titleTemplate: Natural-language queries for data tables (React, TanStack, any LLM)
+description: Pragma turns plain-language requests into validated search, filter, sort and pagination queries for any data table. Works with React, TanStack Table and any AI model.
 ---
 
 <HomeHero />
