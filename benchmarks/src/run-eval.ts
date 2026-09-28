@@ -46,9 +46,18 @@ async function providerFor(name: string): Promise<LanguageModelProvider | undefi
         ...(env['ANTHROPIC_API_KEY'] ? { apiKey: env['ANTHROPIC_API_KEY'] } : {}),
       });
     }
+    case 'gemini': {
+      const { gemini } = await import('@avinash-baraiya/pragma-providers/gemini');
+      const apiKey = env['GOOGLE_GENERATIVE_AI_API_KEY'] ?? env['GEMINI_API_KEY'];
+      if (!apiKey) throw new Error('Set GOOGLE_GENERATIVE_AI_API_KEY (or GEMINI_API_KEY).');
+      return gemini({
+        model: env['GEMINI_MODEL'] ?? env['PLANNER_MODEL_ID'] ?? 'gemini-3.5-flash-lite',
+        apiKey,
+      });
+    }
     default:
       throw new Error(
-        `Unknown provider "${name}". Use deterministic, openai-compatible or anthropic.`,
+        `Unknown provider "${name}". Use deterministic, openai-compatible, anthropic or gemini.`,
       );
   }
 }
