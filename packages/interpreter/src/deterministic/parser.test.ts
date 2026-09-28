@@ -363,6 +363,20 @@ describe('parseDeterministic: resource names and value boundaries (regressions)'
     ]);
   });
 
+  it('never reads an operator word as a value', () => {
+    // "a" is an article, so the startsWith phrase has no value; the instruction must not
+    // become `name = "starts"`.
+    expect(run('name starts with A').covered).toBe(false);
+    expect(run('name begins with a').covered).toBe(false);
+    expect(run('name ends with a').covered).toBe(false);
+    expect(render(run('name starts with Ra').proposal.mutations)).toEqual([
+      'filter name startsWith "Ra"',
+    ]);
+    expect(render(run('name starts with "A"').proposal.mutations)).toEqual([
+      'filter name startsWith "A"',
+    ]);
+  });
+
   it('never swallows a recency phrase or field name as a list value', () => {
     expect(render(run('country in India, US, newest first').proposal.mutations)).toEqual([
       'filter country in ["India","US"]',

@@ -56,11 +56,15 @@ const FILLER = new Set(
  * Words an unquoted text value never starts with: "email is from gmail" or
  * "city is near Pune" carry meaning the grammar does not model, so such
  * instructions go to the model instead of becoming `email = "from gmail"`.
+ * Operator words are included so an operator phrase that could not be read in
+ * full ("name starts with A", where "a" is an article) is never mistaken for a
+ * value (`name = "starts"`).
  */
 const VALUE_START_BLOCKLIST = new Set(
-  'from of in at on with by near around about like than to for into within without under over above below between after before since until'.split(
-    ' ',
-  ),
+  (
+    'from of in at on with by near around about like than to for into within without under over above below between after before since until ' +
+    'starts starting start begins beginning begin ends ending end contains containing includes including excludes'
+  ).split(' '),
 );
 
 /** Words that end an unquoted text value. */
