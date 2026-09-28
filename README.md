@@ -2,6 +2,10 @@
 
 **Natural-language queries for data tables — as a validated, library-agnostic `TableQuery`.**
 
+**[Website & docs](https://avinash-baraiya.github.io/Pragma/)** · **[Live playground](https://avinash-baraiya.github.io/Pragma/guide/playground)** · **[Getting started](https://avinash-baraiya.github.io/Pragma/guide/getting-started)**
+
+![An instruction typed into the Pragma ask bar, the resulting filter chips, and the filtered table](website/public/screenshots/results.png)
+
 Give Pragma a typed table schema and a user's instruction ("active enterprise customers in India, newest first, 50 per page"). It returns a standard query payload (search, filters, sort and pagination) that any table library, API or database adapter can execute.
 
 ```text
@@ -32,7 +36,7 @@ Natural language is an input modality, not the source of truth. **The model prop
 | ------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [`@avinash-baraiya/pragma-core`](packages/core)               | Schema model, `TableQuery` protocol, operators, validator, normalizer, date semantics, explanations, reference executor, `@`-mentions. No framework or vendor dependencies. |
 | [`@avinash-baraiya/pragma-interpreter`](packages/interpreter) | `createEngine`: deterministic parser, model routing, clarification flow, cache, and the model-agnostic LLM layer (`LanguageModelProvider`).                                 |
-| [`@avinash-baraiya/pragma-providers`](packages/providers)     | Model integrations: OpenAI-compatible (OpenAI, OpenRouter, Groq, Ollama, vLLM, …), Anthropic, Vercel AI SDK, mock, and the browser `remoteInterpreter`.                     |
+| [`@avinash-baraiya/pragma-providers`](packages/providers)     | Model integrations: OpenAI-compatible (OpenAI, OpenRouter, Groq, Ollama, vLLM, …), Anthropic, Gemini, Vercel AI SDK, mock, and the browser `remoteInterpreter`.             |
 | [`@avinash-baraiya/pragma-server`](packages/server)           | Web-standard HTTP handler (Next.js, Hono, Bun, Deno, Workers) plus a Node/Express adapter. Keeps model credentials server-side.                                             |
 | [`@avinash-baraiya/pragma-react`](packages/react)             | Accessible `AskBar` with local `@` autocomplete, `QueryChips`, `Explanation`, `ClarificationPrompt`, `Feedback`.                                                            |
 | [`@avinash-baraiya/pragma-tanstack`](packages/tanstack)       | TanStack Table adapter (v9), verified row-for-row against the reference executor, plus the `usePragmaTable` hook.                                                           |
@@ -138,5 +142,14 @@ pnpm lint && pnpm typecheck && pnpm format:check
 pnpm build && pnpm check:packages && pnpm size
 pnpm eval            # evaluation report (add --provider=... for a model)
 ```
+
+The website lives in [`website/`](website) (VitePress):
+
+```bash
+pnpm --filter @avinash-baraiya/pragma-website dev           # local preview
+pnpm --filter @avinash-baraiya/pragma-website screenshots   # refresh screenshots (Playwright)
+```
+
+It deploys to GitHub Pages from `main` via `.github/workflows/docs.yml`.
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) and [SECURITY.md](SECURITY.md).
