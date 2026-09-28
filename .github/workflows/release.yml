@@ -1,0 +1,47 @@
+name: Release
+
+# On every push to main, changesets either:
+#  - opens/updates a "Version Packages" pull request when unreleased changesets exist, or
+#  - after that pull request is merged, publishes the new versions to npm (with
+#    provenance) and creates a GitHub release for each published package.
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write # push tags, create GitHub releases
+  pull-requests: write # open the "Version Packages" pull request
+  id-token: write # npm trusted publishing (OIDC) and provenance
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    # Off until the one-time setup in docs/releasing.md is done (repository
+    # variable RELEASE_AUTOMATION=true), so nothing is published by surprise.
+    if: vars.RELEASE_AUTOMATION == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+          registry-url: 'https://registry.npmjs.org'
+      # Trusted publishing needs npm 11.5.1 or later.
+      - run: npm install --global npm@latest
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint && pnpm typecheck && pnpm test
+      - uses: changesets/action@v1
+        with:
+          version: pnpm changeset version
+          publish: pnpm release
+          title: 'chore: version packages'
+          commit: 'chore: version packages'
+          createGithubReleases: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

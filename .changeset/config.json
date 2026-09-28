@@ -10,6 +10,7 @@
   "ignore": [
     "@avinash-baraiya/pragma-conformance",
     "@avinash-baraiya/pragma-benchmarks",
-    "tanstack-react-example"
+    "tanstack-react-example",
+    "@avinash-baraiya/pragma-website"
   ]
 }
