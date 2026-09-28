@@ -48,7 +48,7 @@ export function buildPrompt(input: PromptInput): { system: string; user: string 
   numbers as JSON numbers; dates as "YYYY-MM-DD"; datetimes as ISO-8601; enum fields use the exact enum value (not the label).
 - Operators with no value (isNull, isNotNull, isEmpty, isNotEmpty, today, yesterday, thisWeek, lastWeek, thisMonth, lastMonth, thisYear) take value null.
 - "between"/"notBetween" take [from, to]. "in"/"notIn" take a list. "last"/"next" take {"amount": n, "unit": "minute"|"hour"|"day"|"week"|"month"|"year"}.
-- Prefer relative operators for relative dates ("last 7 days" → last {7, day}; "this month" → thisMonth). Today's date and timezone are given with the instruction.
+- Relative phrases use relative operators ("last 7 days" → last {7, day}; "this month" → thisMonth). Specific calendar periods use absolute dates: "in 2023" → between ["2023-01-01", "2023-12-31"]; "in March 2024" → between ["2024-03-01", "2024-03-31"]; "since 2022" → onOrAfter "2022-01-01". Never turn a named year or month into thisYear/thisMonth unless it is the current one and the user said "this". Today's date and timezone are given with the instruction.
 - Missing values ("no phone", "without email") use isNull, not an empty string.
 - Global text search ("search rahul", a bare name) uses setSearch. Conditions on a specific field use addFilter.
 - Actions modify the CURRENT table state (given with the instruction). Keep what the user did not ask to change:
