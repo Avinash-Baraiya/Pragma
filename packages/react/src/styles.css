@@ -248,3 +248,29 @@
   display: flex;
   gap: var(--pragma-gap);
 }
+
+.pragma-clarification__actions button {
+  padding: 4px 12px;
+  color: var(--pragma-fg);
+  background: var(--pragma-bg);
+  border: 1px solid var(--pragma-border);
+  border-radius: var(--pragma-radius);
+  font: inherit;
+  cursor: pointer;
+}
+
+.pragma-clarification__actions button[type='submit'] {
+  color: var(--pragma-accent-fg);
+  background: var(--pragma-accent);
+  border-color: var(--pragma-accent);
+}
+
+.pragma-clarification__actions button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pragma-clarification__actions button:focus-visible {
+  outline: none;
+  box-shadow: var(--pragma-focus);
+}
