@@ -52,5 +52,17 @@ export default tseslint.config(
       'no-console': 'off',
     },
   },
+  {
+    // Plain JavaScript tooling scripts are not part of any tsconfig project.
+    files: ['**/*.mjs', '**/*.cjs'],
+    ...tseslint.configs.disableTypeChecked,
+    languageOptions: {
+      ...tseslint.configs.disableTypeChecked.languageOptions,
+      parserOptions: { projectService: false, program: null },
+      globals: { process: 'readonly', console: 'readonly', Buffer: 'readonly', fetch: 'readonly' },
+    },
+    // Command-line tools report progress on the console.
+    rules: { ...tseslint.configs.disableTypeChecked.rules, 'no-console': 'off' },
+  },
   prettier,
 );
