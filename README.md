@@ -34,6 +34,7 @@ Natural language is an input modality, not the source of truth. **The model prop
 
 | Package                                                       | What it does                                                                                                                                                                |
 | ------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`@avinash-baraiya/pragma`](packages/pragma)                  | **Start here.** Everything below in one install, imported by subpath: `/react`, `/tanstack`, `/tanstack/react`, `/server`, `/providers/<name>`, `/styles.css`.              |
 | [`@avinash-baraiya/pragma-core`](packages/core)               | Schema model, `TableQuery` protocol, operators, validator, normalizer, date semantics, explanations, reference executor, `@`-mentions. No framework or vendor dependencies. |
 | [`@avinash-baraiya/pragma-interpreter`](packages/interpreter) | `createEngine`: deterministic parser, model routing, clarification flow, cache, and the model-agnostic LLM layer (`LanguageModelProvider`).                                 |
 | [`@avinash-baraiya/pragma-providers`](packages/providers)     | Model integrations: OpenAI-compatible (OpenAI, OpenRouter, Groq, Ollama, vLLM, …), Anthropic, Gemini, Vercel AI SDK, mock, and the browser `remoteInterpreter`.             |
@@ -43,11 +44,17 @@ Natural language is an input modality, not the source of truth. **The model prop
 
 ## Quick start
 
+```bash
+npm install @avinash-baraiya/pragma @tanstack/react-table
+```
+
+One package, with subpath imports for each part. Only what you import reaches your bundle.
+
 **Server** (holds the model key):
 
 ```ts
-import { createPragmaHandler } from '@avinash-baraiya/pragma-server';
-import { openAICompatible } from '@avinash-baraiya/pragma-providers/openai-compatible';
+import { createPragmaHandler } from '@avinash-baraiya/pragma/server';
+import { openAICompatible } from '@avinash-baraiya/pragma/providers/openai-compatible';
 import { customersSchema } from './schema';
 
 export const POST = createPragmaHandler({
@@ -64,8 +71,8 @@ export const POST = createPragmaHandler({
 **Browser:**
 
 ```tsx
-import { createEngine } from '@avinash-baraiya/pragma-interpreter';
-import { remoteInterpreter } from '@avinash-baraiya/pragma-providers/remote';
+import { createEngine } from '@avinash-baraiya/pragma';
+import { remoteInterpreter } from '@avinash-baraiya/pragma/providers/remote';
 import {
   AskBar,
   ClarificationPrompt,
@@ -73,9 +80,9 @@ import {
   PragmaProvider,
   QueryChips,
   usePragma,
-} from '@avinash-baraiya/pragma-react';
-import { usePragmaTable } from '@avinash-baraiya/pragma-tanstack/react';
-import '@avinash-baraiya/pragma-react/styles.css';
+} from '@avinash-baraiya/pragma/react';
+import { usePragmaTable } from '@avinash-baraiya/pragma/tanstack/react';
+import '@avinash-baraiya/pragma/styles.css';
 
 const engine = createEngine({
   schema: customersSchema,

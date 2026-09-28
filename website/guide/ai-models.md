@@ -19,11 +19,9 @@ AskBar → engine
 - Only **schema metadata** (field names, types, aliases, enum values) and the instruction are sent to the model. **Row data never is.** Hidden fields are never included.
 - The model's answer is validated on the server, and again in the browser, before anything is applied.
 
-## 1. Install the server packages
+## 1. Install
 
-```bash
-npm install @avinash-baraiya/pragma-server @avinash-baraiya/pragma-providers
-```
+The server handler and providers are already part of `@avinash-baraiya/pragma`, so there's nothing extra to install. The Anthropic and AI SDK providers need their SDK (shown below); the others use `fetch`.
 
 ## 2. Choose a provider
 
@@ -33,7 +31,7 @@ Every provider takes a `model` (nothing is hard-coded) and reads your key from w
 
 ```ts [OpenAI & compatible]
 // OpenAI, OpenRouter, Groq, Together, Fireworks, Ollama, vLLM, LM Studio, LiteLLM…
-import { openAICompatible } from '@avinash-baraiya/pragma-providers/openai-compatible';
+import { openAICompatible } from '@avinash-baraiya/pragma/providers/openai-compatible';
 
 const provider = openAICompatible({
   baseURL: 'https://api.openai.com/v1', // or http://localhost:11434/v1 for Ollama
@@ -44,7 +42,7 @@ const provider = openAICompatible({
 
 ```ts [Anthropic (Claude)]
 // npm install @anthropic-ai/sdk
-import { anthropic } from '@avinash-baraiya/pragma-providers/anthropic';
+import { anthropic } from '@avinash-baraiya/pragma/providers/anthropic';
 
 const provider = anthropic({
   model: 'claude-haiku-4-5', // a small, fast tier is usually enough
@@ -53,7 +51,7 @@ const provider = anthropic({
 ```
 
 ```ts [Google Gemini]
-import { gemini } from '@avinash-baraiya/pragma-providers/gemini';
+import { gemini } from '@avinash-baraiya/pragma/providers/gemini';
 
 const provider = gemini({
   model: process.env.GEMINI_MODEL!, // e.g. gemini-3.5-flash-lite
@@ -63,14 +61,14 @@ const provider = gemini({
 
 ```ts [Vercel AI SDK]
 // npm install ai @ai-sdk/mistral (or any AI SDK provider)
-import { aiSdk } from '@avinash-baraiya/pragma-providers/ai-sdk';
+import { aiSdk } from '@avinash-baraiya/pragma/providers/ai-sdk';
 import { mistral } from '@ai-sdk/mistral';
 
 const provider = aiSdk(mistral('mistral-small-latest'));
 ```
 
 ```ts [Your own gateway]
-import { customProvider } from '@avinash-baraiya/pragma-interpreter';
+import { customProvider } from '@avinash-baraiya/pragma';
 
 const provider = customProvider('my-gateway', async (request) => {
   const res = await fetch('https://llm.internal/generate', {
@@ -92,7 +90,7 @@ Pass an array to get a fallback chain: `provider: [primary, cheaperFallback]`.
 
 ```ts [Next.js]
 // app/api/pragma/route.ts
-import { createPragmaHandler } from '@avinash-baraiya/pragma-server';
+import { createPragmaHandler } from '@avinash-baraiya/pragma/server';
 import { customersSchema } from '@/lib/schema';
 
 export const POST = createPragmaHandler({
@@ -104,7 +102,7 @@ export const POST = createPragmaHandler({
 
 ```ts [Express]
 import express from 'express';
-import { createPragmaHandler, toNodeHandler } from '@avinash-baraiya/pragma-server';
+import { createPragmaHandler, toNodeHandler } from '@avinash-baraiya/pragma/server';
 
 const app = express();
 app.use(express.json());
@@ -126,8 +124,8 @@ The handler enforces body and instruction size limits, returns [RFC 9457](https:
 ## 4. Point the browser at it
 
 ```ts
-import { createEngine } from '@avinash-baraiya/pragma-interpreter';
-import { remoteInterpreter } from '@avinash-baraiya/pragma-providers/remote';
+import { createEngine } from '@avinash-baraiya/pragma';
+import { remoteInterpreter } from '@avinash-baraiya/pragma/providers/remote';
 
 export const engine = createEngine({
   schema: customersSchema,

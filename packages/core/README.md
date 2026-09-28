@@ -19,4 +19,4 @@ import {
 - `resolveDates(query, schema, { now, timezone })`: absolute ranges for backends
 - `suggestMentions`, `resolveMention`: local `@` autocomplete
 
-Docs: [protocol](../../docs/protocol.md) · [schema](../../docs/schema.md) · [operators](../../docs/operators.md) · [errors](../../docs/errors.md)
+Docs: [protocol](https://avinash-baraiya.github.io/Pragma/reference/protocol) · [schema](https://avinash-baraiya.github.io/Pragma/reference/schema) · [operators](https://avinash-baraiya.github.io/Pragma/reference/operators) · [errors](https://avinash-baraiya.github.io/Pragma/reference/errors)

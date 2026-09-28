@@ -14,23 +14,24 @@ This page sets up Pragma in a React app with TanStack Table, entirely in the bro
 ::: code-group
 
 ```bash [npm]
-npm install @avinash-baraiya/pragma-core @avinash-baraiya/pragma-interpreter \
-  @avinash-baraiya/pragma-react @avinash-baraiya/pragma-tanstack @tanstack/react-table
+npm install @avinash-baraiya/pragma @tanstack/react-table
 ```
 
 ```bash [pnpm]
-pnpm add @avinash-baraiya/pragma-core @avinash-baraiya/pragma-interpreter \
-  @avinash-baraiya/pragma-react @avinash-baraiya/pragma-tanstack @tanstack/react-table
+pnpm add @avinash-baraiya/pragma @tanstack/react-table
 ```
 
 ```bash [yarn]
-yarn add @avinash-baraiya/pragma-core @avinash-baraiya/pragma-interpreter \
-  @avinash-baraiya/pragma-react @avinash-baraiya/pragma-tanstack @tanstack/react-table
+yarn add @avinash-baraiya/pragma @tanstack/react-table
 ```
 
 :::
 
-All packages are ESM and CommonJS, side-effect free and tree-shakeable.
+One package gives you everything, imported by subpath (`/react`, `/tanstack/react`, `/server`, `/providers/…`), so only what you import reaches your bundle. It is ESM and CommonJS, and tree-shakeable. Leave out `@tanstack/react-table` if you render your own table.
+
+::: details Prefer individual packages?
+The same code is also published as `@avinash-baraiya/pragma-core`, `-interpreter`, `-react`, `-tanstack`, `-server` and `-providers`. Replace `@avinash-baraiya/pragma/react` with `@avinash-baraiya/pragma-react`, and so on.
+:::
 
 ## 2. Describe your table
 
@@ -38,7 +39,7 @@ The schema is the contract: only fields listed here can be queried, and only in 
 
 ```ts
 // schema.ts
-import { defineSchema } from '@avinash-baraiya/pragma-core';
+import { defineSchema } from '@avinash-baraiya/pragma';
 
 export const customersSchema = defineSchema({
   schemaVersion: '1',
@@ -69,7 +70,7 @@ export const customersSchema = defineSchema({
 
 ```ts
 // engine.ts
-import { createEngine } from '@avinash-baraiya/pragma-interpreter';
+import { createEngine } from '@avinash-baraiya/pragma';
 import { customersSchema } from './schema';
 
 export const engine = createEngine({
@@ -93,9 +94,9 @@ import {
   PragmaProvider,
   QueryChips,
   usePragma,
-} from '@avinash-baraiya/pragma-react';
-import { usePragmaTable } from '@avinash-baraiya/pragma-tanstack/react';
-import '@avinash-baraiya/pragma-react/styles.css'; // optional default styles
+} from '@avinash-baraiya/pragma/react';
+import { usePragmaTable } from '@avinash-baraiya/pragma/tanstack/react';
+import '@avinash-baraiya/pragma/styles.css'; // optional default styles
 import { engine } from './engine';
 import { customersSchema } from './schema';
 
@@ -150,7 +151,7 @@ const rows = await fetch('/api/customers/search', {
 }).then((r) => r.json());
 ```
 
-On the server, validate the payload again with `parseTableQuery` and `validateQuery` from `@avinash-baraiya/pragma-core`, and use `resolveDates` to turn relative dates (“last 30 days”) into absolute ranges for your database. See [integration](/reference/integration).
+On the server, validate the payload again with `parseTableQuery` and `validateQuery` from `@avinash-baraiya/pragma`, and use `resolveDates` to turn relative dates (“last 30 days”) into absolute ranges for your database. See [integration](/reference/integration).
 
 ## Next steps
 

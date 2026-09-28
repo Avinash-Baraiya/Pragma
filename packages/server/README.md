@@ -12,4 +12,4 @@ app.post('/api/pragma', toNodeHandler(handler)); // Express / node:http
 
 Completed interpretations return `200`; every failure returns RFC 9457 `application/problem+json` with a stable `code` and the `requestId`.
 
-Docs: [integration](../../docs/integration.md) · [security](../../docs/security.md) · [errors](../../docs/errors.md)
+Docs: [integration](https://avinash-baraiya.github.io/Pragma/reference/integration) · [security](https://avinash-baraiya.github.io/Pragma/reference/security) · [errors](https://avinash-baraiya.github.io/Pragma/reference/errors)

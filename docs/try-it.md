@@ -18,18 +18,16 @@ Repository versions are not changed. Re-run `registry:publish` after every chang
 npm create vite@latest my-app -- --template react-ts
 cd my-app
 echo "@avinash-baraiya:registry=http://127.0.0.1:4873/" > .npmrc
-npm install @avinash-baraiya/pragma-core@local @avinash-baraiya/pragma-interpreter@local \
-  @avinash-baraiya/pragma-react@local @avinash-baraiya/pragma-tanstack@local @tanstack/react-table
+npm install @avinash-baraiya/pragma@local @tanstack/react-table
 ```
 
 ## 3. Minimal usage (browser only, no key)
 
 ```tsx
-import { defineSchema } from '@avinash-baraiya/pragma-core';
-import { createEngine } from '@avinash-baraiya/pragma-interpreter';
-import { AskBar, QueryChips, PragmaProvider, usePragma } from '@avinash-baraiya/pragma-react';
-import { usePragmaTable } from '@avinash-baraiya/pragma-tanstack/react';
-import '@avinash-baraiya/pragma-react/styles.css';
+import { createEngine, defineSchema } from '@avinash-baraiya/pragma';
+import { AskBar, QueryChips, PragmaProvider, usePragma } from '@avinash-baraiya/pragma/react';
+import { usePragmaTable } from '@avinash-baraiya/pragma/tanstack/react';
+import '@avinash-baraiya/pragma/styles.css';
 
 const schema = defineSchema({
   schemaVersion: '1',
@@ -48,14 +46,10 @@ Wrap your UI in `<PragmaProvider engine={engine}>`, render `<AskBar />` and `<Qu
 
 Explicit instructions work offline. For phrasing like "Indian customers" or "older than 40", run the server handler with a model and point the engine at it:
 
-```bash
-npm install @avinash-baraiya/pragma-server@local @avinash-baraiya/pragma-providers@local
-```
-
 ```ts
 // server (keeps the key)
-import { createPragmaHandler, toNodeHandler } from '@avinash-baraiya/pragma-server';
-import { openAICompatible } from '@avinash-baraiya/pragma-providers/openai-compatible';
+import { createPragmaHandler, toNodeHandler } from '@avinash-baraiya/pragma/server';
+import { openAICompatible } from '@avinash-baraiya/pragma/providers/openai-compatible';
 app.post(
   '/api/pragma',
   toNodeHandler(
@@ -71,14 +65,12 @@ app.post(
 );
 
 // browser
-import { remoteInterpreter } from '@avinash-baraiya/pragma-providers/remote';
+import { remoteInterpreter } from '@avinash-baraiya/pragma/providers/remote';
 const engine = createEngine({ schema, interpreter: remoteInterpreter({ url: '/api/pragma' }) });
 ```
 
 For low latency, pick a small, fast model and measure it with `pnpm eval` (see [models](llm.md#cost-and-latency)).
 
-## 5. Publishing publicly later
+## 5. Publishing to npm
 
-1. Make sure the npm username owns the `@avinash-baraiya` scope (or rename the scope everywhere).
-2. `npm login`, or configure npm trusted publishing for this GitHub repository.
-3. `pnpm changeset version`, review, commit, then `pnpm build && pnpm -r --filter "./packages/*" publish --access public`.
+See [releasing](releasing.md).

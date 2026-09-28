@@ -29,7 +29,7 @@ Every table library has its own state model for search, filtering, sorting and p
 | `@avinash-baraiya/pragma-react`       | Accessible `AskBar` with local `@` autocomplete, `QueryChips`, `Explanation`, `ClarificationPrompt`, `Feedback`.                                                            |
 | `@avinash-baraiya/pragma-tanstack`    | TanStack Table (v9) adapter and the `usePragmaTable` hook.                                                                                                                  |
 
-You only install what you use. A browser-only setup with no model needs `core`, `interpreter`, and optionally `react` and `tanstack`.
+Most apps install just **`@avinash-baraiya/pragma`**, which includes all of the above behind subpath imports (`@avinash-baraiya/pragma/react`, `/tanstack/react`, `/server`, `/providers/…`). The individual packages are there for minimal installs.
 
 ## Where things run
 

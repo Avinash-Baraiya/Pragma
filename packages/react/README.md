@@ -24,4 +24,4 @@ import '@avinash-baraiya/pragma-react/styles.css'; // optional, themeable, dark-
 
 The `AskBar` is an ARIA 1.2 combobox with local `@` column autocomplete (no model call). Chip removal and clarification choices are applied locally. `usePragma()` and `useMentionAutocomplete()` support fully custom UIs.
 
-Docs: [integration](../../docs/integration.md)
+Docs: [integration](https://avinash-baraiya.github.io/Pragma/reference/integration)
