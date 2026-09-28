@@ -72,5 +72,13 @@ export default tseslint.config(
     // Command-line tools report progress on the console.
     rules: { ...tseslint.configs.disableTypeChecked.rules, 'no-console': 'off' },
   },
+  {
+    // Website demos: interactive examples, not library code.
+    files: ['website/**/*.{ts,tsx}'],
+    rules: {
+      '@typescript-eslint/no-unnecessary-condition': 'off',
+      '@typescript-eslint/no-confusing-void-expression': 'off',
+    },
+  },
   prettier,
 );
