@@ -3,9 +3,9 @@ import { mock, mockProvider } from '@avinash-baraiya/pragma-providers/mock';
 import { customersSchema } from '../../../../examples/tanstack-react/src/schema';
 
 /**
- * The playground runs entirely in the browser: GitHub Pages has no server and
- * the site must never hold an API key. Explicit instructions go through the
- * real deterministic parser; a small simulated model answers a few semantic
+ * The demos run entirely in the browser: GitHub Pages has no server and the
+ * site must never hold an API key. Explicit instructions go through the real
+ * deterministic parser; a small simulated model answers a few semantic
  * phrasings so the model path (and its validation) can be seen too.
  */
 const simulatedModel = mockProvider({
@@ -36,17 +36,22 @@ const simulatedModel = mockProvider({
     },
   ],
   fallback: mock.unsupported(
-    'The playground has no real model, so it only understands explicit instructions and a few sample phrases. Connect your own model to handle any phrasing.',
+    'The demo has no real model, so it only understands explicit instructions and a few sample phrases. Connect your own model to handle any phrasing.',
   ),
 });
 
 export const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-export const engine = createEngine({
-  schema: customersSchema,
-  timezone,
-  ambiguity: 'ask',
-  interpreter: createModelInterpreter({ provider: simulatedModel }),
-});
+/** A fresh engine per demo keeps each demo's cache and state independent. */
+export function createDemoEngine() {
+  return createEngine({
+    schema: customersSchema,
+    timezone,
+    ambiguity: 'ask',
+    interpreter: createModelInterpreter({ provider: simulatedModel }),
+  });
+}
+
+export const engine = createDemoEngine();
 
 export { customersSchema };

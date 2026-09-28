@@ -7,6 +7,6 @@ search: false
 
 <div class="shot-stage vp-doc">
 <ClientOnly>
-  <Playground stage />
+  <ReactIsland name="playground" :props="{ stage: true }" />
 </ClientOnly>
 </div>

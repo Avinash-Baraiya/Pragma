@@ -1,30 +1,39 @@
 ---
-aside: false
+layout: page
+title: Playground
 ---
 
-# Playground
+<div class="page-wide">
 
-This is the real Pragma engine, validator, React components and TanStack adapter, running in your browser on 500 sample customers.
-
-::: info No server, no API key
-GitHub Pages has no server, so this page has **no real language model**. Explicit instructions are handled by the deterministic parser exactly as in production. A small simulated model answers a few sample phrasings (“high value accounts”) so you can see the model path and its validation. In your app, connect [your own model](./ai-models) to handle any phrasing.
-:::
+<header class="page-head">
+<p class="hs__kicker">Playground</p>
+<h1>Ask the table anything.</h1>
+<p>The real Pragma engine, validator, React components and TanStack adapter, running in your browser. Type an instruction or pick an example; the inspector shows exactly what happened.</p>
+</header>
 
 <ClientOnly>
-  <Playground />
+<ReactIsland name="playground" min-height="640px" />
 </ClientOnly>
 
-## Things to try
+<div class="pg-notes">
+<article>
+<h3>What runs here</h3>
+<p>Explicit instructions go through the deterministic parser exactly as in production. A small <strong>simulated model</strong> answers a few sample phrasings, such as “high value accounts”, because this site has no server or API key.</p>
+</article>
+<article>
+<h3>Things to try</h3>
+<ul>
+<li><code>@</code> for local column autocomplete</li>
+<li><code>revenue between 5 lakh and 20 lakh</code></li>
+<li><code>recent customers</code>, which asks instead of guessing</li>
+<li><code>@internalNotes is empty</code>, a hidden field</li>
+<li><code>remove the country filter</code> after adding one</li>
+</ul>
+</article>
+<article>
+<h3>Use your own model</h3>
+<p>In your app, any phrasing works once you connect a model on your server. <a href="./ai-models">Add a model →</a></p>
+</article>
+</div>
 
-| Type this                                          | What happens                                               |
-| -------------------------------------------------- | ---------------------------------------------------------- |
-| `@`                                                | Local column autocomplete (no network)                     |
-| `status is trial or churned, sort by revenue desc` | Filter + sort, answered locally                            |
-| `joined in the last 30 days and not verified`      | Relative dates stay relative in the payload                |
-| `revenue between 5 lakh and 20 lakh`               | Indian number formats are understood                       |
-| `recent customers`                                 | Pragma asks what “recent” means instead of guessing        |
-| `profitable customers`                             | Refused: there is no profit field, and nothing is invented |
-| `@internalNotes is empty`                          | Hidden fields behave exactly like fields that do not exist |
-| `remove the country filter`                        | Changes apply to the current query                         |
-
-Open **TableQuery payload** under the table to see exactly what your backend would receive.
+</div>

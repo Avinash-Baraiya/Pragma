@@ -26,7 +26,7 @@ export default defineConfig({
   lastUpdated: true,
   head: [
     ['link', { rel: 'icon', type: 'image/svg+xml', href: `${base}favicon.svg` }],
-    ['meta', { name: 'theme-color', content: '#2f5bd3' }],
+    ['meta', { name: 'theme-color', content: '#4f46e5' }],
     ['meta', { property: 'og:title', content: 'Pragma — natural-language table queries' }],
     [
       'meta',

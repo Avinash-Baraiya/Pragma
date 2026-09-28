@@ -8,9 +8,10 @@ import {
   usePragma,
 } from '@avinash-baraiya/pragma-react';
 import { usePragmaTable } from '@avinash-baraiya/pragma-tanstack/react';
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { generateCustomers, type Customer } from '../../../../examples/tanstack-react/src/data';
 import { customersSchema, engine, timezone } from './engine';
+import { JsonView } from './JsonView';
 
 const data = generateCustomers(500);
 
@@ -64,28 +65,124 @@ const EXAMPLES: readonly { label: string; hint: string }[] = [
 
 /** `stage` renders a trimmed layout used only to capture the website screenshots. */
 export function Playground({ stage = false }: { stage?: boolean }): ReactNode {
+  if (stage)
+    return (
+      <PragmaProvider engine={engine}>
+        <div className="pg pg--stage">
+          <AskBar placeholder="e.g. active customers from India, newest first" />
+          <ClarificationPrompt />
+          <Feedback />
+          <QueryChips showPagination />
+          <CustomerTable columns={stageColumns} />
+          <div className="pg__aside">
+            <Explanation />
+            <QueryInspector />
+          </div>
+        </div>
+      </PragmaProvider>
+    );
   return (
     <PragmaProvider engine={engine}>
-      <div className={stage ? 'pg pg--stage' : 'pg'}>
-        {!stage && (
+      <div className="pg pg--full">
+        <div className="pg__main">
+          <AskBar
+            autoFocus
+            placeholder="Ask anything… e.g. active customers from India, newest first"
+          />
+          <Examples />
+          <ClarificationPrompt />
+          <Feedback />
+          <QueryChips showPagination />
+          <CustomerTable columns={columns} />
           <p className="pg__hint">
-            Type an instruction and press Enter. Type <kbd>@</kbd> to reference a column. 500 sample
-            customers, timezone {timezone}. Nothing leaves your browser.
+            500 sample customers · timezone {timezone} · runs entirely in your browser
           </p>
-        )}
-        <AskBar placeholder="e.g. active customers from India, newest first" />
-        {!stage && <Examples />}
-        <ClarificationPrompt />
-        <Feedback />
-        <QueryChips showPagination />
-        <CustomerTable columns={stage ? stageColumns : columns} />
-        <div className="pg__aside">
-          <Explanation />
-          <QueryInspector />
         </div>
+        <Inspector />
       </div>
     </PragmaProvider>
   );
+}
+
+/** What happened under the hood: explanation, payload and the raw result. */
+function Inspector(): ReactNode {
+  const { query, lastResult } = usePragma();
+  const [tab, setTab] = useState<'explain' | 'payload' | 'result'>('explain');
+  const meta = lastResult?.meta;
+  return (
+    <aside className="pg__side" aria-label="Inspector">
+      <div className="pg__meta">
+        {meta ? (
+          <>
+            <span className={`pg__status pg__status--${lastResult.status}`}>
+              {lastResult.status.replace('_', ' ')}
+            </span>
+            <span>
+              {meta.parser === 'llm' ? 'model' : meta.parser === 'cache' ? 'cache' : 'local parser'}
+            </span>
+            <span>
+              {meta.latencyMs < 10 ? meta.latencyMs.toFixed(1) : Math.round(meta.latencyMs)} ms
+            </span>
+          </>
+        ) : (
+          <span>Run an instruction to inspect it</span>
+        )}
+      </div>
+      <div className="pg__tabs" role="tablist" aria-label="Inspector view">
+        {(
+          [
+            ['explain', 'Explanation'],
+            ['payload', 'TableQuery'],
+            ['result', 'Result'],
+          ] as const
+        ).map(([id, label]) => (
+          <button
+            key={id}
+            type="button"
+            role="tab"
+            aria-selected={tab === id}
+            onClick={() => {
+              setTab(id);
+            }}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+      <div className="pg__panel" role="tabpanel">
+        {tab === 'explain' && <Explanation title="Interpreted as" />}
+        {tab === 'payload' && <JsonView value={query} />}
+        {tab === 'result' &&
+          (lastResult ? (
+            <JsonView value={summarize(lastResult)} />
+          ) : (
+            <p className="pg__muted">No instruction yet.</p>
+          ))}
+      </div>
+    </aside>
+  );
+}
+
+/** The parts of an InterpretResult worth showing (not the full query again). */
+function summarize(result: NonNullable<ReturnType<typeof usePragma>['lastResult']>): unknown {
+  const { meta } = result;
+  const base = {
+    status: result.status,
+    parser: meta.parser,
+    latencyMs: Math.round(meta.latencyMs * 10) / 10,
+  };
+  switch (result.status) {
+    case 'ok':
+      return { ...base, mutations: result.mutations, warnings: result.warnings };
+    case 'needs_clarification':
+      return { ...base, ambiguities: result.ambiguities };
+    default:
+      return {
+        ...base,
+        errors: result.errors,
+        ...('suggestions' in result ? { suggestions: result.suggestions } : {}),
+      };
+  }
 }
 
 function Examples(): ReactNode {
