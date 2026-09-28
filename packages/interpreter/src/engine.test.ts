@@ -262,6 +262,17 @@ describe('interpret: routing', () => {
       expect(badOp.suggestions.some((s) => s.kind === 'operator' && s.label === 'eq')).toBe(true);
   });
 
+  it('reports an empty model proposal as not understood instead of success', async () => {
+    const result = await engine({
+      interpreter: fakeModel({ mutations: [], ambiguities: [] }),
+    }).interpret('do the thing');
+    expect(result.status).toBe('unsupported');
+    expect(result.status === 'unsupported' && result.errors[0]).toMatchObject({
+      code: 'UNSUPPORTED_OPERATION',
+      messageKey: 'instruction.noChange',
+    });
+  });
+
   it('passes through model "unsupported" answers', async () => {
     const result = await engine({
       interpreter: fakeModel({

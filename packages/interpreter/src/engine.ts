@@ -434,7 +434,20 @@ class PragmaEngine implements Engine {
       );
       if ('issue' in outcome)
         return this.errorResult([outcome.issue], meta('llm', { provider: interpreter.id }));
-      proposal = outcome.proposal;
+      // A model that returns no actions, no questions and no "unsupported" did
+      // not understand the instruction; say so instead of reporting an unchanged
+      // table as success.
+      proposal = isEmptyProposal(outcome.proposal)
+        ? {
+            mutations: [],
+            ambiguities: [],
+            unsupported: {
+              reason: 'The instruction did not map to any change to this table.',
+              messageKey: 'instruction.noChange',
+              suggestions: [],
+            },
+          }
+        : outcome.proposal;
       parser = 'llm';
       modelMeta = {
         provider: outcome.provider ?? interpreter.id,
@@ -927,6 +940,20 @@ function dedupeSuggestions(suggestions: readonly Suggestion[]): Suggestion[] {
     seen.add(key);
     return true;
   });
+}
+
+/** True only for a well-formed proposal with nothing in it; malformed ones are left to validation. */
+function isEmptyProposal(proposal: Proposal): boolean {
+  const { mutations, ambiguities, unsupported } = proposal as Partial<
+    Record<keyof Proposal, unknown>
+  >;
+  return (
+    Array.isArray(mutations) &&
+    mutations.length === 0 &&
+    Array.isArray(ambiguities) &&
+    ambiguities.length === 0 &&
+    !unsupported
+  );
 }
 
 function usesRelativeDates(query: TableQuery): boolean {
