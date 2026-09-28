@@ -50,6 +50,9 @@
       ],
       "remote": [
         "./dist/remote.d.ts"
+      ],
+      "gemini": [
+        "./dist/gemini.d.ts"
       ]
     }
   },
@@ -118,6 +121,17 @@
       "require": {
         "types": "./dist/remote.d.cts",
         "default": "./dist/remote.cjs"
+      }
+    },
+    "./gemini": {
+      "@pragma/source": "./src/gemini.ts",
+      "import": {
+        "types": "./dist/gemini.d.ts",
+        "default": "./dist/gemini.js"
+      },
+      "require": {
+        "types": "./dist/gemini.d.cts",
+        "default": "./dist/gemini.cjs"
       }
     },
     "./package.json": "./package.json"

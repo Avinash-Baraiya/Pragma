@@ -5,6 +5,7 @@ export default defineConfig({
     'src/index.ts',
     'src/openai-compatible.ts',
     'src/anthropic.ts',
+    'src/gemini.ts',
     'src/ai-sdk.ts',
     'src/mock.ts',
     'src/remote.ts',

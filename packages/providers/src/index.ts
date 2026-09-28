@@ -3,6 +3,7 @@
  * unused SDKs are never bundled:
  *
  * - `@avinash-baraiya/pragma-providers/openai-compatible`
+ * - `@avinash-baraiya/pragma-providers/gemini`
  * - `@avinash-baraiya/pragma-providers/anthropic` (peer: `@anthropic-ai/sdk`)
  * - `@avinash-baraiya/pragma-providers/ai-sdk` (peer: `ai`)
  * - `@avinash-baraiya/pragma-providers/mock`
@@ -15,6 +16,8 @@
 
 export { openAICompatible } from './openai-compatible.js';
 export type { OpenAICompatibleOptions } from './openai-compatible.js';
+export { gemini } from './gemini.js';
+export type { GeminiProviderOptions } from './gemini.js';
 export { mock, mockProvider } from './mock.js';
 export type { MockOutput, MockProviderOptions, MockRule } from './mock.js';
 export { remoteInterpreter } from './remote.js';
